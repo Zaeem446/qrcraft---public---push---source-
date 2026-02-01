@@ -970,11 +970,11 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── QR Live Preview (DOM-based via qrCode.append) ──────────────────────────
+// ─── QR Live Preview (serialize-based for reliable plugin rendering) ─────────
 function QRLivePreview({ qrContainerRef }: { qrContainerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
     <div className="h-full bg-white flex items-center justify-center p-4">
-      <div ref={qrContainerRef} className="flex items-center justify-center [&>svg]:max-w-[200px] [&>svg]:max-h-[200px] [&>svg]:w-full [&>svg]:h-auto" />
+      <div ref={qrContainerRef} className="flex items-center justify-center w-full max-w-[280px] [&>svg]:w-full [&>svg]:h-auto" />
     </div>
   );
 }
@@ -1088,7 +1088,7 @@ export default function CreateQRPage() {
     });
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
-  // Render QR into DOM container — always recreate to ensure plugins/types apply
+  // Render QR — use serialize() to get final SVG after all plugins have run
   const renderQR = useCallback(async () => {
     if (!qrType) return;
     try {
@@ -1097,9 +1097,16 @@ export default function CreateQRPage() {
       const opts = buildQROptions(256, plugins);
       const qr = new QRCodeStyling(opts);
       qrInstanceRef.current = qr;
-      if (qrContainerRef.current) {
-        qrContainerRef.current.innerHTML = "";
-        qr.append(qrContainerRef.current);
+      // serialize() returns the final SVG string after all async drawing + plugins complete
+      const svgString = await qr.serialize();
+      if (svgString && qrContainerRef.current) {
+        qrContainerRef.current.innerHTML = svgString;
+        // Remove fixed width/height attrs so CSS can control sizing
+        const svg = qrContainerRef.current.querySelector("svg");
+        if (svg) {
+          svg.removeAttribute("width");
+          svg.removeAttribute("height");
+        }
       }
     } catch (e) { console.error("QR preview error:", e); }
   }, [qrType, buildQROptions, buildPlugins]);
@@ -1112,12 +1119,12 @@ export default function CreateQRPage() {
     }
   }, [step, design, qrType, content, renderQR]);
 
-  // Re-append QR when container appears (tab switch)
+  // Re-render QR when switching to QR tab (container may have been unmounted)
   useEffect(() => {
-    if (previewTab === "qrcode" && qrInstanceRef.current && qrContainerRef.current && !qrContainerRef.current.hasChildNodes()) {
-      qrInstanceRef.current.append(qrContainerRef.current);
+    if (previewTab === "qrcode" && qrContainerRef.current && !qrContainerRef.current.hasChildNodes()) {
+      renderQR();
     }
-  }, [previewTab]);
+  }, [previewTab, renderQR]);
 
   // Logo upload via FileReader (client-side base64)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
