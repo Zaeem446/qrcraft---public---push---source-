@@ -665,39 +665,61 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles with visual thumbnails ─────────────────────────────────────
+// ─── Frame Styles (16 styles like reference site) ────────────────────────────
 const FRAME_STYLES: { id: string; label: string }[] = [
   { id: "none", label: "None" },
-  { id: "bottom-text", label: "Bottom text" },
-  { id: "top-text", label: "Top text" },
-  { id: "both-text", label: "Both text" },
+  { id: "bottom-frame", label: "Bottom Frame" },
+  { id: "bottom-tooltip", label: "Bottom Tooltip" },
+  { id: "top-header", label: "Top Header" },
+  { id: "box", label: "Box" },
+  { id: "banner-bottom", label: "Banner Bottom" },
+  { id: "rounded-bottom", label: "Rounded Bottom" },
+  { id: "balloon", label: "Balloon" },
+  { id: "speech-left", label: "Speech Left" },
+  { id: "ticket", label: "Ticket" },
+  { id: "stamp", label: "Stamp" },
+  { id: "ribbon", label: "Ribbon" },
+  { id: "badge", label: "Badge" },
+  { id: "tab-top", label: "Tab Top" },
+  { id: "pill-bottom", label: "Pill Bottom" },
+  { id: "tag", label: "Tag" },
 ];
 
-// Mini QR grid used inside frame thumbnails
-function MiniQR({ className = "" }: { className?: string }) {
-  return (
-    <div className={`grid grid-cols-5 gap-[1px] ${className}`}>
-      {[1,1,1,0,1, 1,0,1,1,0, 1,1,0,1,1, 0,1,1,0,1, 1,0,1,1,1].map((v, i) => (
-        <div key={i} className={`w-[3px] h-[3px] ${v ? "bg-current" : "bg-transparent"}`} />
-      ))}
-    </div>
-  );
+// ─── Mini QR SVG (used in frame thumbs) ──────────────────────────────────────
+function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
+  const d = s / 7;
+  const grid = [1,1,1,0,1,1,1, 1,0,1,0,1,0,1, 1,1,1,0,0,1,0, 0,0,0,0,1,0,1, 1,0,0,1,0,0,1, 1,0,1,0,1,0,1, 1,0,0,1,1,1,1];
+  return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
 }
 
 function FrameThumb({ id }: { id: string }) {
   if (id === "none") return (
-    <svg className="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+    <svg className="w-full h-full text-gray-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={3}><circle cx="24" cy="24" r="18"/><line x1="10" y1="10" x2="38" y2="38"/></svg>
   );
+  // All frame thumbnails: 48x56 viewBox, mini QR centered, frame elements around it
   return (
-    <div className="flex flex-col items-center text-gray-700">
-      {(id === "top-text" || id === "both-text") && <div className="w-full bg-gray-400 rounded-[1px] h-[4px] mb-[2px] flex items-center justify-center"><span className="text-[2px] text-white font-bold leading-none">Scan</span></div>}
-      <div className="border border-gray-400 rounded-[2px] p-[2px]"><MiniQR /></div>
-      {(id === "bottom-text" || id === "both-text") && <div className="w-full bg-gray-400 rounded-[1px] h-[4px] mt-[2px] flex items-center justify-center"><span className="text-[2px] text-white font-bold leading-none">Scan Me!</span></div>}
-    </div>
+    <svg viewBox="0 0 48 56" className="w-full h-full text-gray-800">
+      {/* Frame-specific decorations */}
+      {id === "bottom-frame" && <><rect x="4" y="2" width="40" height="40" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={6} s={28}/><rect x="4" y="44" width="40" height="10" rx="2" fill="currentColor"/><text x="24" y="52" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text></>}
+      {id === "bottom-tooltip" && <><rect x="6" y="2" width="36" height="36" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={11} y={5} s={26}/><path d="M8 40h32v12H8z" fill="currentColor" rx="2"/><path d="M20 40l4-4 4 4" fill="currentColor"/><text x="24" y="49" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "top-header" && <><rect x="4" y="12" width="40" height="10" rx="2" fill="currentColor"/><text x="24" y="20" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text><rect x="4" y="24" width="40" height="30" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={28} s={24}/></>}
+      {id === "box" && <><rect x="3" y="3" width="42" height="50" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/><MiniQRSvg x={10} y={6} s={28}/><line x1="3" y1="38" x2="45" y2="38" stroke="currentColor" strokeWidth="1.5"/><text x="24" y="50" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text></>}
+      {id === "banner-bottom" && <><MiniQRSvg x={10} y={2} s={28}/><rect x="0" y="34" width="48" height="14" fill="currentColor"/><text x="24" y="44" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text></>}
+      {id === "rounded-bottom" && <><rect x="4" y="2" width="40" height="44" rx="8" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={5} s={24}/><rect x="8" y="34" width="32" height="10" rx="5" fill="currentColor"/><text x="24" y="42" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "balloon" && <><rect x="4" y="2" width="40" height="40" rx="8" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={6} s={28}/><path d="M18 42l6 10 6-10" fill="none" stroke="currentColor" strokeWidth="2"/></>}
+      {id === "speech-left" && <><rect x="6" y="2" width="38" height="38" rx="6" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={6} s={24}/><path d="M6 30 Q0 40 4 46" fill="none" stroke="currentColor" strokeWidth="2"/><text x="26" y="48" fill="currentColor" fontSize="5" fontWeight="bold">Scan!</text></>}
+      {id === "ticket" && <><rect x="3" y="3" width="42" height="50" rx="4" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 2"/><MiniQRSvg x={10} y={6} s={28}/><line x1="3" y1="38" x2="45" y2="38" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2"/><text x="24" y="50" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "stamp" && <><rect x="5" y="4" width="38" height="48" rx="2" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="2 3" strokeLinecap="round"/><MiniQRSvg x={11} y={8} s={26}/><text x="24" y="48" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "ribbon" && <><MiniQRSvg x={10} y={4} s={28}/><path d="M4 36h40v14l-4-3-4 3-4-3-4 3-4-3-4 3-4-3-4 3-4-3-4 3z" fill="currentColor"/><text x="24" y="46" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "badge" && <><circle cx="24" cy="22" r="20" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={10} s={24}/><rect x="8" y="44" width="32" height="10" rx="5" fill="currentColor"/><text x="24" y="52" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "tab-top" && <><rect x="10" y="0" width="28" height="10" rx="4" fill="currentColor"/><text x="24" y="8" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan</text><rect x="4" y="10" width="40" height="38" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={14} s={28}/></>}
+      {id === "pill-bottom" && <><rect x="6" y="2" width="36" height="36" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={11} y={5} s={26}/><rect x="6" y="42" width="36" height="12" rx="6" fill="currentColor"/><text x="24" y="51" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+      {id === "tag" && <><rect x="4" y="6" width="40" height="44" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={10} s={28}/><circle cx="24" cy="3" r="3" fill="none" stroke="currentColor" strokeWidth="1.5"/><text x="24" y="48" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+    </svg>
   );
 }
 
-// Dot pattern styles with SVG visual thumbnails
+// ─── Pattern styles with large visual thumbnails (matching reference) ─────────
 const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dots" },
@@ -708,29 +730,42 @@ const PATTERN_STYLES: { id: string; label: string }[] = [
 ];
 
 function PatternThumb({ id }: { id: string }) {
-  // 4x4 grid of dots showing the pattern visually
-  const cells = Array.from({ length: 16 });
-  const getShape = (i: number) => {
-    const x = (i % 4) * 11 + 5;
-    const y = Math.floor(i / 4) * 11 + 5;
-    const s = 4;
-    switch (id) {
-      case "dot": return <circle key={i} cx={x} cy={y} r={s} fill="currentColor" />;
-      case "rounded": return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} rx={2} fill="currentColor" />;
-      case "extra-rounded": return <circle key={i} cx={x} cy={y} r={s} fill="currentColor" />;
-      case "classy": return <path key={i} d={`M${x-s} ${y-s}h${s*2}v${s*2}h${-s*2}z`} fill="currentColor" />;
-      case "classy-rounded": return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} rx={s*0.4} fill="currentColor" />;
-      default: return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} fill="currentColor" />;
+  // 4x4 grid, each cell is a distinct dot shape — large and clear like reference
+  const rows = 4, cols = 4, gap = 14, pad = 5, sz = 5;
+  const cells: React.ReactNode[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cx = pad + c * gap + gap / 2;
+      const cy = pad + r * gap + gap / 2;
+      switch (id) {
+        case "square":
+          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} fill="currentColor" />);
+          break;
+        case "dot":
+          cells.push(<circle key={`${r}-${c}`} cx={cx} cy={cy} r={sz} fill="currentColor" />);
+          break;
+        case "rounded":
+          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} rx={sz * 0.4} fill="currentColor" />);
+          break;
+        case "extra-rounded":
+          cells.push(<circle key={`${r}-${c}`} cx={cx} cy={cy} r={sz * 0.85} fill="currentColor" />);
+          break;
+        case "classy":
+          // Square with one rounded corner
+          cells.push(<path key={`${r}-${c}`} d={`M${cx - sz} ${cy - sz}h${sz * 2}v${sz * 1.4}q0 ${sz * 0.6} -${sz * 0.6} ${sz * 0.6}h-${sz * 1.4}z`} fill="currentColor" />);
+          break;
+        case "classy-rounded":
+          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} rx={sz * 0.6} fill="currentColor" />);
+          break;
+      }
     }
-  };
+  }
   return (
-    <svg viewBox="0 0 48 48" className="w-full h-full text-gray-800">
-      {cells.map((_, i) => getShape(i))}
-    </svg>
+    <svg viewBox={`0 0 ${pad * 2 + cols * gap} ${pad * 2 + rows * gap}`} className="w-full h-full text-gray-900">{cells}</svg>
   );
 }
 
-// Corner square styles with visual shape icons
+// ─── Corner square styles with visual icons (matching reference) ─────────────
 const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -742,18 +777,18 @@ const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
 
 function CornerSquareThumb({ id }: { id: string }) {
   return (
-    <svg viewBox="0 0 28 28" className="w-6 h-6 text-gray-700">
-      {id === "dot" && <circle cx="14" cy="14" r="11" fill="none" stroke="currentColor" strokeWidth="3"/>}
-      {id === "square" && <rect x="3" y="3" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3"/>}
-      {id === "extra-rounded" && <rect x="3" y="3" width="22" height="22" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>}
-      {id === "classy" && <path d="M3 3h22v22H3z" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round"/>}
-      {id === "outpoint" && <><rect x="3" y="3" width="22" height="22" rx="3" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="14" cy="14" r="3" fill="currentColor"/></>}
-      {id === "inpoint" && <><rect x="3" y="3" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3"/><rect x="10" y="10" width="8" height="8" rx="4" fill="currentColor"/></>}
+    <svg viewBox="0 0 32 32" className="w-7 h-7 text-gray-800">
+      {id === "dot" && <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
+      {id === "square" && <rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
+      {id === "extra-rounded" && <rect x="4" y="4" width="24" height="24" rx="8" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
+      {id === "classy" && <rect x="4" y="4" width="24" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
+      {id === "outpoint" && <><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="16" cy="16" r="4" fill="currentColor"/></>}
+      {id === "inpoint" && <><rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"/><rect x="11" y="11" width="10" height="10" rx="5" fill="currentColor"/></>}
     </svg>
   );
 }
 
-// Corner dot styles with visual shape icons
+// ─── Corner dot styles with visual icons (matching reference) ────────────────
 const CORNER_DOT_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -766,14 +801,14 @@ const CORNER_DOT_STYLES: { id: string; label: string }[] = [
 
 function CornerDotThumb({ id }: { id: string }) {
   return (
-    <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-700">
-      {id === "dot" && <circle cx="12" cy="12" r="8" fill="currentColor"/>}
-      {id === "square" && <rect x="4" y="4" width="16" height="16" fill="currentColor"/>}
-      {id === "extra-rounded" && <rect x="4" y="4" width="16" height="16" rx="5" fill="currentColor"/>}
-      {id === "classy" && <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/>}
-      {id === "heart" && <path d="M12 21s-7-5-7-10a4.5 4.5 0 019 0 4.5 4.5 0 019 0c0 5-7 10-7 10z" fill="currentColor" transform="translate(-1.5,-2) scale(0.95)"/>}
-      {id === "outpoint" && <><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/><circle cx="12" cy="12" r="3" fill="white"/></>}
-      {id === "inpoint" && <><circle cx="12" cy="12" r="9" fill="currentColor"/><rect x="9" y="9" width="6" height="6" fill="white"/></>}
+    <svg viewBox="0 0 28 28" className="w-6 h-6 text-gray-800">
+      {id === "dot" && <circle cx="14" cy="14" r="10" fill="currentColor"/>}
+      {id === "square" && <rect x="4" y="4" width="20" height="20" fill="currentColor"/>}
+      {id === "extra-rounded" && <rect x="4" y="4" width="20" height="20" rx="6" fill="currentColor"/>}
+      {id === "classy" && <rect x="4" y="4" width="20" height="20" rx="2" fill="currentColor"/>}
+      {id === "heart" && <path d="M14 24C14 24 4 18 4 10.5C4 7.5 6.5 5 9 5C11 5 12.5 6 14 8C15.5 6 17 5 19 5C21.5 5 24 7.5 24 10.5C24 18 14 24 14 24Z" fill="currentColor"/>}
+      {id === "outpoint" && <><path d="M4 8a4 4 0 014-4h12a4 4 0 014 4v12a4 4 0 01-4 4H8a4 4 0 01-4-4z" fill="currentColor"/><circle cx="14" cy="14" r="4" fill="white"/></>}
+      {id === "inpoint" && <><circle cx="14" cy="14" r="11" fill="currentColor"/><rect x="10" y="10" width="8" height="8" fill="white"/></>}
     </svg>
   );
 }
@@ -896,8 +931,8 @@ export default function CreateQRPage() {
     frameText: "Scan me!",
     frameTopText: "",
     frameTextColor: "#FFFFFF",
-    frameRound: 0.1,
-    frameSize: 20,
+    frameRound: 0.1,  // kept for backward compat
+    frameSize: 20,    // kept for backward compat
     patternGradient: false,
     patternColor2: "#7C3AED",
     bgTransparent: false,
@@ -952,26 +987,30 @@ export default function CreateQRPage() {
   const buildPlugins = useCallback(async () => {
     if (design.frameStyle === "none") return [];
     const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
-    const textConfig: any = {
-      font: "Arial, sans-serif",
-      color: design.frameTextColor,
-      size: 14,
-      fontWeight: "bold" as const,
+    const txt = design.frameText || "Scan me!";
+    const topTxt = design.frameTopText || txt;
+    const textBase: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
+    // Map each frame style to a unique BorderPlugin config
+    const configs: Record<string, any> = {
+      "bottom-frame":    { size: 20, color: design.frameColor, round: 0.05, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "bottom-tooltip":  { size: 24, color: design.frameColor, round: 0.05, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "top-header":      { size: 20, color: design.frameColor, round: 0.05, text: { ...textBase, top: { ...textBase, content: topTxt } } },
+      "box":             { size: 18, color: design.frameColor, round: 0.08, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "banner-bottom":   { size: 22, color: design.frameColor, round: 0, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "rounded-bottom":  { size: 20, color: design.frameColor, round: 0.3, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "balloon":         { size: 20, color: design.frameColor, round: 0.25, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "speech-left":     { size: 18, color: design.frameColor, round: 0.2, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "ticket":          { size: 20, color: design.frameColor, round: 0.1, dasharray: "8 4", text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "stamp":           { size: 22, color: design.frameColor, round: 0.05, dasharray: "4 4", text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "ribbon":          { size: 20, color: design.frameColor, round: 0, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "badge":           { size: 24, color: design.frameColor, round: 0.5, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "tab-top":         { size: 20, color: design.frameColor, round: 0.1, text: { ...textBase, top: { ...textBase, content: topTxt } } },
+      "pill-bottom":     { size: 20, color: design.frameColor, round: 0.15, text: { ...textBase, bottom: { ...textBase, content: txt } } },
+      "tag":             { size: 18, color: design.frameColor, round: 0.08, text: { ...textBase, top: { ...textBase, content: topTxt } } },
     };
-    const textPositions: any = {};
-    if (design.frameStyle === "bottom-text" || design.frameStyle === "both-text") {
-      textPositions.bottom = { ...textConfig, content: design.frameText || "Scan me!" };
-    }
-    if (design.frameStyle === "top-text" || design.frameStyle === "both-text") {
-      textPositions.top = { ...textConfig, content: design.frameTopText || design.frameText || "Scan me!" };
-    }
-    return [new BorderPlugin({
-      size: design.frameSize,
-      color: design.frameColor,
-      round: design.frameRound,
-      text: { ...textConfig, ...textPositions },
-    })];
-  }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor, design.frameRound, design.frameSize]);
+    const cfg = configs[design.frameStyle] || configs["bottom-frame"];
+    return [new BorderPlugin(cfg)];
+  }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
   // Render QR into DOM container
   const renderQR = useCallback(async () => {
@@ -1331,10 +1370,10 @@ export default function CreateQRPage() {
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Frame style</label>
-                    <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
+                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
                       {FRAME_STYLES.map(f => (
                         <button key={f.id} onClick={() => { setDesign({ ...design, frameStyle: f.id }); qrInstanceRef.current = null; }}
-                          className={`aspect-square rounded-lg border-2 transition-all flex flex-col items-center justify-center p-1.5 ${
+                          className={`rounded-lg border-2 transition-all flex items-center justify-center p-2 h-16 ${
                             design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                           }`}
                           title={f.label}>
@@ -1361,18 +1400,6 @@ export default function CreateQRPage() {
                         <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
                         <InlineColorPicker label="Text color" value={design.frameTextColor} onChange={v => setDesign({ ...design, frameTextColor: v })} />
                       </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-2 block">Frame roundness: {design.frameRound.toFixed(1)}</label>
-                        <input type="range" min="0" max="1" step="0.1" value={design.frameRound}
-                          onChange={e => { setDesign({ ...design, frameRound: parseFloat(e.target.value) }); qrInstanceRef.current = null; }}
-                          className="w-full accent-violet-500" />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-2 block">Frame size: {design.frameSize}px</label>
-                        <input type="range" min="5" max="50" step="1" value={design.frameSize}
-                          onChange={e => { setDesign({ ...design, frameSize: parseInt(e.target.value) }); qrInstanceRef.current = null; }}
-                          className="w-full accent-violet-500" />
-                      </div>
                     </>
                   )}
                 </div>
@@ -1389,7 +1416,7 @@ export default function CreateQRPage() {
                       {PATTERN_STYLES.map(p => (
                         <button key={p.id} onClick={() => { setDesign({ ...design, dotsType: p.id }); qrInstanceRef.current = null; }}
                           title={p.label}
-                          className={`w-14 h-14 rounded-lg border-2 transition-all flex items-center justify-center p-1.5 ${
+                          className={`w-[70px] h-[70px] rounded-xl border-2 transition-all flex items-center justify-center p-2 ${
                             design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                           }`}>
                           <PatternThumb id={p.id} />
