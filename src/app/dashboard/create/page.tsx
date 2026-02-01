@@ -668,40 +668,49 @@ function DefaultPhonePreview() {
 // ─── Frame Styles — each maps 1:1 to a BorderPlugin config ──────────────────
 // BorderPlugin supports: round(0-1), size, color, dasharray, text(top/bottom/left/right)
 // Thumbnails show exactly what the plugin renders: a border rect + text labels
-// Each frame can have multiple layers (BorderPlugin instances stacked)
-type FrameLayer = { round: number; size: number; dash?: string; textPos: ("bottom" | "top" | "left" | "right")[] };
-type FrameStyle = { id: string; label: string; layers: FrameLayer[] };
+// ─── Frame system: CSS border frames + custom SVG decorative frames ──────────
+// type: "css" = border-based frame rendered via CSS in preview
+// type: "svg" = custom decorative SVG shape wrapping the QR
+type FrameStyle = {
+  id: string; label: string;
+  type: "css" | "svg";
+  // CSS frames
+  round?: number; dash?: string; textPos?: ("bottom"|"top")[];
+  double?: boolean;
+  // Download: BorderPlugin config
+  borderSize?: number; borderRound?: number; borderDash?: string;
+};
 
 const FRAME_STYLES: FrameStyle[] = [
-  // None
-  { id: "none", label: "None", layers: [] },
-  // ─── Single-layer frames ───
-  { id: "square-bottom",    label: "Square + Bottom",    layers: [{ round: 0,   size: 20, textPos: ["bottom"] }] },
-  { id: "square-top",       label: "Square + Top",       layers: [{ round: 0,   size: 20, textPos: ["top"] }] },
-  { id: "square-both",      label: "Square + Both",      layers: [{ round: 0,   size: 20, textPos: ["top", "bottom"] }] },
-  { id: "rounded-bottom",   label: "Rounded + Bottom",   layers: [{ round: 0.2, size: 20, textPos: ["bottom"] }] },
-  { id: "rounded-top",      label: "Rounded + Top",      layers: [{ round: 0.2, size: 20, textPos: ["top"] }] },
-  { id: "rounded-both",     label: "Rounded + Both",     layers: [{ round: 0.2, size: 20, textPos: ["top", "bottom"] }] },
-  { id: "pill-bottom",      label: "Pill + Bottom",      layers: [{ round: 0.5, size: 20, textPos: ["bottom"] }] },
-  { id: "pill-both",        label: "Pill + Both",        layers: [{ round: 0.5, size: 20, textPos: ["top", "bottom"] }] },
-  { id: "circle-bottom",    label: "Circle + Bottom",    layers: [{ round: 1,   size: 20, textPos: ["bottom"] }] },
-  { id: "dash-bottom",      label: "Dashed + Bottom",    layers: [{ round: 0,   size: 20, dash: "8 4", textPos: ["bottom"] }] },
-  { id: "dash-rounded",     label: "Dashed Rounded",     layers: [{ round: 0.2, size: 20, dash: "8 4", textPos: ["bottom"] }] },
-  { id: "dotted-bottom",    label: "Dotted + Bottom",    layers: [{ round: 0,   size: 20, dash: "3 3", textPos: ["bottom"] }] },
-  { id: "dotted-pill",      label: "Dotted Pill",        layers: [{ round: 0.5, size: 20, dash: "3 3", textPos: ["bottom"] }] },
-  { id: "square-notext",    label: "Square Border",      layers: [{ round: 0,   size: 20, textPos: [] }] },
-  { id: "rounded-notext",   label: "Rounded Border",     layers: [{ round: 0.2, size: 20, textPos: [] }] },
-  // ─── Multi-layer frames (stacked BorderPlugin instances) ───
-  { id: "double-square",    label: "Double Square",      layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 18, textPos: ["bottom"] }] },
-  { id: "double-rounded",   label: "Double Rounded",     layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 18, textPos: ["bottom"] }] },
-  { id: "double-pill",      label: "Double Pill",        layers: [{ round: 0.5, size: 2, textPos: [] }, { round: 0.5, size: 18, textPos: ["bottom"] }] },
-  { id: "double-circle",    label: "Double Circle",      layers: [{ round: 1, size: 2, textPos: [] }, { round: 1, size: 18, textPos: ["bottom"] }] },
-  { id: "thin-thick-sq",    label: "Thin + Thick",       layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 24, textPos: ["top", "bottom"] }] },
-  { id: "thin-thick-rd",    label: "Thin + Thick Round", layers: [{ round: 0.3, size: 2, textPos: [] }, { round: 0.3, size: 24, textPos: ["top", "bottom"] }] },
-  { id: "dash-solid",       label: "Dash + Solid",       layers: [{ round: 0, size: 2, dash: "4 3", textPos: [] }, { round: 0, size: 18, textPos: ["bottom"] }] },
-  { id: "solid-dash-rd",    label: "Solid + Dash Round", layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 18, dash: "6 3", textPos: ["bottom"] }] },
-  { id: "triple-square",    label: "Triple Square",      layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 4, textPos: [] }, { round: 0, size: 16, textPos: ["bottom"] }] },
-  { id: "triple-rounded",   label: "Triple Rounded",     layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 4, textPos: [] }, { round: 0.2, size: 16, textPos: ["bottom"] }] },
+  { id: "none",            label: "None",             type: "css", textPos: [] },
+  // ─── Simple border frames ───
+  { id: "sq-bottom",       label: "Square",           type: "css", round: 0,    textPos: ["bottom"] },
+  { id: "sq-top",          label: "Square Top",       type: "css", round: 0,    textPos: ["top"] },
+  { id: "sq-both",         label: "Square Both",      type: "css", round: 0,    textPos: ["top","bottom"] },
+  { id: "rd-bottom",       label: "Rounded",          type: "css", round: 12,   textPos: ["bottom"] },
+  { id: "rd-top",          label: "Rounded Top",      type: "css", round: 12,   textPos: ["top"] },
+  { id: "rd-both",         label: "Rounded Both",     type: "css", round: 12,   textPos: ["top","bottom"] },
+  { id: "pill-bottom",     label: "Pill",             type: "css", round: 24,   textPos: ["bottom"] },
+  { id: "pill-both",       label: "Pill Both",        type: "css", round: 24,   textPos: ["top","bottom"] },
+  { id: "dash-sq",         label: "Dashed",           type: "css", round: 0,    dash: "dashed", textPos: ["bottom"] },
+  { id: "dash-rd",         label: "Dashed Round",     type: "css", round: 12,   dash: "dashed", textPos: ["bottom"] },
+  { id: "dot-sq",          label: "Dotted",           type: "css", round: 0,    dash: "dotted", textPos: ["bottom"] },
+  { id: "dot-rd",          label: "Dotted Round",     type: "css", round: 12,   dash: "dotted", textPos: ["bottom"] },
+  { id: "dbl-sq",          label: "Double",           type: "css", round: 0,    double: true, textPos: ["bottom"] },
+  { id: "dbl-rd",          label: "Double Round",     type: "css", round: 12,   double: true, textPos: ["bottom"] },
+  { id: "sq-notext",       label: "Border Only",      type: "css", round: 0,    textPos: [] },
+  { id: "rd-notext",       label: "Round Only",       type: "css", round: 12,   textPos: [] },
+  // ─── Custom SVG decorative frames ───
+  { id: "clipboard",       label: "Clipboard",        type: "svg" },
+  { id: "coffee",          label: "Coffee Cup",       type: "svg" },
+  { id: "cloud",           label: "Cloud",            type: "svg" },
+  { id: "gift",            label: "Gift Box",         type: "svg" },
+  { id: "bag",             label: "Shopping Bag",     type: "svg" },
+  { id: "envelope",        label: "Envelope",         type: "svg" },
+  { id: "badge",           label: "Badge",            type: "svg" },
+  { id: "ticket",          label: "Ticket",           type: "svg" },
+  { id: "banner",          label: "Banner",           type: "svg" },
+  { id: "monitor",         label: "Monitor",          type: "svg" },
 ];
 
 // ─── Mini QR SVG (used in frame thumbs) ──────────────────────────────────────
@@ -711,34 +720,98 @@ function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
   return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
 }
 
+// ─── SVG frame thumbnails for custom decorative frames ───────────────────────
+function SvgFrameThumbContent({ id }: { id: string }) {
+  // Each returns an SVG viewBox="0 0 60 72" with a decorative shape + mini QR + "Scan Me!" text
+  const qr = <MiniQRSvg x={14} y={18} s={32} />;
+  const txt = <text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text>;
+  switch (id) {
+    case "clipboard": return (<>
+      <rect x="6" y="10" width="48" height="56" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <rect x="18" y="6" width="24" height="8" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <circle cx="30" cy="10" r="2" fill="currentColor"/>
+      {qr}<text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+    </>);
+    case "coffee": return (<>
+      <path d="M10 20 Q10 14 16 14 H44 Q50 14 50 20 V50 Q50 58 42 58 H18 Q10 58 10 50 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M50 26 Q58 26 58 34 Q58 42 50 42" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M22 8 Q22 4 26 6 Q30 8 30 4" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M30 8 Q30 4 34 6 Q38 8 38 4" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+      {qr}{txt}
+    </>);
+    case "cloud": return (<>
+      <path d="M12 28 Q4 28 4 20 Q4 12 12 12 Q14 4 24 4 Q34 4 36 12 Q44 10 48 16 Q54 18 54 26 Q54 32 48 32 H12 Q6 32 6 28 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <rect x="10" y="32" width="40" height="34" rx="2" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <MiniQRSvg x={14} y={34} s={32} />
+      <text x="30" y="62" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+    </>);
+    case "gift": return (<>
+      <rect x="8" y="20" width="44" height="46" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="30" y1="20" x2="30" y2="66" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="6" y="14" width="48" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <path d="M30 14 Q24 6 18 10" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <path d="M30 14 Q36 6 42 10" fill="none" stroke="currentColor" strokeWidth="2"/>
+      {qr}{txt}
+    </>);
+    case "bag": return (<>
+      <rect x="8" y="18" width="44" height="48" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M20 18 V12 Q20 6 30 6 Q40 6 40 12 V18" fill="none" stroke="currentColor" strokeWidth="2"/>
+      {qr}{txt}
+    </>);
+    case "envelope": return (<>
+      <rect x="4" y="14" width="52" height="52" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M4 14 L30 38 L56 14" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <MiniQRSvg x={14} y={26} s={32} />
+      <text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+    </>);
+    case "badge": return (<>
+      <circle cx="30" cy="30" r="24" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <polygon points="18,50 14,68 22,62 30,70 38,62 46,68 42,50" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <MiniQRSvg x={16} y={14} s={28} />
+      <text x="30" y="46" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
+    </>);
+    case "ticket": return (<>
+      <path d="M8 12 H52 V30 Q46 30 46 36 Q46 42 52 42 V60 H8 V42 Q14 42 14 36 Q14 30 8 30 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="14" y1="30" x2="46" y2="30" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2"/>
+      {qr}{txt}
+    </>);
+    case "banner": return (<>
+      <path d="M4 6 H56 V56 L30 48 L4 56 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <MiniQRSvg x={14} y={10} s={32} />
+      <text x="30" y="42" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+    </>);
+    case "monitor": return (<>
+      <rect x="6" y="6" width="48" height="40" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="30" y1="46" x2="30" y2="56" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="18" y1="56" x2="42" y2="56" stroke="currentColor" strokeWidth="2.5"/>
+      <MiniQRSvg x={14} y={10} s={32} />
+      <text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
+    </>);
+    default: return <>{qr}{txt}</>;
+  }
+}
+
 function FrameThumb({ frame }: { frame: FrameStyle }) {
   if (frame.id === "none") return (
     <svg className="w-full h-full text-gray-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={3}><circle cx="24" cy="24" r="18"/><line x1="10" y1="10" x2="38" y2="38"/></svg>
   );
-  // Determine if any layer has top/bottom text
-  const hasTop = frame.layers.some(l => l.textPos.includes("top"));
-  const hasBottom = frame.layers.some(l => l.textPos.includes("bottom"));
-  const qrY = hasTop ? 14 : 4;
-  const totalH = 30 + (hasTop ? 12 : 0) + (hasBottom ? 12 : 0) + 8;
-  // Render each layer as a border rect (stacked outward)
-  let offset = 0;
-  const borders = frame.layers.map((layer, i) => {
-    const rx = layer.round * 10;
-    const sw = Math.max(1, layer.size / 10); // scale size for thumbnail
-    const el = (
-      <rect key={i} x={3 - offset} y={2 - offset} width={42 + offset * 2} height={totalH - 4 + offset * 2}
-        rx={rx} fill="none" stroke="currentColor" strokeWidth={sw}
-        strokeDasharray={layer.dash || "none"} />
-    );
-    offset += sw + 1;
-    return el;
-  });
+  if (frame.type === "svg") return (
+    <svg viewBox="0 0 60 72" className="w-full h-full text-gray-800"><SvgFrameThumbContent id={frame.id}/></svg>
+  );
+  // CSS frame thumbnail
+  const hasTop = frame.textPos?.includes("top");
+  const hasBottom = frame.textPos?.includes("bottom");
+  const qrY = hasTop ? 16 : 6;
+  const totalH = 32 + (hasTop ? 14 : 0) + (hasBottom ? 14 : 0) + 12;
+  const rx = frame.round || 0;
+  const da = frame.dash === "dashed" ? "6 3" : frame.dash === "dotted" ? "2 2" : "none";
   return (
-    <svg viewBox={`${-offset} ${-offset} ${48 + offset * 2} ${totalH + offset * 2}`} className="w-full h-full text-gray-800">
-      {borders.reverse()}
-      {hasTop && <text x="24" y="12" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
-      <MiniQRSvg x={10} y={qrY} s={28} />
-      {hasBottom && <text x="24" y={totalH - 6} textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
+    <svg viewBox={`0 0 52 ${totalH}`} className="w-full h-full text-gray-800">
+      <rect x="3" y="3" width="46" height={totalH - 6} rx={rx} fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray={da}/>
+      {frame.double && <rect x="6" y="6" width="40" height={totalH - 12} rx={Math.max(0, rx - 3)} fill="none" stroke="currentColor" strokeWidth="1"/>}
+      {hasTop && <text x="26" y="14" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
+      <MiniQRSvg x={10} y={qrY} s={32} />
+      {hasBottom && <text x="26" y={totalH - 8} textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
     </svg>
   );
 }
@@ -970,9 +1043,115 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── QR Live Preview — CSS frame wrapper around clean QR SVG ─────────────────
-// The qrContainerRef div is ALWAYS rendered in the same place in the tree
-// to prevent React from unmounting/remounting it (which causes double QRs).
+// ─── SVG decorative frame wrappers for preview ──────────────────────────────
+// Each returns a div structure wrapping the QR with the decorative shape
+function SvgFrameWrapper({ id, color, text, children }: { id: string; color: string; text: string; children: React.ReactNode }) {
+  const textEl = <div className="text-center font-bold text-base py-2 truncate" style={{ color }}>{text}</div>;
+  switch (id) {
+    case "clipboard": return (
+      <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, paddingTop: 28, position: "relative", background: "white" }}>
+        <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "white", border: `3px solid ${color}`, borderRadius: 12, padding: "2px 18px" }}>
+          <div style={{ width: 10, height: 10, borderRadius: "50%", border: `2px solid ${color}`, margin: "0 auto" }}/>
+        </div>
+        {children}{textEl}
+      </div>
+    );
+    case "coffee": return (
+      <div style={{ position: "relative", background: "white" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 4 }}>
+          {[0,1,2].map(i => <svg key={i} width="14" height="20" viewBox="0 0 14 20"><path d="M7 18 Q7 10 3 6 Q7 2 7 0" fill="none" stroke={color} strokeWidth="2.5"/></svg>)}
+        </div>
+        <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, position: "relative" }}>
+          <div style={{ position: "absolute", right: -20, top: "30%", width: 18, height: 24, borderRadius: "0 10px 10px 0", border: `3px solid ${color}`, borderLeft: "none" }}/>
+          {children}{textEl}
+        </div>
+      </div>
+    );
+    case "cloud": return (
+      <div style={{ background: "white" }}>
+        <svg viewBox="0 0 200 60" style={{ width: "80%", display: "block", margin: "0 auto" }}>
+          <path d="M40 55 Q10 55 10 35 Q10 15 35 15 Q40 0 70 0 Q105 0 110 18 Q125 10 145 20 Q165 22 165 40 Q165 55 145 55 Z" fill="none" stroke={color} strokeWidth="5"/>
+        </svg>
+        <div style={{ border: `3px solid ${color}`, borderRadius: 4, padding: 16, marginTop: -2 }}>
+          {children}{textEl}
+        </div>
+      </div>
+    );
+    case "gift": return (
+      <div style={{ background: "white" }}>
+        <div style={{ border: `3px solid ${color}`, borderRadius: 4, padding: "4px 16px", display: "flex", justifyContent: "center", position: "relative" }}>
+          <svg viewBox="0 0 60 24" width="60" height="24"><path d="M30 20 Q20 4 10 12" fill="none" stroke={color} strokeWidth="3"/><path d="M30 20 Q40 4 50 12" fill="none" stroke={color} strokeWidth="3"/></svg>
+        </div>
+        <div style={{ border: `3px solid ${color}`, borderTop: "none", borderRadius: "0 0 8px 8px", padding: 16, position: "relative" }}>
+          <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, background: color, transform: "translateX(-50%)" }}/>
+          <div style={{ position: "relative" }}>{children}{textEl}</div>
+        </div>
+      </div>
+    );
+    case "bag": return (
+      <div style={{ background: "white" }}>
+        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 0 }}>
+          <svg viewBox="0 0 80 30" width="80" height="30"><path d="M24 28 V12 Q24 2 40 2 Q56 2 56 12 V28" fill="none" stroke={color} strokeWidth="4"/></svg>
+        </div>
+        <div style={{ border: `3px solid ${color}`, borderRadius: 6, padding: 16, marginTop: -2 }}>
+          {children}{textEl}
+        </div>
+      </div>
+    );
+    case "envelope": return (
+      <div style={{ border: `3px solid ${color}`, borderRadius: 6, padding: 16, paddingTop: 32, position: "relative", background: "white", overflow: "hidden" }}>
+        <svg viewBox="0 0 200 50" style={{ position: "absolute", top: 0, left: 0, width: "100%" }}><path d="M0 0 L100 40 L200 0" fill="none" stroke={color} strokeWidth="4"/></svg>
+        {children}{textEl}
+      </div>
+    );
+    case "badge": return (
+      <div style={{ textAlign: "center", background: "white" }}>
+        <div style={{ border: `3px solid ${color}`, borderRadius: "50%", padding: 20, display: "inline-block" }}>
+          <div style={{ width: 140, maxWidth: "100%" }}>{children}</div>
+        </div>
+        {textEl}
+      </div>
+    );
+    case "ticket": return (
+      <div style={{ border: `3px solid ${color}`, borderRadius: 12, padding: 16, position: "relative", background: "white" }}>
+        <div style={{ position: "absolute", left: -8, top: "45%", width: 14, height: 14, borderRadius: "50%", background: "white", border: `3px solid ${color}` }}/>
+        <div style={{ position: "absolute", right: -8, top: "45%", width: 14, height: 14, borderRadius: "50%", background: "white", border: `3px solid ${color}` }}/>
+        {children}
+        <div style={{ borderTop: `2px dashed ${color}`, margin: "8px 0" }}/>
+        {textEl}
+      </div>
+    );
+    case "banner": return (
+      <div style={{ background: "white" }}>
+        <div style={{ border: `3px solid ${color}`, borderBottom: "none", borderRadius: "8px 8px 0 0", padding: 16 }}>
+          {children}
+        </div>
+        <svg viewBox="0 0 200 50" style={{ width: "100%", display: "block" }}>
+          <path d="M0 0 H200 V35 L100 50 L0 35 Z" fill="none" stroke={color} strokeWidth="4"/>
+          <text x="100" y="28" textAnchor="middle" fill={color} fontSize="22" fontWeight="bold">{text}</text>
+        </svg>
+      </div>
+    );
+    case "monitor": return (
+      <div style={{ background: "white" }}>
+        <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16 }}>
+          {children}{textEl}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <div style={{ width: 3, height: 16, background: color }}/>
+        </div>
+        <div style={{ width: "60%", height: 3, background: color, margin: "0 auto", borderRadius: 2 }}/>
+      </div>
+    );
+    default: return (
+      <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, background: "white" }}>
+        {children}{textEl}
+      </div>
+    );
+  }
+}
+
+// ─── QR Live Preview ─────────────────────────────────────────────────────────
 function QRLivePreview({ qrContainerRef, design }: {
   qrContainerRef: React.RefObject<HTMLDivElement | null>;
   design: {
@@ -981,47 +1160,68 @@ function QRLivePreview({ qrContainerRef, design }: {
   };
 }) {
   const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
-  const hasFrame = frameDef && frameDef.id !== "none" && frameDef.layers.length > 0;
-  const hasTop = hasFrame && frameDef.layers.some(l => l.textPos.includes("top"));
-  const hasBottom = hasFrame && frameDef.layers.some(l => l.textPos.includes("bottom"));
-  const outerLayer = hasFrame ? frameDef.layers[frameDef.layers.length - 1] : null;
-  const innerLayer = hasFrame && frameDef.layers.length > 1 ? frameDef.layers[0] : null;
-  const textColor = hasFrame ? (design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor) : "#000";
+  const isNone = !frameDef || frameDef.id === "none";
+  const isSvg = frameDef?.type === "svg";
+  const textColor = design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor;
+  const txt = design.frameText || "Scan me!";
+  const topTxt = design.frameTopText || txt;
 
-  // Frame wrapper styles (applied to a wrapper div, NOT moving the ref)
-  const outerStyle: React.CSSProperties = hasFrame ? {
-    border: `3px ${outerLayer?.dash ? (outerLayer.dash === "3 3" ? "dotted" : "dashed") : "solid"} ${design.frameColor}`,
-    borderRadius: outerLayer ? `${outerLayer.round * 20}px` : "0",
-    padding: innerLayer ? "4px" : "8px",
-    background: "white",
-  } : {};
+  // QR container — always at the same tree position
+  const qrDiv = <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />;
 
-  const innerStyle: React.CSSProperties | null = innerLayer ? {
-    border: `1.5px ${innerLayer.dash ? "dashed" : "solid"} ${design.frameColor}`,
-    borderRadius: `${innerLayer.round * 16}px`,
-    padding: "6px",
-  } : null;
+  if (isNone) {
+    return (
+      <div className="h-full bg-white flex items-center justify-center p-6">
+        <div className="w-full max-w-[180px]">{qrDiv}</div>
+      </div>
+    );
+  }
+
+  if (isSvg) {
+    return (
+      <div className="h-full bg-white flex items-center justify-center p-4 overflow-hidden">
+        <div className="w-full max-w-[200px]">
+          <SvgFrameWrapper id={frameDef.id} color={design.frameColor} text={txt}>
+            {qrDiv}
+          </SvgFrameWrapper>
+        </div>
+      </div>
+    );
+  }
+
+  // CSS border frame
+  const hasTop = frameDef.textPos?.includes("top");
+  const hasBottom = frameDef.textPos?.includes("bottom");
+  const borderRadius = frameDef.round || 0;
+  const borderStyle = frameDef.dash || "solid";
 
   return (
     <div className="h-full bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-[200px]">
-        {/* Outer frame (or transparent when no frame) */}
-        <div style={outerStyle}>
-          {/* Inner frame for multi-layer (or nothing) */}
-          <div style={innerStyle || undefined}>
-            {hasTop && (
-              <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
-                {design.frameTopText || design.frameText || "Scan me!"}
-              </div>
-            )}
-            {/* QR container — NEVER moves in the tree */}
-            <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />
-            {hasBottom && (
-              <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
-                {design.frameText || "Scan me!"}
-              </div>
-            )}
-          </div>
+        <div style={{
+          border: `3px ${borderStyle} ${design.frameColor}`,
+          borderRadius,
+          padding: 16,
+          background: "white",
+        }}>
+          {frameDef.double && (
+            <div style={{
+              border: `1.5px solid ${design.frameColor}`,
+              borderRadius: Math.max(0, borderRadius - 4),
+              padding: 12,
+            }}>
+              {hasTop && <div className="text-center font-bold text-base pb-3 truncate" style={{ color: textColor }}>{topTxt}</div>}
+              {qrDiv}
+              {hasBottom && <div className="text-center font-bold text-base pt-3 truncate" style={{ color: textColor }}>{txt}</div>}
+            </div>
+          )}
+          {!frameDef.double && (
+            <>
+              {hasTop && <div className="text-center font-bold text-base pb-3 truncate" style={{ color: textColor }}>{topTxt}</div>}
+              {qrDiv}
+              {hasBottom && <div className="text-center font-bold text-base pt-3 truncate" style={{ color: textColor }}>{txt}</div>}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -1111,30 +1311,38 @@ export default function CreateQRPage() {
     };
   }, [design, content.url]);
 
-  // Build BorderPlugin instances — supports multi-layer frames
+  // Build BorderPlugin for download (approximates the visual CSS/SVG frame)
   const buildPlugins = useCallback(async () => {
     if (design.frameStyle === "none") return [];
     const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
     const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
-    if (!frameDef || frameDef.layers.length === 0) return [];
+    if (!frameDef) return [];
     const txt = design.frameText || "Scan me!";
     const topTxt = design.frameTopText || txt;
     const textStyle: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
-    return frameDef.layers.map(layer => {
-      const textConfig: any = {};
-      if (layer.textPos.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
-      if (layer.textPos.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
-      if (layer.textPos.includes("left")) textConfig.left = { ...textStyle, content: txt };
-      if (layer.textPos.includes("right")) textConfig.right = { ...textStyle, content: txt };
-      const cfg: any = {
-        size: layer.size,
-        color: design.frameColor,
-        round: layer.round,
-        text: { ...textStyle, ...textConfig },
-      };
-      if (layer.dash) cfg.dasharray = layer.dash;
-      return new BorderPlugin(cfg);
-    });
+    const textConfig: any = {};
+    // For SVG frames, always add bottom text in download
+    if (frameDef.type === "svg") {
+      textConfig.bottom = { ...textStyle, content: txt };
+    } else {
+      if (frameDef.textPos?.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
+      if (frameDef.textPos?.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
+    }
+    const roundVal = frameDef.type === "css" ? (frameDef.round || 0) / 24 : 0.1;
+    const cfg: any = {
+      size: 20,
+      color: design.frameColor,
+      round: Math.min(roundVal, 1),
+      text: { ...textStyle, ...textConfig },
+    };
+    if (frameDef.type === "css" && frameDef.dash) {
+      cfg.dasharray = frameDef.dash === "dashed" ? "8 4" : frameDef.dash === "dotted" ? "3 3" : undefined;
+    }
+    const plugins = [new BorderPlugin(cfg)];
+    if (frameDef.double) {
+      plugins.unshift(new BorderPlugin({ size: 2, color: design.frameColor, round: Math.min(roundVal, 1) }));
+    }
+    return plugins;
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
   // Render QR preview — clean QR only (no plugins), CSS frame handles the border
@@ -1515,7 +1723,7 @@ export default function CreateQRPage() {
                         <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
                           className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                       </div>
-                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.layers.some(l => l.textPos.includes("top")); })() && (
+                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.type === "css" && fd.textPos?.includes("top"); })() && (
                         <div>
                           <label className="text-xs font-medium text-gray-600 mb-1.5 block">Top text</label>
                           <input type="text" value={design.frameTopText} onChange={e => setDesign({ ...design, frameTopText: e.target.value })}
