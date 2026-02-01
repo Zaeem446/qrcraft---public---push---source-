@@ -1088,22 +1088,18 @@ export default function CreateQRPage() {
     });
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
-  // Render QR into DOM container
+  // Render QR into DOM container — always recreate to ensure plugins/types apply
   const renderQR = useCallback(async () => {
     if (!qrType) return;
     try {
       const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
       const plugins = await buildPlugins();
       const opts = buildQROptions(256, plugins);
-      if (qrInstanceRef.current) {
-        qrInstanceRef.current.update(opts);
-      } else {
-        const qr = new QRCodeStyling(opts);
-        qrInstanceRef.current = qr;
-        if (qrContainerRef.current) {
-          qrContainerRef.current.innerHTML = "";
-          qr.append(qrContainerRef.current);
-        }
+      const qr = new QRCodeStyling(opts);
+      qrInstanceRef.current = qr;
+      if (qrContainerRef.current) {
+        qrContainerRef.current.innerHTML = "";
+        qr.append(qrContainerRef.current);
       }
     } catch (e) { console.error("QR preview error:", e); }
   }, [qrType, buildQROptions, buildPlugins]);
