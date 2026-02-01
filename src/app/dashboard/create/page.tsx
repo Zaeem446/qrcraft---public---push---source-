@@ -46,6 +46,7 @@ import {
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import Spinner from "@/components/ui/Spinner";
 
 // ─── Icon Map ───────────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -56,9 +57,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   ChatBubbleBottomCenterTextIcon, CurrencyDollarIcon, DocumentTextIcon,
 };
 
-// ─── Phone Preview Components (Matching Reference Site Exactly) ─────────────
-// These receive content state so they can update in real-time
-
+// ─── Phone Preview Components ────────────────────────────────────────────────
 function WebsitePreview({ content }: { content: Record<string, any> }) {
   const url = content?.url || "https://qr-generator.ai";
   const displayUrl = url.replace(/^https?:\/\//, "").replace(/\/$/, "") || "qr-generator.ai";
@@ -91,7 +90,7 @@ function PdfPreview() {
           <DocumentIcon className="h-8 w-8 text-white" />
         </div>
         <p className="text-white text-sm font-bold">Company Report</p>
-        <p className="text-white/70 text-[10px] mt-0.5">PDF Document • 2.4 MB</p>
+        <p className="text-white/70 text-[10px] mt-0.5">PDF Document &bull; 2.4 MB</p>
       </div>
       <div className="flex-1 p-4 space-y-2">
         <div className="h-3 bg-gray-200 rounded-full w-full" />
@@ -99,8 +98,6 @@ function PdfPreview() {
         <div className="h-3 bg-gray-100 rounded-full w-4/5" />
         <div className="h-3 bg-gray-200 rounded-full w-full" />
         <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-        <div className="h-3 bg-gray-100 rounded-full w-full" />
-        <div className="h-3 bg-gray-200 rounded-full w-2/3" />
       </div>
       <div className="p-3">
         <div className="bg-red-500 rounded-lg py-2.5 text-center">
@@ -120,7 +117,7 @@ function LinksPreview() {
       <p className="text-white text-sm font-bold mb-0.5">Sarah Johnson</p>
       <p className="text-white/60 text-[10px] mb-4">Digital Creator & Designer</p>
       {["Portfolio Website", "Latest Blog Post", "Twitter Profile", "YouTube Channel"].map((l) => (
-        <div key={l} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center hover:bg-white/25 transition-colors">
+        <div key={l} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center">
           <span className="text-white text-xs font-medium">{l}</span>
         </div>
       ))}
@@ -139,11 +136,7 @@ function VcardPreview() {
         <p className="text-white/80 text-xs">Software Engineer at TechCo</p>
       </div>
       <div className="px-4 py-3 space-y-2 -mt-5">
-        {[
-          { label: "Phone", value: "+1 (555) 123-4567" },
-          { label: "Email", value: "john@techco.com" },
-          { label: "Website", value: "www.johnsmith.dev" },
-        ].map((f) => (
+        {[{ label: "Phone", value: "+1 (555) 123-4567" }, { label: "Email", value: "john@techco.com" }, { label: "Website", value: "www.johnsmith.dev" }].map((f) => (
           <div key={f.label} className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
             <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
             <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
@@ -189,11 +182,9 @@ function VideoPreview() {
         </div>
       </div>
       <div className="p-4">
-        <div className="h-1 bg-gray-700 rounded-full mb-3">
-          <div className="h-1 bg-red-500 rounded-full w-1/3" />
-        </div>
+        <div className="h-1 bg-gray-700 rounded-full mb-3"><div className="h-1 bg-red-500 rounded-full w-1/3" /></div>
         <p className="text-white text-xs font-semibold mb-1">Product Launch Video</p>
-        <p className="text-gray-500 text-[10px]">1,234 views • 2 days ago</p>
+        <p className="text-gray-500 text-[10px]">1,234 views &bull; 2 days ago</p>
       </div>
     </div>
   );
@@ -204,7 +195,7 @@ function ImagesPreview() {
     <div className="h-full bg-amber-50 flex flex-col">
       <div className="bg-[#8B5E3C] px-4 pt-5 pb-4 text-center">
         <p className="text-white text-lg font-bold italic">Nature&apos;s Canvas</p>
-        <p className="text-white/80 text-xs mt-1 leading-relaxed">Browse our gallery of nature photos and order prints of any image!</p>
+        <p className="text-white/80 text-xs mt-1">Browse our gallery of nature photos</p>
       </div>
       <div className="px-4 py-3">
         <div className="bg-white rounded-xl py-2.5 text-center mb-3 shadow-sm border border-amber-100">
@@ -214,13 +205,6 @@ function ImagesPreview() {
       <div className="flex-1 px-4 pb-4">
         <div className="h-full rounded-xl overflow-hidden bg-gradient-to-br from-orange-300 via-red-300 to-amber-400 relative">
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-2">
-            <div className="flex gap-1">
-              <div className="h-8 flex-1 bg-amber-200/50 rounded" />
-              <div className="h-8 flex-1 bg-emerald-200/50 rounded" />
-              <div className="h-8 flex-1 bg-orange-200/50 rounded" />
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -238,15 +222,15 @@ function FacebookPreview() {
           <div className="w-10 h-10 bg-blue-100 rounded-full" />
           <div>
             <p className="text-xs font-semibold text-gray-900">Business Page</p>
-            <p className="text-[10px] text-gray-500">2h • 🌍</p>
+            <p className="text-[10px] text-gray-500">2h</p>
           </div>
         </div>
-        <p className="text-xs text-gray-700 mb-2">Check out our latest updates! 🎉</p>
+        <p className="text-xs text-gray-700 mb-2">Check out our latest updates!</p>
         <div className="h-28 bg-blue-50 rounded-lg mb-2" />
         <div className="flex justify-around py-2 border-t border-gray-100">
-          <span className="text-[10px] text-gray-500 font-medium">👍 Like</span>
-          <span className="text-[10px] text-gray-500 font-medium">💬 Comment</span>
-          <span className="text-[10px] text-gray-500 font-medium">↗ Share</span>
+          <span className="text-[10px] text-gray-500 font-medium">Like</span>
+          <span className="text-[10px] text-gray-500 font-medium">Comment</span>
+          <span className="text-[10px] text-gray-500 font-medium">Share</span>
         </div>
       </div>
     </div>
@@ -256,20 +240,12 @@ function FacebookPreview() {
 function InstagramPreview() {
   return (
     <div className="h-full bg-white flex flex-col">
-      {/* Header */}
       <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <ChevronRightIcon className="h-4 w-4 text-gray-900 rotate-180" />
           <span className="text-xs font-bold text-gray-900">stunningtravelphotography</span>
-          <svg className="h-3 w-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" /></svg>
         </div>
-        <div className="flex items-center gap-2">
-          <BellIcon className="h-4 w-4 text-gray-900" />
-          <EllipsisHorizontalIcon className="h-4 w-4 text-gray-900" />
-        </div>
+        <EllipsisHorizontalIcon className="h-4 w-4 text-gray-900" />
       </div>
-
-      {/* Profile section */}
       <div className="px-3 py-2 flex items-center gap-3">
         <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 p-[2px] flex-shrink-0">
           <div className="w-full h-full rounded-full bg-white p-[1px]">
@@ -282,50 +258,19 @@ function InstagramPreview() {
           <div><p className="text-xs font-bold text-gray-900">2,160</p><p className="text-[9px] text-gray-500">Following</p></div>
         </div>
       </div>
-
-      {/* Bio */}
       <div className="px-3 pb-1">
         <p className="text-[11px] font-bold text-gray-900">Stunning Travel Photography</p>
         <p className="text-[10px] text-gray-500">Travel and Photography Magazine</p>
-        <p className="text-[9px] text-gray-700 mt-0.5 leading-relaxed">We provide the best travel photos available! Contact us to order prints.</p>
-        <p className="text-[9px] text-blue-900">www.stunningtravel.com</p>
       </div>
-
-      {/* Action buttons */}
       <div className="px-3 py-1.5 flex gap-1">
         <div className="flex-1 bg-blue-500 rounded-md py-1 text-center"><span className="text-[9px] text-white font-semibold">Follow</span></div>
         <div className="flex-1 bg-gray-100 rounded-md py-1 text-center"><span className="text-[9px] text-gray-900 font-semibold">Message</span></div>
-        <div className="flex-1 bg-gray-100 rounded-md py-1 text-center"><span className="text-[9px] text-gray-900 font-semibold">Contact</span></div>
-        <div className="bg-gray-100 rounded-md py-1 px-1.5"><ChevronDownIcon className="h-2.5 w-2.5 text-gray-900" /></div>
       </div>
-
-      {/* Story Highlights */}
-      <div className="px-3 py-1.5 flex gap-3 overflow-hidden">
-        {["Japan", "Italy", "Greece", "USA"].map((name, i) => (
-          <div key={name} className="flex flex-col items-center gap-0.5">
-            <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
-              <div className={`w-full h-full ${i===0?'bg-pink-100':i===1?'bg-amber-100':i===2?'bg-blue-100':'bg-emerald-100'}`} />
-            </div>
-            <span className="text-[8px] text-gray-600">{name}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Grid tabs */}
-      <div className="flex border-t border-gray-100">
-        <div className="flex-1 py-1.5 flex justify-center border-b-2 border-gray-900"><Bars3Icon className="h-4 w-4 text-gray-900" /></div>
-        <div className="flex-1 py-1.5 flex justify-center"><VideoCameraIcon className="h-4 w-4 text-gray-400" /></div>
-        <div className="flex-1 py-1.5 flex justify-center"><UserIcon className="h-4 w-4 text-gray-400" /></div>
-      </div>
-
-      {/* Photo Grid */}
       <div className="grid grid-cols-3 gap-[1px] flex-1">
         {[1,2,3,4,5,6].map(i => (
           <div key={i} className={`${i%3===0?'bg-sky-200':i%2===0?'bg-amber-100':'bg-emerald-100'}`} />
         ))}
       </div>
-
-      {/* Bottom Nav */}
       <div className="flex justify-around items-center py-2 border-t border-gray-100">
         <HomeIcon className="h-5 w-5 text-gray-900" />
         <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
@@ -350,7 +295,6 @@ function SocialPreview() {
         { name: "Twitter / X", color: "from-gray-800 to-gray-900" },
         { name: "LinkedIn", color: "from-blue-600 to-blue-700" },
         { name: "YouTube", color: "from-red-500 to-red-600" },
-        { name: "TikTok", color: "from-gray-900 to-gray-800" },
       ].map((s) => (
         <div key={s.name} className={`bg-gradient-to-r ${s.color} rounded-xl px-4 py-2.5 mb-2 shadow-sm`}>
           <span className="text-white text-xs font-medium">{s.name}</span>
@@ -375,12 +319,12 @@ function WhatsappPreview() {
       </div>
       <div className="flex-1 p-3 space-y-2">
         <div className="bg-white rounded-xl rounded-tl-sm p-2.5 max-w-[85%] shadow-sm">
-          <p className="text-[10px] text-gray-800">Welcome! 👋 How can we help you today?</p>
+          <p className="text-[10px] text-gray-800">Welcome! How can we help you today?</p>
           <p className="text-[8px] text-gray-400 text-right mt-1">10:30 AM</p>
         </div>
         <div className="bg-[#DCF8C6] rounded-xl rounded-tr-sm p-2.5 ml-auto max-w-[80%] shadow-sm">
           <p className="text-[10px] text-gray-800">Hi! I&apos;d like more information please</p>
-          <p className="text-[8px] text-gray-400 text-right mt-1">10:31 AM ✓✓</p>
+          <p className="text-[8px] text-gray-400 text-right mt-1">10:31 AM</p>
         </div>
       </div>
       <div className="px-3 pb-3">
@@ -404,17 +348,8 @@ function Mp3Preview() {
       <p className="text-white text-sm font-bold mb-0.5">Summer Vibes</p>
       <p className="text-gray-400 text-[10px] mb-5">The Audio Band</p>
       <div className="w-full space-y-2">
-        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 bg-green-400 rounded-full relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" /></div></div>
+        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 bg-green-400 rounded-full" /></div>
         <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
-      </div>
-      <div className="flex items-center gap-6 mt-4">
-        <ArrowPathIcon className="h-4 w-4 text-gray-500" />
-        <ChevronRightIcon className="h-5 w-5 text-white rotate-180" />
-        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-          <div className="w-0 h-0 border-l-[8px] border-l-gray-900 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent ml-0.5" />
-        </div>
-        <ChevronRightIcon className="h-5 w-5 text-white" />
-        <ArrowPathIcon className="h-4 w-4 text-gray-500 -scale-x-100" />
       </div>
     </div>
   );
@@ -424,9 +359,6 @@ function MenuPreview() {
   return (
     <div className="h-full bg-white flex flex-col">
       <div className="bg-teal-50 px-4 pt-5 pb-4 text-center">
-        <div className="w-16 h-16 border-2 border-teal-300 rounded-full mx-auto mb-2 flex items-center justify-center relative">
-          <span className="text-[6px] font-black text-teal-700 tracking-tighter leading-none text-center">THE<br/>CUISINE<br/>RESTAURANT</span>
-        </div>
         <p className="text-base font-bold text-gray-900">The Cuisine</p>
         <p className="text-xs text-teal-600 mt-0.5">New American Food and Beverage</p>
       </div>
@@ -452,11 +384,9 @@ function AppsPreview() {
       <p className="text-white/70 text-xs mb-6">Download now for free</p>
       <div className="w-full space-y-3">
         <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-lg">🍎</span>
           <div><p className="text-[9px] text-gray-400">Download on the</p><p className="text-white text-xs font-semibold">App Store</p></div>
         </div>
         <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-lg">▶️</span>
           <div><p className="text-[9px] text-gray-400">GET IT ON</p><p className="text-white text-xs font-semibold">Google Play</p></div>
         </div>
       </div>
@@ -468,15 +398,12 @@ function CouponPreview() {
   return (
     <div className="h-full bg-gradient-to-b from-yellow-50 to-amber-50 flex flex-col items-center justify-center p-5">
       <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed border-amber-300 relative">
-        <div className="absolute -left-3 top-1/2 w-6 h-6 bg-amber-50 rounded-full border-2 border-dashed border-amber-300" />
-        <div className="absolute -right-3 top-1/2 w-6 h-6 bg-amber-50 rounded-full border-2 border-dashed border-amber-300" />
         <p className="text-center text-3xl font-black text-amber-500">20%</p>
         <p className="text-center text-lg font-bold text-amber-600">OFF</p>
         <p className="text-center text-xs text-gray-500 mt-2">Your next purchase</p>
         <div className="mt-4 bg-gray-100 rounded-lg px-4 py-2 text-center">
           <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">SAVE20</span>
         </div>
-        <p className="text-center text-[9px] text-gray-400 mt-2">Valid until March 2026</p>
       </div>
     </div>
   );
@@ -485,12 +412,11 @@ function CouponPreview() {
 function WifiPreview() {
   return (
     <div className="h-full bg-gradient-to-b from-[#F87171] to-[#EF4444] flex flex-col items-center justify-center px-6 py-8">
-      {/* WiFi Icon - Large and faded */}
       <svg className="w-28 h-28 text-white/20 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
         <path d="M1.5 8.5c5.5-5.5 14-5.5 19.5 0" /><path d="M5 12c3.5-3.5 9-3.5 12.5 0" /><path d="M8.5 15.5c2-2 5-2 7 0" /><circle cx="12" cy="19" r="1" fill="currentColor" />
       </svg>
-      <p className="text-white text-base font-semibold mb-0.5 text-center">Join the &ldquo;Hotel Bar&rdquo;</p>
-      <p className="text-white/80 text-sm mb-6 text-center">WiFi network?</p>
+      <p className="text-white text-base font-semibold mb-0.5 text-center">Join the WiFi</p>
+      <p className="text-white/80 text-sm mb-6 text-center">WiFi network</p>
       <button className="w-full bg-[#F87171] border-2 border-white/30 rounded-2xl py-3 text-white font-semibold text-sm mb-3">Connect</button>
       <button className="w-full bg-white/10 rounded-2xl py-3 text-white/80 text-sm">Close</button>
     </div>
@@ -507,7 +433,7 @@ function EventPreview() {
       </div>
       <div className="p-4 space-y-3">
         {[
-          { label: "Date & Time", value: "March 15, 2026 • 9:00 AM" },
+          { label: "Date & Time", value: "March 15, 2026 &bull; 9:00 AM" },
           { label: "Location", value: "Convention Center, San Francisco" },
           { label: "Organizer", value: "TechEvents Inc." },
         ].map(f => (
@@ -529,7 +455,6 @@ function EmailPreview() {
     <div className="h-full bg-white flex flex-col">
       <div className="bg-blue-500 px-4 py-3 flex items-center justify-between">
         <span className="text-white text-xs font-semibold">New Email</span>
-        <ArrowRightIcon className="h-4 w-4 text-white" />
       </div>
       <div className="flex-1 p-4 space-y-3">
         <div className="border-b border-gray-100 pb-3">
@@ -539,15 +464,6 @@ function EmailPreview() {
         <div className="border-b border-gray-100 pb-3">
           <p className="text-[10px] text-gray-400 font-medium">Subject:</p>
           <p className="text-xs text-gray-700 mt-0.5">Inquiry about your services</p>
-        </div>
-        <div>
-          <p className="text-[10px] text-gray-400 font-medium">Message:</p>
-          <div className="mt-2 space-y-1.5">
-            <div className="h-2.5 bg-gray-100 rounded w-full" />
-            <div className="h-2.5 bg-gray-100 rounded w-4/5" />
-            <div className="h-2.5 bg-gray-100 rounded w-full" />
-            <div className="h-2.5 bg-gray-100 rounded w-3/4" />
-          </div>
         </div>
       </div>
       <div className="p-3">
@@ -573,12 +489,6 @@ function SmsPreview() {
           <p className="text-xs text-white">Hello! This is a pre-written SMS message from QR code.</p>
         </div>
       </div>
-      <div className="p-3 border-t border-gray-100">
-        <div className="bg-gray-100 rounded-full px-4 py-2 flex items-center">
-          <span className="text-xs text-gray-400 flex-1">iMessage</span>
-          <ArrowRightIcon className="h-4 w-4 text-blue-500" />
-        </div>
-      </div>
     </div>
   );
 }
@@ -593,9 +503,6 @@ function ReviewPreview() {
       </div>
       <p className="text-lg font-bold text-gray-900">Rate Us!</p>
       <p className="text-xs text-gray-500 mt-1 mb-4">We value your honest feedback</p>
-      <div className="bg-white rounded-2xl shadow-sm p-4 w-full">
-        <textarea className="w-full text-xs text-gray-400 resize-none bg-transparent outline-none" rows={3} defaultValue="" placeholder="Share your experience..." readOnly />
-      </div>
       <div className="bg-amber-500 rounded-xl py-2.5 text-center w-full mt-3">
         <span className="text-white text-xs font-semibold">Submit Review</span>
       </div>
@@ -607,13 +514,10 @@ function BitcoinPreview() {
   return (
     <div className="h-full bg-gradient-to-b from-orange-400 via-amber-500 to-yellow-500 flex flex-col items-center justify-center p-5">
       <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-2xl">
-        <span className="text-3xl font-black text-orange-500">₿</span>
+        <span className="text-3xl font-black text-orange-500">&#8383;</span>
       </div>
       <p className="text-white font-bold text-base mb-1">Bitcoin Payment</p>
       <p className="text-white/70 text-xs mb-5">Send BTC to this address</p>
-      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 w-full">
-        <p className="text-[8px] text-white/60 font-mono text-center break-all">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</p>
-      </div>
       <div className="bg-white rounded-xl py-2.5 text-center w-full mt-3">
         <span className="text-orange-500 text-xs font-bold">Copy Address</span>
       </div>
@@ -630,32 +534,21 @@ function TextPreview() {
         <div className="h-3 bg-gray-100 rounded-full w-5/6" />
         <div className="h-3 bg-gray-100 rounded-full w-4/5" />
         <div className="h-3 bg-gray-200 rounded-full w-full" />
-        <div className="h-3 bg-gray-100 rounded-full w-2/3" />
-        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
       </div>
     </div>
   );
 }
 
-// ─── Default Preview (QR with dashed border like reference) ─────────────────
 function DefaultPhonePreview() {
   return (
     <div className="h-full bg-white flex flex-col items-center justify-center p-5">
-      {/* Dashed corner brackets like the reference */}
       <div className="relative w-36 h-36 mb-4">
-        {/* Corner brackets */}
         <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-violet-400 rounded-tl-lg" />
         <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-violet-400 rounded-tr-lg" />
         <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-violet-400 rounded-bl-lg" />
         <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-violet-400 rounded-br-lg" />
-        {/* QR icon in center */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            <QrCodeIcon className="h-20 w-20 text-gray-900" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="bg-white px-1 text-[8px] font-bold text-gray-400 border border-gray-200 rounded">LOGO</span>
-            </div>
-          </div>
+          <QrCodeIcon className="h-20 w-20 text-gray-900" />
         </div>
       </div>
       <div className="bg-violet-500 rounded-2xl px-5 py-3 text-center w-full">
@@ -665,296 +558,75 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles — each maps 1:1 to a BorderPlugin config ──────────────────
-// BorderPlugin supports: round(0-1), size, color, dasharray, text(top/bottom/left/right)
-// Thumbnails show exactly what the plugin renders: a border rect + text labels
-// ─── Frame system: CSS border frames + custom SVG decorative frames ──────────
-// type: "css" = border-based frame rendered via CSS in preview
-// type: "svg" = custom decorative SVG shape wrapping the QR
-type FrameStyle = {
-  id: string; label: string;
-  type: "css" | "svg";
-  // CSS frames
-  round?: number; dash?: string; textPos?: ("bottom"|"top")[];
-  double?: boolean;
-  // Download: BorderPlugin config
-  borderSize?: number; borderRound?: number; borderDash?: string;
-};
+// ─── QRFY Design Options ────────────────────────────────────────────────────
 
-const FRAME_STYLES: FrameStyle[] = [
-  { id: "none",            label: "None",             type: "css", textPos: [] },
-  // ─── Simple border frames ───
-  { id: "sq-bottom",       label: "Square",           type: "css", round: 0,    textPos: ["bottom"] },
-  { id: "sq-top",          label: "Square Top",       type: "css", round: 0,    textPos: ["top"] },
-  { id: "sq-both",         label: "Square Both",      type: "css", round: 0,    textPos: ["top","bottom"] },
-  { id: "rd-bottom",       label: "Rounded",          type: "css", round: 12,   textPos: ["bottom"] },
-  { id: "rd-top",          label: "Rounded Top",      type: "css", round: 12,   textPos: ["top"] },
-  { id: "rd-both",         label: "Rounded Both",     type: "css", round: 12,   textPos: ["top","bottom"] },
-  { id: "pill-bottom",     label: "Pill",             type: "css", round: 24,   textPos: ["bottom"] },
-  { id: "pill-both",       label: "Pill Both",        type: "css", round: 24,   textPos: ["top","bottom"] },
-  { id: "dash-sq",         label: "Dashed",           type: "css", round: 0,    dash: "dashed", textPos: ["bottom"] },
-  { id: "dash-rd",         label: "Dashed Round",     type: "css", round: 12,   dash: "dashed", textPos: ["bottom"] },
-  { id: "dot-sq",          label: "Dotted",           type: "css", round: 0,    dash: "dotted", textPos: ["bottom"] },
-  { id: "dot-rd",          label: "Dotted Round",     type: "css", round: 12,   dash: "dotted", textPos: ["bottom"] },
-  { id: "dbl-sq",          label: "Double",           type: "css", round: 0,    double: true, textPos: ["bottom"] },
-  { id: "dbl-rd",          label: "Double Round",     type: "css", round: 12,   double: true, textPos: ["bottom"] },
-  { id: "sq-notext",       label: "Border Only",      type: "css", round: 0,    textPos: [] },
-  { id: "rd-notext",       label: "Round Only",       type: "css", round: 12,   textPos: [] },
-  // ─── Custom SVG decorative frames ───
-  { id: "clipboard",       label: "Clipboard",        type: "svg" },
-  { id: "coffee",          label: "Coffee Cup",       type: "svg" },
-  { id: "cloud",           label: "Cloud",            type: "svg" },
-  { id: "gift",            label: "Gift Box",         type: "svg" },
-  { id: "bag",             label: "Shopping Bag",     type: "svg" },
-  { id: "envelope",        label: "Envelope",         type: "svg" },
-  { id: "badge",           label: "Badge",            type: "svg" },
-  { id: "ticket",          label: "Ticket",           type: "svg" },
-  { id: "banner",          label: "Banner",           type: "svg" },
-  { id: "monitor",         label: "Monitor",          type: "svg" },
-];
-
-// ─── Mini QR SVG (used in frame thumbs) ──────────────────────────────────────
-function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
-  const d = s / 7;
-  const grid = [1,1,1,0,1,1,1, 1,0,1,0,1,0,1, 1,1,1,0,0,1,0, 0,0,0,0,1,0,1, 1,0,0,1,0,0,1, 1,0,1,0,1,0,1, 1,0,0,1,1,1,1];
-  return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
-}
-
-// ─── SVG frame thumbnails — clean, simple silhouettes ────────────────────────
-function SvgFrameThumbContent({ id }: { id: string }) {
-  const qr = <MiniQRSvg x={15} y={20} s={30} />;
-  const txt = <text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text>;
-  switch (id) {
-    case "clipboard": return (<>
-      <rect x="8" y="14" width="44" height="50" rx="4" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <rect x="19" y="9" width="22" height="9" rx="4.5" fill="none" stroke="currentColor" strokeWidth="2"/>
-      {qr}{txt}
-    </>);
-    case "coffee": return (<>
-      <rect x="8" y="16" width="40" height="44" rx="4" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M48 28 Q56 28 56 36 Q56 44 48 44" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M24 10 Q24 6 28 8" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M32 10 Q32 6 36 8" fill="none" stroke="currentColor" strokeWidth="2"/>
-      {qr}{txt}
-    </>);
-    case "cloud": return (<>
-      <path d="M14 30 Q6 30 6 22 Q6 14 14 14 Q16 6 26 6 Q36 6 38 14 Q44 12 50 18 Q56 20 54 28 Q54 32 48 32 H14 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <rect x="10" y="32" width="40" height="32" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <MiniQRSvg x={15} y={34} s={30}/><text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
-    </>);
-    case "gift": return (<>
-      <rect x="10" y="22" width="40" height="42" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <rect x="8" y="16" width="44" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <line x1="30" y1="16" x2="30" y2="64" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M30 16 Q24 8 18 12" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M30 16 Q36 8 42 12" fill="none" stroke="currentColor" strokeWidth="2"/>
-      {qr}{txt}
-    </>);
-    case "bag": return (<>
-      <rect x="10" y="20" width="40" height="44" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M21 20 V14 Q21 6 30 6 Q39 6 39 14 V20" fill="none" stroke="currentColor" strokeWidth="2"/>
-      {qr}{txt}
-    </>);
-    case "envelope": return (<>
-      <rect x="6" y="16" width="48" height="48" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M6 16 L30 36 L54 16" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <MiniQRSvg x={15} y={28} s={30}/><text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
-    </>);
-    case "badge": return (<>
-      <circle cx="30" cy="32" r="22" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <polygon points="20,50 16,66 24,61 30,68 36,61 44,66 40,50" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <MiniQRSvg x={17} y={18} s={26}/><text x="30" y="46" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan!</text>
-    </>);
-    case "ticket": return (<>
-      <path d="M8 14 H52 V32 Q47 32 47 37 Q47 42 52 42 V60 H8 V42 Q13 42 13 37 Q13 32 8 32 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="14" y1="42" x2="46" y2="42" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2"/>
-      {qr}{txt}
-    </>);
-    case "banner": return (<>
-      <path d="M6 8 H54 V54 L30 46 L6 54 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <MiniQRSvg x={15} y={12} s={30}/><text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
-    </>);
-    case "monitor": return (<>
-      <rect x="8" y="8" width="44" height="38" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="30" y1="46" x2="30" y2="54" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <line x1="20" y1="54" x2="40" y2="54" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <MiniQRSvg x={15} y={12} s={30}/><text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
-    </>);
-    default: return <>{qr}{txt}</>;
-  }
-}
-
-function FrameThumb({ frame }: { frame: FrameStyle }) {
-  if (frame.id === "none") return (
-    <svg className="w-full h-full text-gray-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={3}><circle cx="24" cy="24" r="18"/><line x1="10" y1="10" x2="38" y2="38"/></svg>
-  );
-  if (frame.type === "svg") return (
-    <svg viewBox="0 0 60 72" className="w-full h-full text-gray-800"><SvgFrameThumbContent id={frame.id}/></svg>
-  );
-  // CSS frame thumbnail
-  const hasTop = frame.textPos?.includes("top");
-  const hasBottom = frame.textPos?.includes("bottom");
-  const qrY = hasTop ? 16 : 6;
-  const totalH = 32 + (hasTop ? 14 : 0) + (hasBottom ? 14 : 0) + 12;
-  const rx = frame.round || 0;
-  const da = frame.dash === "dashed" ? "6 3" : frame.dash === "dotted" ? "2 2" : "none";
-  return (
-    <svg viewBox={`0 0 52 ${totalH}`} className="w-full h-full text-gray-800">
-      <rect x="3" y="3" width="46" height={totalH - 6} rx={rx} fill="none" stroke="currentColor" strokeWidth="2.5" strokeDasharray={da}/>
-      {frame.double && <rect x="6" y="6" width="40" height={totalH - 12} rx={Math.max(0, rx - 3)} fill="none" stroke="currentColor" strokeWidth="1"/>}
-      {hasTop && <text x="26" y="14" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
-      <MiniQRSvg x={10} y={qrY} s={32} />
-      {hasBottom && <text x="26" y={totalH - 8} textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
-    </svg>
-  );
-}
-
-// ─── Pattern styles — all 21 DotType values ─────────────────────────────────
-const PATTERN_STYLES: { id: string; label: string }[] = [
+const QRFY_SHAPE_STYLES = [
   { id: "square", label: "Square" },
-  { id: "dot", label: "Dots" },
   { id: "rounded", label: "Rounded" },
-  { id: "extra-rounded", label: "Extra Round" },
+  { id: "dots", label: "Dots" },
   { id: "classy", label: "Classy" },
   { id: "classy-rounded", label: "Classy Round" },
+  { id: "extra-rounded", label: "Extra Round" },
+  { id: "cross", label: "Cross" },
+  { id: "cross-rounded", label: "Cross Round" },
   { id: "diamond", label: "Diamond" },
-  { id: "small-square", label: "Small Square" },
-  { id: "tiny-square", label: "Tiny Square" },
-  { id: "vertical-line", label: "V-Line" },
-  { id: "horizontal-line", label: "H-Line" },
-  { id: "random-dot", label: "Random Dot" },
-  { id: "star", label: "Star" },
+  { id: "diamond-special", label: "Diamond Sp." },
   { id: "heart", label: "Heart" },
-  { id: "wave", label: "Wave" },
-  { id: "weave", label: "Weave" },
-  { id: "pentagon", label: "Pentagon" },
-  { id: "hexagon", label: "Hexagon" },
-  { id: "zebra-horizontal", label: "Zebra H" },
-  { id: "zebra-vertical", label: "Zebra V" },
-  { id: "blocks-horizontal", label: "Blocks H" },
-  { id: "blocks-vertical", label: "Blocks V" },
+  { id: "horizontal-rounded", label: "H-Rounded" },
+  { id: "ribbon", label: "Ribbon" },
+  { id: "shake", label: "Shake" },
+  { id: "sparkle", label: "Sparkle" },
+  { id: "star", label: "Star" },
+  { id: "vertical-rounded", label: "V-Rounded" },
+  { id: "x", label: "X" },
+  { id: "x-rounded", label: "X Rounded" },
 ];
 
-function PatternThumb({ id }: { id: string }) {
-  const rows = 4, cols = 4, gap = 14, pad = 5, sz = 5;
-  const cells: React.ReactNode[] = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const cx = pad + c * gap + gap / 2;
-      const cy = pad + r * gap + gap / 2;
-      const k = `${r}-${c}`;
-      switch (id) {
-        case "square":
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} fill="currentColor"/>); break;
-        case "dot":
-          cells.push(<circle key={k} cx={cx} cy={cy} r={sz} fill="currentColor"/>); break;
-        case "rounded":
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} rx={sz*0.4} fill="currentColor"/>); break;
-        case "extra-rounded":
-          cells.push(<circle key={k} cx={cx} cy={cy} r={sz*0.85} fill="currentColor"/>); break;
-        case "classy":
-          cells.push(<path key={k} d={`M${cx-sz} ${cy-sz}h${sz*2}v${sz*1.4}q0 ${sz*0.6} -${sz*0.6} ${sz*0.6}h-${sz*1.4}z`} fill="currentColor"/>); break;
-        case "classy-rounded":
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} rx={sz*0.6} fill="currentColor"/>); break;
-        case "diamond":
-          cells.push(<polygon key={k} points={`${cx},${cy-sz} ${cx+sz},${cy} ${cx},${cy+sz} ${cx-sz},${cy}`} fill="currentColor"/>); break;
-        case "small-square":
-          cells.push(<rect key={k} x={cx-sz*0.6} y={cy-sz*0.6} width={sz*1.2} height={sz*1.2} fill="currentColor"/>); break;
-        case "tiny-square":
-          cells.push(<rect key={k} x={cx-sz*0.35} y={cy-sz*0.35} width={sz*0.7} height={sz*0.7} fill="currentColor"/>); break;
-        case "vertical-line":
-          cells.push(<rect key={k} x={cx-sz*0.3} y={cy-sz} width={sz*0.6} height={sz*2} fill="currentColor"/>); break;
-        case "horizontal-line":
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz*0.3} width={sz*2} height={sz*0.6} fill="currentColor"/>); break;
-        case "random-dot": {
-          const rr = sz * (0.4 + ((r*4+c)*37 % 10)/15);
-          cells.push(<circle key={k} cx={cx} cy={cy} r={rr} fill="currentColor"/>); break;
-        }
-        case "star":
-          cells.push(<polygon key={k} points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;const a2=a+Math.PI/5;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)} ${cx+sz*0.4*Math.cos(a2)},${cy+sz*0.4*Math.sin(a2)}`}).join(" ")} fill="currentColor"/>); break;
-        case "heart":
-          cells.push(<path key={k} d={`M${cx} ${cy+sz*0.8}C${cx} ${cy+sz*0.8} ${cx-sz} ${cy} ${cx-sz} ${cy-sz*0.3}C${cx-sz} ${cy-sz*0.8} ${cx-sz*0.5} ${cy-sz} ${cx} ${cy-sz*0.4}C${cx+sz*0.5} ${cy-sz} ${cx+sz} ${cy-sz*0.8} ${cx+sz} ${cy-sz*0.3}C${cx+sz} ${cy} ${cx} ${cy+sz*0.8} ${cx} ${cy+sz*0.8}Z`} fill="currentColor"/>); break;
-        case "wave":
-          cells.push(<ellipse key={k} cx={cx} cy={cy} rx={sz} ry={sz*0.5} fill="currentColor"/>); break;
-        case "weave":
-          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz*0.25} width={sz*2} height={sz*0.5} fill="currentColor"/><rect key={k+"b"} x={cx-sz*0.25} y={cy-sz} width={sz*0.5} height={sz*2} fill="currentColor"/></>); break;
-        case "pentagon":
-          cells.push(<polygon key={k} points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)}`}).join(" ")} fill="currentColor"/>); break;
-        case "hexagon":
-          cells.push(<polygon key={k} points={[0,1,2,3,4,5].map(i=>{const a=Math.PI*2*i/6-Math.PI/6;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)}`}).join(" ")} fill="currentColor"/>); break;
-        case "zebra-horizontal":
-          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz} width={sz*2} height={sz*0.7} fill="currentColor"/><rect key={k+"b"} x={cx-sz} y={cy+sz*0.3} width={sz*2} height={sz*0.7} fill="currentColor"/></>); break;
-        case "zebra-vertical":
-          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz} width={sz*0.7} height={sz*2} fill="currentColor"/><rect key={k+"b"} x={cx+sz*0.3} y={cy-sz} width={sz*0.7} height={sz*2} fill="currentColor"/></>); break;
-        case "blocks-horizontal":
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz*0.6} width={sz*2} height={sz*1.2} rx={sz*0.15} fill="currentColor"/>); break;
-        case "blocks-vertical":
-          cells.push(<rect key={k} x={cx-sz*0.6} y={cy-sz} width={sz*1.2} height={sz*2} rx={sz*0.15} fill="currentColor"/>); break;
-        default:
-          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} fill="currentColor"/>);
-      }
-    }
-  }
-  return (
-    <svg viewBox={`0 0 ${pad*2+cols*gap} ${pad*2+rows*gap}`} className="w-full h-full text-gray-900">{cells}</svg>
-  );
-}
-
-// ─── Corner square styles — all 7 CornerSquareType values ────────────────────
-const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
-  { id: "square", label: "Square" },
+const QRFY_CORNER_SQUARE_STYLES = [
+  { id: "default", label: "Default" },
   { id: "dot", label: "Dot" },
+  { id: "square", label: "Square" },
   { id: "extra-rounded", label: "Rounded" },
-  { id: "classy", label: "Classy" },
-  { id: "outpoint", label: "Outpoint" },
-  { id: "inpoint", label: "Inpoint" },
-  { id: "center-circle", label: "Center Circle" },
+  { id: "shape1", label: "Shape 1" },
+  { id: "shape2", label: "Shape 2" },
+  { id: "shape3", label: "Shape 3" },
+  { id: "shape4", label: "Shape 4" },
+  { id: "shape5", label: "Shape 5" },
+  { id: "shape6", label: "Shape 6" },
+  { id: "shape7", label: "Shape 7" },
+  { id: "shape8", label: "Shape 8" },
+  { id: "shape9", label: "Shape 9" },
+  { id: "shape10", label: "Shape 10" },
+  { id: "shape11", label: "Shape 11" },
+  { id: "shape12", label: "Shape 12" },
 ];
 
-function CornerSquareThumb({ id }: { id: string }) {
-  return (
-    <svg viewBox="0 0 32 32" className="w-7 h-7 text-gray-800">
-      {id === "dot" && <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
-      {id === "square" && <rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
-      {id === "extra-rounded" && <rect x="4" y="4" width="24" height="24" rx="8" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
-      {id === "classy" && <path d="M4 8a4 4 0 014-4h16a4 4 0 014 4v20H8a4 4 0 01-4-4V8z" fill="none" stroke="currentColor" strokeWidth="3"/>}
-      {id === "outpoint" && <><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="3"/><polygon points="16,8 22,16 16,24 10,16" fill="currentColor"/></>}
-      {id === "inpoint" && <><rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"/><polygon points="16,10 22,16 16,22 10,16" fill="currentColor"/></>}
-      {id === "center-circle" && <><rect x="4" y="4" width="24" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" strokeWidth="2.5"/></>}
-    </svg>
-  );
-}
-
-// ─── Corner dot styles — all 11 CornerDotType values ─────────────────────────
-const CORNER_DOT_STYLES: { id: string; label: string }[] = [
-  { id: "square", label: "Square" },
+const QRFY_CORNER_DOT_STYLES = [
+  { id: "default", label: "Default" },
   { id: "dot", label: "Dot" },
-  { id: "extra-rounded", label: "Rounded" },
-  { id: "classy", label: "Classy" },
-  { id: "heart", label: "Heart" },
-  { id: "outpoint", label: "Outpoint" },
-  { id: "inpoint", label: "Inpoint" },
-  { id: "star", label: "Star" },
-  { id: "pentagon", label: "Pentagon" },
-  { id: "hexagon", label: "Hexagon" },
+  { id: "square", label: "Square" },
+  { id: "cross", label: "Cross" },
+  { id: "cross-rounded", label: "Cross Round" },
   { id: "diamond", label: "Diamond" },
+  { id: "dot2", label: "Dot 2" },
+  { id: "dot3", label: "Dot 3" },
+  { id: "dot4", label: "Dot 4" },
+  { id: "heart", label: "Heart" },
+  { id: "rounded", label: "Rounded" },
+  { id: "square2", label: "Square 2" },
+  { id: "square3", label: "Square 3" },
+  { id: "star", label: "Star" },
+  { id: "sun", label: "Sun" },
+  { id: "x", label: "X" },
+  { id: "x-rounded", label: "X Rounded" },
 ];
 
-function CornerDotThumb({ id }: { id: string }) {
-  return (
-    <svg viewBox="0 0 28 28" className="w-6 h-6 text-gray-800">
-      {id === "dot" && <circle cx="14" cy="14" r="10" fill="currentColor"/>}
-      {id === "square" && <rect x="4" y="4" width="20" height="20" fill="currentColor"/>}
-      {id === "extra-rounded" && <rect x="4" y="4" width="20" height="20" rx="6" fill="currentColor"/>}
-      {id === "classy" && <path d="M4 8a4 4 0 014-4h16v20H8a4 4 0 01-4-4V8z" fill="currentColor"/>}
-      {id === "heart" && <path d="M14 24C14 24 4 18 4 10.5C4 7.5 6.5 5 9 5C11 5 12.5 6 14 8C15.5 6 17 5 19 5C21.5 5 24 7.5 24 10.5C24 18 14 24 14 24Z" fill="currentColor"/>}
-      {id === "outpoint" && <polygon points="14,3 25,14 14,25 3,14" fill="currentColor"/>}
-      {id === "inpoint" && <><rect x="4" y="4" width="20" height="20" fill="currentColor"/><polygon points="14,8 20,14 14,20 8,14" fill="white"/></>}
-      {id === "star" && <polygon points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;const a2=a+Math.PI/5;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)} ${14+5*Math.cos(a2)},${14+5*Math.sin(a2)}`}).join(" ")} fill="currentColor"/>}
-      {id === "pentagon" && <polygon points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)}`}).join(" ")} fill="currentColor"/>}
-      {id === "hexagon" && <polygon points={[0,1,2,3,4,5].map(i=>{const a=Math.PI*2*i/6-Math.PI/6;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)}`}).join(" ")} fill="currentColor"/>}
-      {id === "diamond" && <polygon points="14,3 25,14 14,25 3,14" fill="currentColor"/>}
-    </svg>
-  );
-}
+const QRFY_ERROR_CORRECTION = [
+  { id: "L", label: "Low" },
+  { id: "M", label: "Medium" },
+  { id: "Q", label: "Quartile" },
+  { id: "H", label: "High" },
+];
 
 // ─── Accordion Section Component ────────────────────────────────────────────
 function AccordionSection({ icon, title, subtitle, children, defaultOpen = false }: {
@@ -985,7 +657,7 @@ function AccordionSection({ icon, title, subtitle, children, defaultOpen = false
   );
 }
 
-// ─── Inline Color Picker (matching reference layout) ────────────────────────
+// ─── Inline Color Picker ────────────────────────────────────────────────────
 function InlineColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
@@ -1003,15 +675,13 @@ function InlineColorPicker({ label, value, onChange }: { label: string; value: s
   );
 }
 
-// ─── Phone Mockup Component (matching reference iPhone frame) ───────────────
+// ─── Phone Mockup Component ─────────────────────────────────────────────────
 function PhoneMockup({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative mx-auto w-[260px]">
       <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
-        {/* Dynamic Island */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90px] h-[22px] bg-gray-900 rounded-b-2xl z-10" />
         <div className="bg-white rounded-[2rem] overflow-hidden relative">
-          {/* Status bar */}
           <div className="h-7 bg-white flex items-center justify-between px-5 pt-1">
             <span className="text-[9px] font-semibold text-gray-900">9:41</span>
             <div className="flex items-center gap-0.5">
@@ -1020,200 +690,12 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
               <svg className="w-5 h-2.5 text-gray-900 ml-0.5" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" strokeWidth="1"/><rect x="2" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="4" width="3" height="4" rx="1" fill="currentColor" opacity="0.4"/></svg>
             </div>
           </div>
-          {/* Content */}
           <div className="h-[400px] overflow-hidden">
             {children}
           </div>
-          {/* Home indicator */}
           <div className="h-6 flex items-center justify-center">
             <div className="w-[80px] h-[4px] bg-gray-300 rounded-full" />
           </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── SVG decorative frame wrappers for preview ──────────────────────────────
-// Each returns a div structure wrapping the QR with the decorative shape
-function SvgFrameWrapper({ id, color, text, children }: { id: string; color: string; text: string; children: React.ReactNode }) {
-  const textEl = <div className="text-center font-bold text-base py-2 truncate" style={{ color }}>{text}</div>;
-  switch (id) {
-    case "clipboard": return (
-      <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, paddingTop: 28, position: "relative", background: "white" }}>
-        <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "white", border: `3px solid ${color}`, borderRadius: 12, padding: "2px 18px" }}>
-          <div style={{ width: 10, height: 10, borderRadius: "50%", border: `2px solid ${color}`, margin: "0 auto" }}/>
-        </div>
-        {children}{textEl}
-      </div>
-    );
-    case "coffee": return (
-      <div style={{ position: "relative", background: "white" }}>
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 4 }}>
-          {[0,1,2].map(i => <svg key={i} width="14" height="20" viewBox="0 0 14 20"><path d="M7 18 Q7 10 3 6 Q7 2 7 0" fill="none" stroke={color} strokeWidth="2.5"/></svg>)}
-        </div>
-        <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, position: "relative" }}>
-          <div style={{ position: "absolute", right: -20, top: "30%", width: 18, height: 24, borderRadius: "0 10px 10px 0", border: `3px solid ${color}`, borderLeft: "none" }}/>
-          {children}{textEl}
-        </div>
-      </div>
-    );
-    case "cloud": return (
-      <div style={{ background: "white" }}>
-        <svg viewBox="0 0 200 60" style={{ width: "80%", display: "block", margin: "0 auto" }}>
-          <path d="M40 55 Q10 55 10 35 Q10 15 35 15 Q40 0 70 0 Q105 0 110 18 Q125 10 145 20 Q165 22 165 40 Q165 55 145 55 Z" fill="none" stroke={color} strokeWidth="5"/>
-        </svg>
-        <div style={{ border: `3px solid ${color}`, borderRadius: 4, padding: 16, marginTop: -2 }}>
-          {children}{textEl}
-        </div>
-      </div>
-    );
-    case "gift": return (
-      <div style={{ background: "white" }}>
-        <div style={{ border: `3px solid ${color}`, borderRadius: 4, padding: "4px 16px", display: "flex", justifyContent: "center", position: "relative" }}>
-          <svg viewBox="0 0 60 24" width="60" height="24"><path d="M30 20 Q20 4 10 12" fill="none" stroke={color} strokeWidth="3"/><path d="M30 20 Q40 4 50 12" fill="none" stroke={color} strokeWidth="3"/></svg>
-        </div>
-        <div style={{ border: `3px solid ${color}`, borderTop: "none", borderRadius: "0 0 8px 8px", padding: 16, position: "relative" }}>
-          <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, background: color, transform: "translateX(-50%)" }}/>
-          <div style={{ position: "relative" }}>{children}{textEl}</div>
-        </div>
-      </div>
-    );
-    case "bag": return (
-      <div style={{ background: "white" }}>
-        <div style={{ display: "flex", justifyContent: "center", paddingBottom: 0 }}>
-          <svg viewBox="0 0 80 30" width="80" height="30"><path d="M24 28 V12 Q24 2 40 2 Q56 2 56 12 V28" fill="none" stroke={color} strokeWidth="4"/></svg>
-        </div>
-        <div style={{ border: `3px solid ${color}`, borderRadius: 6, padding: 16, marginTop: -2 }}>
-          {children}{textEl}
-        </div>
-      </div>
-    );
-    case "envelope": return (
-      <div style={{ border: `3px solid ${color}`, borderRadius: 6, padding: 16, paddingTop: 32, position: "relative", background: "white", overflow: "hidden" }}>
-        <svg viewBox="0 0 200 50" style={{ position: "absolute", top: 0, left: 0, width: "100%" }}><path d="M0 0 L100 40 L200 0" fill="none" stroke={color} strokeWidth="4"/></svg>
-        {children}{textEl}
-      </div>
-    );
-    case "badge": return (
-      <div style={{ textAlign: "center", background: "white" }}>
-        <div style={{ border: `3px solid ${color}`, borderRadius: "50%", padding: 20, display: "inline-block" }}>
-          <div style={{ width: 140, maxWidth: "100%" }}>{children}</div>
-        </div>
-        {textEl}
-      </div>
-    );
-    case "ticket": return (
-      <div style={{ border: `3px solid ${color}`, borderRadius: 12, padding: 16, position: "relative", background: "white" }}>
-        <div style={{ position: "absolute", left: -8, top: "45%", width: 14, height: 14, borderRadius: "50%", background: "white", border: `3px solid ${color}` }}/>
-        <div style={{ position: "absolute", right: -8, top: "45%", width: 14, height: 14, borderRadius: "50%", background: "white", border: `3px solid ${color}` }}/>
-        {children}
-        <div style={{ borderTop: `2px dashed ${color}`, margin: "8px 0" }}/>
-        {textEl}
-      </div>
-    );
-    case "banner": return (
-      <div style={{ background: "white" }}>
-        <div style={{ border: `3px solid ${color}`, borderBottom: "none", borderRadius: "8px 8px 0 0", padding: 16 }}>
-          {children}
-        </div>
-        <svg viewBox="0 0 200 50" style={{ width: "100%", display: "block" }}>
-          <path d="M0 0 H200 V35 L100 50 L0 35 Z" fill="none" stroke={color} strokeWidth="4"/>
-          <text x="100" y="28" textAnchor="middle" fill={color} fontSize="22" fontWeight="bold">{text}</text>
-        </svg>
-      </div>
-    );
-    case "monitor": return (
-      <div style={{ background: "white" }}>
-        <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16 }}>
-          {children}{textEl}
-        </div>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <div style={{ width: 3, height: 16, background: color }}/>
-        </div>
-        <div style={{ width: "60%", height: 3, background: color, margin: "0 auto", borderRadius: 2 }}/>
-      </div>
-    );
-    default: return (
-      <div style={{ border: `3px solid ${color}`, borderRadius: 8, padding: 16, background: "white" }}>
-        {children}{textEl}
-      </div>
-    );
-  }
-}
-
-// ─── QR Live Preview — uses SVG string from state, no ref ────────────────────
-function QRLivePreview({ qrSvg, design }: {
-  qrSvg: string;
-  design: {
-    frameStyle: string; frameColor: string; frameText: string;
-    frameTopText: string; frameTextColor: string;
-  };
-}) {
-  const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
-  const isNone = !frameDef || frameDef.id === "none";
-  const isSvg = frameDef?.type === "svg";
-  const textColor = design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor;
-  const txt = design.frameText || "Scan me!";
-  const topTxt = design.frameTopText || txt;
-
-  // Single QR element — rendered from state string, never duplicated
-  const qrDiv = qrSvg
-    ? <div className="[&>svg]:w-full [&>svg]:h-auto" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-    : <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Loading QR...</div>;
-
-  if (isNone) {
-    return (
-      <div className="h-full bg-white flex items-center justify-center p-6">
-        <div className="w-full max-w-[180px]">{qrDiv}</div>
-      </div>
-    );
-  }
-
-  if (isSvg) {
-    return (
-      <div className="h-full bg-white flex items-center justify-center p-4 overflow-hidden">
-        <div className="w-full max-w-[200px]">
-          <SvgFrameWrapper id={frameDef.id} color={design.frameColor} text={txt}>
-            {qrDiv}
-          </SvgFrameWrapper>
-        </div>
-      </div>
-    );
-  }
-
-  // CSS border frame
-  const hasTop = frameDef.textPos?.includes("top");
-  const hasBottom = frameDef.textPos?.includes("bottom");
-  const borderRadius = frameDef.round || 0;
-  const borderStyle = frameDef.dash || "solid";
-
-  return (
-    <div className="h-full bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-[200px]">
-        <div style={{
-          border: `3px ${borderStyle} ${design.frameColor}`,
-          borderRadius,
-          padding: 16,
-          background: "white",
-        }}>
-          {frameDef.double ? (
-            <div style={{
-              border: `1.5px solid ${design.frameColor}`,
-              borderRadius: Math.max(0, borderRadius - 4),
-              padding: 12,
-            }}>
-              {hasTop && <div className="text-center font-bold text-base pb-3 truncate" style={{ color: textColor }}>{topTxt}</div>}
-              {qrDiv}
-              {hasBottom && <div className="text-center font-bold text-base pt-3 truncate" style={{ color: textColor }}>{txt}</div>}
-            </div>
-          ) : (
-            <>
-              {hasTop && <div className="text-center font-bold text-base pb-3 truncate" style={{ color: textColor }}>{topTxt}</div>}
-              {qrDiv}
-              {hasBottom && <div className="text-center font-bold text-base pt-3 truncate" style={{ color: textColor }}>{txt}</div>}
-            </>
-          )}
         </div>
       </div>
     </div>
@@ -1235,134 +717,72 @@ export default function CreateQRPage() {
     dotsColor: "#000000",
     dotsType: "square",
     cornersSquareColor: "#000000",
-    cornersSquareType: "square",
+    cornersSquareType: "default",
     cornersDotColor: "#000000",
-    cornersDotType: "square",
+    cornersDotType: "default",
     backgroundColor: "#FFFFFF",
     logo: "",
     logoSize: 0.4,
-    logoMargin: 0,
-    logoFillColor: "rgba(255,255,255,0.75)",
-    shape: "square" as "square" | "circle",
-    bgRound: 0,
-    bgMargin: 0,
-    frameStyle: "none",
+    frameStyle: "none" as string,
+    frameId: 0,
     frameColor: "#000000",
     frameText: "Scan me!",
-    frameTopText: "",
+    frameFontSize: 42,
     frameTextColor: "#FFFFFF",
-    frameRound: 0.1,  // kept for backward compat
-    frameSize: 20,    // kept for backward compat
+    frameBackgroundColor: "#000000",
     patternGradient: false,
     patternColor2: "#7C3AED",
     bgTransparent: false,
     useGradientBg: false,
     bgColor2: "#7C3AED",
+    errorCorrectionLevel: "M",
   });
   const [saving, setSaving] = useState(false);
-  const [qrSvg, setQrSvg] = useState<string>("");
-  const qrInstanceRef = useRef<any>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const activePreview = hoveredType || qrType || "";
 
-  // Build QR options from current design state
-  const buildQROptions = useCallback((size: number, plugins?: any[], slug?: string) => {
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const dotsOptions: any = { color: design.dotsColor, type: design.dotsType };
-    if (design.patternGradient) {
-      dotsOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.dotsColor }, { offset: 1, color: design.patternColor2 }] };
-    }
-    const bgOptions: any = design.bgTransparent
-      ? false
-      : {
-          color: design.backgroundColor,
-          round: design.bgRound,
-          margin: design.bgMargin,
-        };
-    if (bgOptions && design.useGradientBg && !design.bgTransparent) {
-      bgOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.backgroundColor }, { offset: 1, color: design.bgColor2 }] };
-    }
-
-    return {
-      width: size, height: size,
-      data: slug ? baseUrl + "/r/" + slug : baseUrl + "/r/preview",
-      shape: design.shape,
-      dotsOptions,
-      cornersSquareOptions: { color: design.cornersSquareColor, type: design.cornersSquareType as any },
-      cornersDotOptions: { color: design.cornersDotColor, type: design.cornersDotType as any },
-      backgroundOptions: bgOptions,
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: design.logoMargin,
-        imageSize: design.logoSize,
-        mode: "center" as const,
-        fill: { color: design.logoFillColor },
-      },
-      image: design.logo || undefined,
-      ...(plugins && plugins.length > 0 ? { plugins } : {}),
-    };
-  }, [design, content.url]);
-
-  // Build BorderPlugin for download (approximates the visual CSS/SVG frame)
-  const buildPlugins = useCallback(async () => {
-    if (design.frameStyle === "none") return [];
-    const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
-    const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
-    if (!frameDef) return [];
-    const txt = design.frameText || "Scan me!";
-    const topTxt = design.frameTopText || txt;
-    const textStyle: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
-    const textConfig: any = {};
-    // For SVG frames, always add bottom text in download
-    if (frameDef.type === "svg") {
-      textConfig.bottom = { ...textStyle, content: txt };
-    } else {
-      if (frameDef.textPos?.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
-      if (frameDef.textPos?.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
-    }
-    const roundVal = frameDef.type === "css" ? (frameDef.round || 0) / 24 : 0.1;
-    const cfg: any = {
-      size: 20,
-      color: design.frameColor,
-      round: Math.min(roundVal, 1),
-      text: { ...textStyle, ...textConfig },
-    };
-    if (frameDef.type === "css" && frameDef.dash) {
-      cfg.dasharray = frameDef.dash === "dashed" ? "8 4" : frameDef.dash === "dotted" ? "3 3" : undefined;
-    }
-    const plugins = [new BorderPlugin(cfg)];
-    if (frameDef.double) {
-      plugins.unshift(new BorderPlugin({ size: 2, color: design.frameColor, round: Math.min(roundVal, 1) }));
-    }
-    return plugins;
-  }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
-
-  // Render QR preview — stores SVG string in state (no DOM ref needed)
-  const renderQR = useCallback(async () => {
+  // Fetch QR preview from QRFY via our API
+  const fetchPreview = useCallback(async () => {
     if (!qrType) return;
+    setPreviewLoading(true);
     try {
-      const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
-      const opts = buildQROptions(256);
-      const qr = new QRCodeStyling(opts);
-      qrInstanceRef.current = qr;
-      const svgString = await qr.serialize();
-      if (svgString) {
-        // Strip width/height attrs so CSS controls sizing
-        const cleaned = svgString.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1").replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
-        setQrSvg(cleaned);
+      const res = await fetch("/api/qrcodes/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: qrType, content, design }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
       }
-    } catch (e) { console.error("QR preview error:", e); }
-  }, [qrType, buildQROptions]);
+    } catch (err) {
+      console.error("Preview fetch error:", err);
+    }
+    setPreviewLoading(false);
+  }, [qrType, content, design]);
 
-  // Re-render QR on design/content change
+  // Debounced preview refresh
   useEffect(() => {
     if (step >= 2 && qrType) {
-      const timer = setTimeout(() => renderQR(), 150);
-      return () => clearTimeout(timer);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchPreview(), 600);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }
-  }, [step, design, qrType, content, renderQR]);
+  }, [step, design, qrType, content, fetchPreview]);
 
-  // Logo upload via FileReader (client-side base64)
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  }, []);
+
+  // Logo upload via FileReader
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1385,33 +805,14 @@ export default function CreateQRPage() {
         body: JSON.stringify({ name, type: qrType, content, design }),
       });
       if (res.ok) {
-        const data = await res.json();
-        const slug = data.slug;
-        // Auto-download the QR with the real redirect URL
-        try {
-          const { QRCodeStyling, browserUtils } = await import("@liquid-js/qr-code-styling");
-          const plugins = await buildPlugins();
-          const qr = new QRCodeStyling(buildQROptions(1024, plugins, slug));
-          if (browserUtils) {
-            await browserUtils.download(qr, { name: name || "qrcode", extension: "png" });
-          }
-        } catch {}
-        toast.success("QR code created and downloaded!");
+        toast.success("QR code created!");
         router.push("/dashboard");
-      } else { const d = await res.json(); toast.error(d.error || "Failed to create"); }
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Failed to create");
+      }
     } catch { toast.error("Something went wrong"); }
     setSaving(false);
-  };
-
-  const handleDownload = async (format: "png" | "svg" | "jpeg") => {
-    try {
-      const { QRCodeStyling, browserUtils } = await import("@liquid-js/qr-code-styling");
-      const plugins = await buildPlugins();
-      const qr = new QRCodeStyling(buildQROptions(1024, plugins));
-      if (browserUtils) {
-        await browserUtils.download(qr, { name: name || "qrcode", extension: format });
-      }
-    } catch { toast.error("Download failed"); }
   };
 
   // ─── Content Forms ──────────────────────────────────────────────────────
@@ -1507,23 +908,29 @@ export default function CreateQRPage() {
   // ─── Phone Preview Content ──────────────────────────────────────────────
   const renderPhoneContent = () => {
     if (step === 1) {
-      if (activePreview) {
-        return renderPreviewForType(activePreview);
-      }
+      if (activePreview) return renderPreviewForType(activePreview);
       return <DefaultPhonePreview />;
     }
-    // Steps 2-3: Show preview or QR code based on tab
     if (previewTab === "qrcode") {
-      return <QRLivePreview qrSvg={qrSvg} design={design} />;
+      return (
+        <div className="h-full bg-white flex items-center justify-center p-6">
+          {previewLoading ? (
+            <Spinner />
+          ) : previewUrl ? (
+            <img src={previewUrl} alt="QR Preview" className="w-full max-w-[200px]" />
+          ) : (
+            <div className="text-center text-gray-400 text-sm">
+              <QrCodeIcon className="h-16 w-16 mx-auto mb-2 text-gray-300" />
+              <p>QR preview will appear here</p>
+            </div>
+          )}
+        </div>
+      );
     }
-    // Preview tab: show type-specific preview with dynamic content
-    if (qrType) {
-      return renderPreviewForType(qrType, content);
-    }
+    if (qrType) return renderPreviewForType(qrType, content);
     return <DefaultPhonePreview />;
   };
 
-  // Render preview for a given type with optional dynamic content
   const renderPreviewForType = (type: string, dynamicContent?: Record<string, any>) => {
     switch (type) {
       case "website": return <WebsitePreview content={dynamicContent || {}} />;
@@ -1561,7 +968,6 @@ export default function CreateQRPage() {
           {step === 2 && "2. Add content to your QR code"}
           {step === 3 && "3. Design the QR"}
         </h1>
-        {/* Step progress */}
         <div className="hidden sm:flex items-center gap-2">
           {[
             { num: 1, label: "Type of QR code" },
@@ -1647,7 +1053,6 @@ export default function CreateQRPage() {
                 </div>
               </AccordionSection>
 
-              {/* Bottom buttons */}
               <div className="flex items-center justify-between pt-4">
                 <button onClick={() => setStep(1)} className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                   <ArrowLeftIcon className="h-4 w-4" /> Back
@@ -1659,82 +1064,23 @@ export default function CreateQRPage() {
             </div>
           )}
 
-          {/* ─── Step 3: QR Design ───────────────────────────────────── */}
+          {/* ─── Step 3: QR Design (QRFY options) ─────────────────────── */}
           {step === 3 && (
             <div className="space-y-4">
-              {/* QR Shape */}
-              <AccordionSection
-                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><circle cx="12" cy="12" r="9"/></svg>}
-                title="QR Shape" subtitle="Choose between square and circle QR code shapes." defaultOpen>
-                <div className="flex gap-2">
-                  {(["square", "circle"] as const).map(s => (
-                    <button key={s} onClick={() => { setDesign({ ...design, shape: s }); qrInstanceRef.current = null; }}
-                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg border-2 transition-all ${
-                        design.shape === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                      }`}>
-                      {s.charAt(0).toUpperCase() + s.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </AccordionSection>
-
-              {/* Frame */}
-              <AccordionSection
-                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>}
-                title="Frame" subtitle="Add a border frame with text around your QR code.">
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 mb-3 block">Frame style</label>
-                    <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-                      {FRAME_STYLES.map(f => (
-                        <button key={f.id} onClick={() => { setDesign({ ...design, frameStyle: f.id }); qrInstanceRef.current = null; }}
-                          className={`rounded-lg border-2 transition-all flex items-center justify-center p-2 h-16 ${
-                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
-                          }`}
-                          title={f.label}>
-                          <FrameThumb frame={f} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {design.frameStyle !== "none" && (
-                    <>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">Bottom text</label>
-                        <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
-                      </div>
-                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.type === "css" && fd.textPos?.includes("top"); })() && (
-                        <div>
-                          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Top text</label>
-                          <input type="text" value={design.frameTopText} onChange={e => setDesign({ ...design, frameTopText: e.target.value })}
-                            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
-                        </div>
-                      )}
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
-                        <InlineColorPicker label="Text color" value={design.frameTextColor} onChange={v => setDesign({ ...design, frameTextColor: v })} />
-                      </div>
-                    </>
-                  )}
-                </div>
-              </AccordionSection>
-
-              {/* QR Code Pattern */}
+              {/* Shape Pattern */}
               <AccordionSection
                 icon={<QrCodeIcon className="h-5 w-5 text-gray-500" />}
-                title="QR Code Pattern" subtitle="Choose a pattern for your QR code and select colors.">
+                title="QR Code Pattern" subtitle="Choose a shape pattern for your QR code." defaultOpen>
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern style</label>
-                    <div className="flex flex-wrap gap-3">
-                      {PATTERN_STYLES.map(p => (
-                        <button key={p.id} onClick={() => { setDesign({ ...design, dotsType: p.id }); qrInstanceRef.current = null; }}
-                          title={p.label}
-                          className={`w-[70px] h-[70px] rounded-xl border-2 transition-all flex items-center justify-center p-2 ${
-                            design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                    <div className="flex flex-wrap gap-2">
+                      {QRFY_SHAPE_STYLES.map(p => (
+                        <button key={p.id} onClick={() => setDesign({ ...design, dotsType: p.id })}
+                          className={`px-3 py-2 text-xs font-medium rounded-lg border-2 transition-all ${
+                            design.dotsType === p.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
                           }`}>
-                          <PatternThumb id={p.id} />
+                          {p.label}
                         </button>
                       ))}
                     </div>
@@ -1744,7 +1090,7 @@ export default function CreateQRPage() {
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern color</label>
                     <div className="flex items-center gap-4 mb-3">
                       <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-sm text-gray-600">Use a gradient pattern color</span>
+                        <span className="text-sm text-gray-600">Gradient</span>
                         <div className="ml-auto">
                           <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.patternGradient ? "bg-violet-500" : "bg-gray-300"}`}
                             onClick={() => setDesign({ ...design, patternGradient: !design.patternGradient })}>
@@ -1752,14 +1098,13 @@ export default function CreateQRPage() {
                           </div>
                         </div>
                       </div>
-                      <InlineColorPicker label="Pattern color" value={design.dotsColor} onChange={v => setDesign({ ...design, dotsColor: v })} />
+                      <InlineColorPicker label="Color" value={design.dotsColor} onChange={v => setDesign({ ...design, dotsColor: v })} />
                     </div>
                     {design.patternGradient && (
-                      <InlineColorPicker label="Pattern color 2" value={design.patternColor2} onChange={v => setDesign({ ...design, patternColor2: v })} />
+                      <InlineColorPicker label="Color 2" value={design.patternColor2} onChange={v => setDesign({ ...design, patternColor2: v })} />
                     )}
                   </div>
 
-                  {/* Swap icon divider */}
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-gray-200" />
                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -1769,7 +1114,7 @@ export default function CreateQRPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern background color</label>
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Background color</label>
                     <label className="flex items-center gap-2 mb-3 cursor-pointer">
                       <input type="checkbox" checked={design.bgTransparent} onChange={e => setDesign({ ...design, bgTransparent: e.target.checked })}
                         className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
@@ -1779,7 +1124,7 @@ export default function CreateQRPage() {
                       <>
                         <div className="flex items-center gap-4 mb-3">
                           <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                            <span className="text-sm text-gray-600">Use a gradient background color</span>
+                            <span className="text-sm text-gray-600">Gradient</span>
                             <div className="ml-auto">
                               <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientBg ? "bg-violet-500" : "bg-gray-300"}`}
                                 onClick={() => setDesign({ ...design, useGradientBg: !design.useGradientBg })}>
@@ -1787,81 +1132,104 @@ export default function CreateQRPage() {
                               </div>
                             </div>
                           </div>
-                          <InlineColorPicker label="Background color" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
+                          <InlineColorPicker label="Background" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
                         </div>
                         {design.useGradientBg && (
                           <InlineColorPicker label="Background color 2" value={design.bgColor2} onChange={v => setDesign({ ...design, bgColor2: v })} />
                         )}
-                        <div className="mt-3">
-                          <label className="text-xs font-medium text-gray-600 mb-2 block">Background roundness: {design.bgRound.toFixed(1)}</label>
-                          <input type="range" min="0" max="1" step="0.1" value={design.bgRound}
-                            onChange={e => setDesign({ ...design, bgRound: parseFloat(e.target.value) })}
-                            className="w-full accent-violet-500" />
-                        </div>
-                        <div className="mt-3">
-                          <label className="text-xs font-medium text-gray-600 mb-2 block">Background margin: {design.bgMargin}</label>
-                          <input type="range" min="0" max="10" step="1" value={design.bgMargin}
-                            onChange={e => setDesign({ ...design, bgMargin: parseInt(e.target.value) })}
-                            className="w-full accent-violet-500" />
-                        </div>
                       </>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-                    <span className="text-amber-500 text-lg">⚠️</span>
-                    <span className="text-amber-700 text-sm">Remember! For optimal QR code reading results, we recommend using high-contrast colors.</span>
+                    <span className="text-amber-700 text-sm">For optimal QR code reading, use high-contrast colors.</span>
                   </div>
                 </div>
               </AccordionSection>
 
-              {/* QR Code Corners */}
+              {/* Corners */}
               <AccordionSection
                 icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M3 9V5a2 2 0 012-2h4"/><path d="M15 3h4a2 2 0 012 2v4"/><circle cx="12" cy="12" r="3"/></svg>}
-                title="QR Code Corners" subtitle="Select your QR code's corner style.">
+                title="QR Code Corners" subtitle="Select corner square and dot styles.">
                 <div className="space-y-5">
-                  <p className="text-xs font-semibold text-gray-700">Corners</p>
-                  <div className="grid sm:grid-cols-2 gap-6">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Frame around corner dots style</label>
-                      <div className="flex flex-wrap gap-2">
-                        {CORNER_SQUARE_STYLES.map(c => (
-                          <button key={c.id} onClick={() => { setDesign({ ...design, cornersSquareType: c.id }); qrInstanceRef.current = null; }}
-                            title={c.label}
-                            className={`w-11 h-11 rounded-lg border-2 transition-all flex items-center justify-center ${
-                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
-                            }`}>
-                            <CornerSquareThumb id={c.id} />
-                          </button>
-                        ))}
-                      </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Corner square style</label>
+                    <div className="flex flex-wrap gap-2">
+                      {QRFY_CORNER_SQUARE_STYLES.map(c => (
+                        <button key={c.id} onClick={() => setDesign({ ...design, cornersSquareType: c.id })}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-all ${
+                            design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}>
+                          {c.label}
+                        </button>
+                      ))}
                     </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dots type</label>
-                      <div className="flex flex-wrap gap-2">
-                        {CORNER_DOT_STYLES.map(c => (
-                          <button key={c.id} onClick={() => { setDesign({ ...design, cornersDotType: c.id }); qrInstanceRef.current = null; }}
-                            title={c.label}
-                            className={`w-11 h-11 rounded-lg border-2 transition-all flex items-center justify-center ${
-                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
-                            }`}>
-                            <CornerDotThumb id={c.id} />
-                          </button>
-                        ))}
-                      </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dot style</label>
+                    <div className="flex flex-wrap gap-2">
+                      {QRFY_CORNER_DOT_STYLES.map(c => (
+                        <button key={c.id} onClick={() => setDesign({ ...design, cornersDotType: c.id })}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-lg border-2 transition-all ${
+                            design.cornersDotType === c.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}>
+                          {c.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <InlineColorPicker label="Frame around corner dots color" value={design.cornersSquareColor} onChange={v => setDesign({ ...design, cornersSquareColor: v })} />
-                    <InlineColorPicker label="Corner dots color" value={design.cornersDotColor} onChange={v => setDesign({ ...design, cornersDotColor: v })} />
+                    <InlineColorPicker label="Corner square color" value={design.cornersSquareColor} onChange={v => setDesign({ ...design, cornersSquareColor: v })} />
+                    <InlineColorPicker label="Corner dot color" value={design.cornersDotColor} onChange={v => setDesign({ ...design, cornersDotColor: v })} />
                   </div>
                 </div>
               </AccordionSection>
 
-              {/* Add Logo */}
+              {/* Frame */}
+              <AccordionSection
+                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>}
+                title="Frame" subtitle="Add a frame with text around your QR code.">
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Frame template (0 = none, 1-30)</label>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.from({ length: 31 }, (_, i) => i).map(id => (
+                        <button key={id} onClick={() => setDesign({ ...design, frameId: id, frameStyle: id === 0 ? "none" : String(id) })}
+                          className={`w-10 h-10 text-xs font-medium rounded-lg border-2 transition-all flex items-center justify-center ${
+                            design.frameId === id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                          }`}>
+                          {id}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {design.frameId > 0 && (
+                    <>
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">Frame text (max 30 chars)</label>
+                        <input type="text" maxLength={30} value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
+                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-2 block">Font size: {design.frameFontSize}</label>
+                        <input type="range" min="30" max="98" step="1" value={design.frameFontSize}
+                          onChange={e => setDesign({ ...design, frameFontSize: parseInt(e.target.value) })}
+                          className="w-full accent-violet-500" />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
+                        <InlineColorPicker label="Text color" value={design.frameTextColor} onChange={v => setDesign({ ...design, frameTextColor: v })} />
+                      </div>
+                      <InlineColorPicker label="Frame background" value={design.frameBackgroundColor} onChange={v => setDesign({ ...design, frameBackgroundColor: v })} />
+                    </>
+                  )}
+                </div>
+              </AccordionSection>
+
+              {/* Logo */}
               <AccordionSection
                 icon={<PhotoSolidIcon className="h-5 w-5 text-gray-500" />}
-                title="Add Logo" subtitle="Make your QR code unique by adding your logo or an image.">
+                title="Add Logo" subtitle="Make your QR code unique by adding your logo.">
                 <div>
                   <label className="text-xs font-medium text-gray-600 mb-3 block">Upload your logo (Maximum size: 1 MB)</label>
                   <label className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
@@ -1870,33 +1238,30 @@ export default function CreateQRPage() {
                     <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </label>
                   {design.logo && (
-                    <div className="space-y-3 mt-3">
-                      <div className="flex items-center gap-2">
-                        <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
-                        <p className="text-xs text-green-600">Logo uploaded</p>
-                        <button onClick={() => setDesign({ ...design, logo: "" })} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
-                      </div>
-                      <InlineColorPicker label="Logo background fill" value={design.logoFillColor} onChange={v => setDesign({ ...design, logoFillColor: v })} />
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-2 block">Logo size: {design.logoSize.toFixed(1)}</label>
-                        <input type="range" min="0.1" max="0.5" step="0.05" value={design.logoSize}
-                          onChange={e => setDesign({ ...design, logoSize: parseFloat(e.target.value) })}
-                          className="w-full accent-violet-500" />
-                      </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                      <p className="text-xs text-green-600">Logo uploaded</p>
+                      <button onClick={() => setDesign({ ...design, logo: "" })} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
                     </div>
                   )}
                 </div>
               </AccordionSection>
 
-              {/* Download buttons */}
-              <div className="bg-white border border-gray-200 rounded-xl p-5">
-                <p className="text-sm font-semibold text-gray-900 mb-3">Download QR Code</p>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors">PNG</button>
-                  <button onClick={() => handleDownload("svg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">SVG</button>
-                  <button onClick={() => handleDownload("jpeg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">JPEG</button>
+              {/* Error Correction */}
+              <AccordionSection
+                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>}
+                title="Error Correction" subtitle="Higher levels allow more damage but reduce data capacity.">
+                <div className="flex gap-2">
+                  {QRFY_ERROR_CORRECTION.map(ec => (
+                    <button key={ec.id} onClick={() => setDesign({ ...design, errorCorrectionLevel: ec.id })}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg border-2 transition-all ${
+                        design.errorCorrectionLevel === ec.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}>
+                      {ec.id} - {ec.label}
+                    </button>
+                  ))}
                 </div>
-              </div>
+              </AccordionSection>
 
               {/* Bottom buttons */}
               <div className="flex items-center justify-between pt-4">
@@ -1915,7 +1280,6 @@ export default function CreateQRPage() {
         {/* ─── Right: Phone Mockup ──────────────────────────────────── */}
         <div className="hidden lg:block">
           <div className="sticky top-24">
-            {/* Preview/QR code toggle (steps 2-3) */}
             {step >= 2 && (
               <div className="flex justify-center mb-4">
                 <div className="flex bg-gray-100 rounded-full p-0.5">

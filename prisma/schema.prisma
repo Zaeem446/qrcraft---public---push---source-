@@ -61,7 +61,8 @@ model QRCode {
   userId          String
   name            String
   type            String
-  slug            String    @unique
+  slug            String?   @unique
+  qrfyId          Int?      @unique
   content         Json
   design          Json      @default("{}")
   scanCount       Int       @default(0)

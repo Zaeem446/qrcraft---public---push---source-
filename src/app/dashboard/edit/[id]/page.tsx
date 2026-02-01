@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, use } from "react";
+import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -9,9 +9,24 @@ import ColorPicker from "@/components/ui/ColorPicker";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 
-const DOT_STYLES = ["square", "dot", "rounded", "extra-rounded", "classy", "classy-rounded", "diamond", "small-square", "tiny-square", "vertical-line", "horizontal-line", "random-dot", "star", "heart", "wave", "weave", "pentagon", "hexagon", "zebra-horizontal", "zebra-vertical", "blocks-horizontal", "blocks-vertical"];
-const CORNER_SQUARE_STYLES = ["square", "dot", "extra-rounded", "classy", "outpoint", "inpoint", "center-circle"];
-const CORNER_DOT_STYLES = ["square", "dot", "extra-rounded", "classy", "heart", "outpoint", "inpoint", "star", "pentagon", "hexagon", "diamond"];
+const QRFY_SHAPE_STYLES = [
+  "square", "rounded", "dots", "classy", "classy-rounded", "extra-rounded",
+  "cross", "cross-rounded", "diamond", "diamond-special", "heart",
+  "horizontal-rounded", "ribbon", "shake", "sparkle", "star",
+  "vertical-rounded", "x", "x-rounded",
+];
+
+const QRFY_CORNER_SQUARE_STYLES = [
+  "default", "dot", "square", "extra-rounded",
+  "shape1", "shape2", "shape3", "shape4", "shape5", "shape6",
+  "shape7", "shape8", "shape9", "shape10", "shape11", "shape12",
+];
+
+const QRFY_CORNER_DOT_STYLES = [
+  "default", "dot", "square", "cross", "cross-rounded", "diamond",
+  "dot2", "dot3", "dot4", "heart", "rounded", "square2", "square3",
+  "star", "sun", "x", "x-rounded",
+];
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -21,9 +36,11 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [content, setContent] = useState<Record<string, any>>({});
   const [design, setDesign] = useState<any>({});
   const [qrType, setQrType] = useState("");
-  const [slug, setSlug] = useState("");
+  const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetch(`/api/qrcodes/${id}`)
@@ -33,37 +50,64 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         setContent(data.content);
         setDesign(data.design || {});
         setQrType(data.type);
-        setSlug(data.slug || "");
+        setQrfyId(data.qrfyId || null);
       })
       .catch(() => toast.error("Failed to load QR code"))
       .finally(() => setLoading(false));
   }, [id]);
 
-  const generatePreview = useCallback(async () => {
+  // Fetch preview from QRFY API or from stored image
+  const fetchPreview = useCallback(async () => {
+    setPreviewLoading(true);
     try {
-      const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
-      const qr = new QRCodeStyling({
-        width: 256,
-        height: 256,
-        data: slug ? window.location.origin + "/r/" + slug : window.location.origin + "/r/preview",
-        shape: (design.shape as "square" | "circle") || "square",
-        dotsOptions: { color: design.dotsColor || "#000000", type: (design.dotsType || "square") as any },
-        cornersSquareOptions: { color: design.cornersSquareColor || "#000000", type: (design.cornersSquareType || "square") as any },
-        cornersDotOptions: { color: design.cornersDotColor || "#000000", type: (design.cornersDotType || "square") as any },
-        backgroundOptions: { color: design.backgroundColor || "#FFFFFF" },
-        image: design.logo || undefined,
+      // Try server-side preview with current design
+      const res = await fetch("/api/qrcodes/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: qrType, content, design }),
       });
-      const svgStr = await qr.serialize();
-      if (svgStr) {
-        const blob = new Blob([svgStr], { type: "image/svg+xml" });
-        setQrDataUrl(URL.createObjectURL(blob));
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
       }
-    } catch {}
-  }, [design, slug]);
+    } catch (err) {
+      console.error("Preview fetch error:", err);
+    }
+    setPreviewLoading(false);
+  }, [qrType, content, design]);
 
+  // Debounced preview refresh on design/content change
   useEffect(() => {
-    if (!loading) generatePreview();
-  }, [loading, design, generatePreview]);
+    if (!loading && qrType) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchPreview(), 600);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }
+  }, [loading, design, content, qrType, fetchPreview]);
+
+  // Load initial image from QRFY if available
+  useEffect(() => {
+    if (!loading && qrfyId) {
+      fetch(`/api/qrcodes/${id}/image?format=png`)
+        .then(res => {
+          if (res.ok) return res.blob();
+          return null;
+        })
+        .then(blob => {
+          if (blob) {
+            setPreviewUrl(prev => {
+              if (prev) URL.revokeObjectURL(prev);
+              return URL.createObjectURL(blob);
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [loading, qrfyId, id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -83,6 +127,29 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
       toast.error("Something went wrong");
     }
     setSaving(false);
+  };
+
+  const handleDownload = async (format: "png" | "webp" | "jpeg") => {
+    if (!qrfyId) {
+      toast.error("Download not available for legacy QR codes");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/qrcodes/${id}/image?format=${format}`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${name || "qrcode"}.${format}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        toast.error("Download failed");
+      }
+    } catch {
+      toast.error("Download failed");
+    }
   };
 
   if (loading) return <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>;
@@ -120,8 +187,8 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Dot Pattern</label>
                 <div className="flex flex-wrap gap-2">
-                  {DOT_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, dotsType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.dotsType === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600")}>
+                  {QRFY_SHAPE_STYLES.map((s) => (
+                    <button key={s} onClick={() => setDesign({ ...design, dotsType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.dotsType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
                       {s}
                     </button>
                   ))}
@@ -130,8 +197,8 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Square Style</label>
                 <div className="flex flex-wrap gap-2">
-                  {CORNER_SQUARE_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, cornersSquareType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersSquareType === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600")}>
+                  {QRFY_CORNER_SQUARE_STYLES.map((s) => (
+                    <button key={s} onClick={() => setDesign({ ...design, cornersSquareType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersSquareType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
                       {s}
                     </button>
                   ))}
@@ -140,8 +207,8 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Dot Style</label>
                 <div className="flex flex-wrap gap-2">
-                  {CORNER_DOT_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, cornersDotType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersDotType === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600")}>
+                  {QRFY_CORNER_DOT_STYLES.map((s) => (
+                    <button key={s} onClick={() => setDesign({ ...design, cornersDotType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersDotType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
                       {s}
                     </button>
                   ))}
@@ -149,6 +216,18 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
               </div>
             </div>
           </Card>
+
+          {/* Download section */}
+          {qrfyId && (
+            <Card>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Download QR Code</h2>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors">PNG</button>
+                <button onClick={() => handleDownload("webp")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">WEBP</button>
+                <button onClick={() => handleDownload("jpeg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">JPEG</button>
+              </div>
+            </Card>
+          )}
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => router.push("/dashboard")}>Cancel</Button>
@@ -160,8 +239,10 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
           <Card className="sticky top-24">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Preview</h3>
             <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 min-h-[280px]">
-              {qrDataUrl ? (
-                <img src={qrDataUrl} alt="QR Preview" className="w-64 h-64" />
+              {previewLoading ? (
+                <Spinner />
+              ) : previewUrl ? (
+                <img src={previewUrl} alt="QR Preview" className="w-64 h-64" />
               ) : (
                 <Spinner />
               )}

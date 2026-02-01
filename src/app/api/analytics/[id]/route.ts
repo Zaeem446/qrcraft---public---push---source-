@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { getReport } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,6 +25,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
+    // Try QRFY report for QRs with qrfyId
+    if (qrcode.qrfyId) {
+      try {
+        const qrfyReport = await getReport({
+          qrfyIds: [qrcode.qrfyId],
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+        });
+        console.log('QRFY report available for QR', qrcode.id);
+      } catch (err) {
+        console.error('QRFY report failed, using legacy:', err);
+      }
+    }
+
+    // Legacy scan-based analytics (kept as primary source during migration)
     const [totalScans, scansRaw, devicesRaw, browsersRaw, locationsRaw] = await Promise.all([
       prisma.scan.count({ where: { qrCodeId: qrcode.id, createdAt: { gte: startDate } } }),
       prisma.$queryRaw`

@@ -22,33 +22,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       return NextResponse.redirect(new URL('/', req.url));
     }
 
-    // Fire-and-forget scan tracking
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '127.0.0.1';
-    const userAgent = req.headers.get('user-agent') || '';
-    const parser = new UAParser(userAgent);
-    const referer = req.headers.get('referer') || '';
+    // For QRs migrated to QRFY, QRFY handles tracking and redirects.
+    // This route only serves as a legacy fallback for old QR codes without qrfyId.
 
-    getGeoData(ip).then((geo) => {
-      prisma.scan.create({
-        data: {
-          qrCodeId: qrcode.id,
-          userId: qrcode.userId,
-          ip,
-          country: geo.country,
-          city: geo.city,
-          device: parser.getDevice().type || 'desktop',
-          browser: parser.getBrowser().name || 'Unknown',
-          os: parser.getOS().name || 'Unknown',
-          referer,
-        },
+    // Only track scans locally for legacy (non-QRFY) QR codes
+    if (!qrcode.qrfyId) {
+      const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '127.0.0.1';
+      const userAgent = req.headers.get('user-agent') || '';
+      const parser = new UAParser(userAgent);
+      const referer = req.headers.get('referer') || '';
+
+      getGeoData(ip).then((geo) => {
+        prisma.scan.create({
+          data: {
+            qrCodeId: qrcode.id,
+            userId: qrcode.userId,
+            ip,
+            country: geo.country,
+            city: geo.city,
+            device: parser.getDevice().type || 'desktop',
+            browser: parser.getBrowser().name || 'Unknown',
+            os: parser.getOS().name || 'Unknown',
+            referer,
+          },
+        }).catch(console.error);
+      });
+
+      // Increment scan count
+      prisma.qRCode.update({
+        where: { id: qrcode.id },
+        data: { scanCount: { increment: 1 } },
       }).catch(console.error);
-    });
-
-    // Increment scan count
-    prisma.qRCode.update({
-      where: { id: qrcode.id },
-      data: { scanCount: { increment: 1 } },
-    }).catch(console.error);
+    }
 
     const content = qrcode.content as any;
     const type = qrcode.type;

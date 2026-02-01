@@ -24,7 +24,8 @@ interface QRCodeItem {
   id: string;
   name: string;
   type: string;
-  slug: string;
+  slug: string | null;
+  qrfyId: number | null;
   scanCount: number;
   isActive: boolean;
   createdAt: string;
@@ -231,8 +232,21 @@ export default function DashboardPage() {
               className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between hover:shadow-sm hover:border-gray-300 transition-all duration-200"
             >
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <QrCodeIcon className="h-6 w-6 text-violet-500" />
+                <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {qr.qrfyId ? (
+                    <img
+                      src={`/api/qrcodes/${qr.id}/image?format=webp`}
+                      alt={qr.name}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg class="h-6 w-6 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>';
+                      }}
+                    />
+                  ) : (
+                    <QrCodeIcon className="h-6 w-6 text-violet-500" />
+                  )}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">

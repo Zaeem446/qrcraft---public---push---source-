@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { nanoid } from 'nanoid';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { createQR } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -61,6 +62,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, type, and content are required' }, { status: 400 });
     }
 
+    // Create QR on QRFY
+    let qrfyId: number | null = null;
+    try {
+      const qrfyResult = await createQR({ type, content, design: design || {}, name });
+      qrfyId = qrfyResult?.id ?? null;
+    } catch (err) {
+      console.error('QRFY create error:', err);
+      // Continue without QRFY — QR will be stored locally only
+    }
+
+    // Generate slug as fallback for legacy redirect support
     const slug = nanoid(8);
 
     const qrcode = await prisma.qRCode.create({
@@ -69,6 +81,7 @@ export async function POST(req: NextRequest) {
         name,
         type,
         slug,
+        qrfyId,
         content,
         design: design || {},
       },

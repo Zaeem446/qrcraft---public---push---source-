@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { getReport } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -16,6 +17,29 @@ export async function GET(req: NextRequest) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
+    // Try to fetch QRFY report for QRs with qrfyId
+    const qrfyQRCodes = await prisma.qRCode.findMany({
+      where: { userId: session.user.id, qrfyId: { not: null } },
+      select: { qrfyId: true },
+    });
+    const qrfyIds = qrfyQRCodes.map(q => q.qrfyId!);
+
+    if (qrfyIds.length > 0) {
+      try {
+        const qrfyReport = await getReport({
+          qrfyIds,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+        });
+        // QRFY report data is available but format may vary;
+        // log for debugging during integration
+        console.log('QRFY report available for', qrfyIds.length, 'QRs');
+      } catch (err) {
+        console.error('QRFY report fetch failed, falling back to local:', err);
+      }
+    }
+
+    // Legacy scan-based analytics (kept as primary source during migration)
     const [totalQRCodes, activeQRCodes, totalScans, scansRaw, devicesRaw, browsersRaw, locationsRaw] = await Promise.all([
       prisma.qRCode.count({ where: { userId: session.user.id } }),
       prisma.qRCode.count({ where: { userId: session.user.id, isActive: true } }),
