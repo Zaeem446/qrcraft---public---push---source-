@@ -47,58 +47,31 @@ export function mapTypeToQrfy(ourType: string): string {
   return TYPE_MAP[ourType] || 'url';
 }
 
-// ─── Style Mapping ───────────────────────────────────────────────────────────
+// ─── Style Mapping (simplified — direct passthroughs) ───────────────────────
 
-// Map our dot pattern names → QRFY shape.style names
+// Confirmed QRFY shape styles (6)
 const SHAPE_STYLE_MAP: Record<string, string> = {
   square: 'square',
-  dot: 'dots',
   rounded: 'rounded',
-  'extra-rounded': 'extra-rounded',
+  dots: 'dots',
   classy: 'classy',
   'classy-rounded': 'classy-rounded',
-  diamond: 'diamond',
-  'small-square': 'square',
-  'tiny-square': 'square',
-  'vertical-line': 'vertical-rounded',
-  'horizontal-line': 'horizontal-rounded',
-  'random-dot': 'dots',
-  star: 'star',
-  heart: 'heart',
-  wave: 'rounded',
-  weave: 'cross',
-  pentagon: 'sparkle',
-  hexagon: 'sparkle',
-  'zebra-horizontal': 'horizontal-rounded',
-  'zebra-vertical': 'vertical-rounded',
-  'blocks-horizontal': 'horizontal-rounded',
-  'blocks-vertical': 'vertical-rounded',
+  'extra-rounded': 'extra-rounded',
 };
 
-// Map our corner square styles → QRFY corners.squareStyle
+// Confirmed QRFY corner square styles (4)
 const CORNER_SQUARE_MAP: Record<string, string> = {
+  default: 'default',
   square: 'square',
   dot: 'dot',
   'extra-rounded': 'extra-rounded',
-  classy: 'shape1',
-  outpoint: 'shape2',
-  inpoint: 'shape3',
-  'center-circle': 'shape4',
 };
 
-// Map our corner dot styles → QRFY corners.dotStyle
+// Confirmed QRFY corner dot styles (3)
 const CORNER_DOT_MAP: Record<string, string> = {
-  square: 'square',
+  default: 'default',
   dot: 'dot',
-  'extra-rounded': 'rounded',
-  classy: 'square2',
-  heart: 'heart',
-  outpoint: 'diamond',
-  inpoint: 'cross',
-  star: 'star',
-  pentagon: 'dot2',
-  hexagon: 'dot3',
-  diamond: 'diamond',
+  square: 'square',
 };
 
 function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
@@ -148,35 +121,23 @@ export function mapDesignToStyle(design: Record<string, any>) {
     dotColor: design.cornersDotColor || '#000000',
   };
 
-  // Frame
-  if (design.frameStyle && design.frameStyle !== 'none') {
-    // Map our frame IDs to QRFY frame IDs (0-30)
-    const frameIdMap: Record<string, number> = {
-      'sq-bottom': 1, 'sq-top': 2, 'sq-both': 3,
-      'rd-bottom': 4, 'rd-top': 5, 'rd-both': 6,
-      'pill-bottom': 7, 'pill-both': 8,
-      'dash-sq': 9, 'dash-rd': 10,
-      'dot-sq': 11, 'dot-rd': 12,
-      'dbl-sq': 13, 'dbl-rd': 14,
-      'sq-notext': 15, 'rd-notext': 16,
-      clipboard: 17, coffee: 18, cloud: 19, gift: 20,
-      bag: 21, envelope: 22, badge: 23, ticket: 24,
-      banner: 25, monitor: 26,
-    };
+  // Frame — use numeric frameId directly
+  const frameId = typeof design.frameId === 'number' ? design.frameId : 0;
+  if (frameId > 0) {
     style.frame = {
-      id: frameIdMap[design.frameStyle] ?? 0,
+      id: frameId,
       color: design.frameColor || '#000000',
       text: (design.frameText || 'Scan me!').slice(0, 30),
-      fontSize: 42,
+      fontSize: design.frameFontSize || 42,
       textColor: design.frameTextColor || '#FFFFFF',
-      backgroundColor: design.frameColor || '#000000',
+      backgroundColor: design.frameBackgroundColor || design.frameColor || '#000000',
     };
   } else {
     style.frame = { id: 0 };
   }
 
   // Error correction
-  style.errorCorrectionLevel = design.logo ? 'H' : 'M';
+  style.errorCorrectionLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
 
   return style;
 }
@@ -190,8 +151,10 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     case 'website':
     case 'instagram':
     case 'facebook':
-    case 'video':
       return { type: qrfyType, data: { url: content.url || '' } };
+
+    case 'video':
+      return { type: qrfyType, data: { url: content.url || content.fileUrl || '' } };
 
     case 'bitcoin':
       return {
@@ -252,6 +215,104 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         data: {
           phone: content.phone || '',
           message: content.message || '',
+        },
+      };
+
+    case 'links':
+      return {
+        type: qrfyType,
+        data: {
+          title: content.title || '',
+          links: Array.isArray(content.links) ? content.links : [],
+        },
+      };
+
+    case 'business':
+      return {
+        type: qrfyType,
+        data: {
+          companyName: content.companyName || '',
+          address: content.address || '',
+          phone: content.phone || '',
+          email: content.email || '',
+          website: content.website || '',
+          description: content.description || '',
+          hours: content.hours || '',
+          socialLinks: Array.isArray(content.socialLinks) ? content.socialLinks : [],
+        },
+      };
+
+    case 'apps':
+      return {
+        type: qrfyType,
+        data: {
+          appName: content.appName || '',
+          iosUrl: content.iosUrl || '',
+          androidUrl: content.androidUrl || '',
+          otherUrl: content.otherUrl || '',
+        },
+      };
+
+    case 'coupon':
+      return {
+        type: qrfyType,
+        data: {
+          title: content.title || '',
+          description: content.description || '',
+          discount: content.discount || '',
+          code: content.code || '',
+          expiryDate: content.expiryDate || '',
+          terms: content.terms || '',
+        },
+      };
+
+    case 'review':
+      return {
+        type: qrfyType,
+        data: {
+          title: content.title || '',
+          description: content.description || '',
+          ratingType: content.ratingType || 'stars',
+        },
+      };
+
+    case 'social':
+      return {
+        type: qrfyType,
+        data: {
+          platforms: Array.isArray(content.platforms) ? content.platforms : [],
+        },
+      };
+
+    case 'event':
+      return {
+        type: qrfyType,
+        data: {
+          title: content.title || '',
+          description: content.description || '',
+          startDate: content.startDate || '',
+          endDate: content.endDate || '',
+          location: content.location || '',
+          organizer: content.organizer || '',
+        },
+      };
+
+    case 'menu':
+      return {
+        type: qrfyType,
+        data: {
+          restaurantName: content.restaurantName || '',
+          sections: Array.isArray(content.sections) ? content.sections : [],
+        },
+      };
+
+    case 'pdf':
+    case 'mp3':
+    case 'images':
+      return {
+        type: qrfyType,
+        data: {
+          fileUrl: content.fileUrl || content.url || '',
         },
       };
 
@@ -427,25 +488,59 @@ export async function getReport(params: {
   return res.json();
 }
 
+// ─── Analytics Transform ─────────────────────────────────────────────────────
+
+export function transformQrfyReport(report: any) {
+  // Transform QRFY report response into our frontend analytics format
+  const scansOverTime: { date: string; count: number }[] = [];
+  const deviceBreakdown: { name: string; value: number }[] = [];
+  const browserBreakdown: { name: string; value: number }[] = [];
+  const locationBreakdown: { name: string; value: number }[] = [];
+  let totalScans = 0;
+
+  if (report?.scans) {
+    totalScans = typeof report.scans === 'number' ? report.scans : 0;
+  }
+
+  if (report?.scansByDate && typeof report.scansByDate === 'object') {
+    for (const [date, count] of Object.entries(report.scansByDate)) {
+      scansOverTime.push({ date, count: Number(count) });
+    }
+  }
+
+  if (Array.isArray(report?.devices)) {
+    for (const d of report.devices) {
+      deviceBreakdown.push({ name: d.name || d.device || 'Unknown', value: Number(d.count || d.value || 0) });
+    }
+  }
+
+  if (Array.isArray(report?.browsers)) {
+    for (const b of report.browsers) {
+      browserBreakdown.push({ name: b.name || b.browser || 'Unknown', value: Number(b.count || b.value || 0) });
+    }
+  }
+
+  if (Array.isArray(report?.countries)) {
+    for (const l of report.countries) {
+      locationBreakdown.push({ name: l.name || l.country || 'Unknown', value: Number(l.count || l.value || 0) });
+    }
+  }
+
+  return { totalScans, scansOverTime, deviceBreakdown, browserBreakdown, locationBreakdown };
+}
+
 // ─── QRFY Shape/Corner/Frame options for UI ──────────────────────────────────
 
 export const QRFY_SHAPE_STYLES = [
   'square', 'rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded',
-  'cross', 'cross-rounded', 'diamond', 'diamond-special', 'heart',
-  'horizontal-rounded', 'ribbon', 'shake', 'sparkle', 'star',
-  'vertical-rounded', 'x', 'x-rounded',
 ] as const;
 
 export const QRFY_CORNER_SQUARE_STYLES = [
-  'default', 'dot', 'square', 'extra-rounded',
-  'shape1', 'shape2', 'shape3', 'shape4', 'shape5', 'shape6',
-  'shape7', 'shape8', 'shape9', 'shape10', 'shape11', 'shape12',
+  'default', 'square', 'dot', 'extra-rounded',
 ] as const;
 
 export const QRFY_CORNER_DOT_STYLES = [
-  'default', 'dot', 'square', 'cross', 'cross-rounded', 'diamond',
-  'dot2', 'dot3', 'dot4', 'heart', 'rounded', 'square2', 'square3',
-  'star', 'sun', 'x', 'x-rounded',
+  'default', 'dot', 'square',
 ] as const;
 
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);

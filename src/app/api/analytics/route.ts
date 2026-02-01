@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { getReport } from '@/lib/qrfy';
+import { getReport, transformQrfyReport } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -24,6 +24,14 @@ export async function GET(req: NextRequest) {
     });
     const qrfyIds = qrfyQRCodes.map(q => q.qrfyId!);
 
+    let qrfyData: {
+      totalScans: number;
+      scansOverTime: { date: string; count: number }[];
+      deviceBreakdown: { name: string; value: number }[];
+      browserBreakdown: { name: string; value: number }[];
+      locationBreakdown: { name: string; value: number }[];
+    } | null = null;
+
     if (qrfyIds.length > 0) {
       try {
         const qrfyReport = await getReport({
@@ -31,20 +39,17 @@ export async function GET(req: NextRequest) {
           startDate: startDate.toISOString().split('T')[0],
           endDate: new Date().toISOString().split('T')[0],
         });
-        // QRFY report data is available but format may vary;
-        // log for debugging during integration
-        console.log('QRFY report available for', qrfyIds.length, 'QRs');
+        qrfyData = transformQrfyReport(qrfyReport);
       } catch (err) {
         console.error('QRFY report fetch failed, falling back to local:', err);
       }
     }
 
-    // Legacy scan-based analytics (kept as primary source during migration)
+    // Legacy scan-based analytics
     const [totalQRCodes, activeQRCodes, totalScans, scansRaw, devicesRaw, browsersRaw, locationsRaw] = await Promise.all([
       prisma.qRCode.count({ where: { userId: session.user.id } }),
       prisma.qRCode.count({ where: { userId: session.user.id, isActive: true } }),
       prisma.scan.count({ where: { userId: session.user.id, createdAt: { gte: startDate } } }),
-      // Scans over time
       prisma.$queryRaw`
         SELECT DATE(s."createdAt") as date, COUNT(*)::int as count
         FROM scans s
@@ -52,7 +57,6 @@ export async function GET(req: NextRequest) {
         GROUP BY DATE(s."createdAt")
         ORDER BY date ASC
       ` as Promise<{ date: Date; count: number }[]>,
-      // Device breakdown
       prisma.$queryRaw`
         SELECT s.device as name, COUNT(*)::int as value
         FROM scans s
@@ -60,7 +64,6 @@ export async function GET(req: NextRequest) {
         GROUP BY s.device
         ORDER BY value DESC
       ` as Promise<{ name: string; value: number }[]>,
-      // Browser breakdown
       prisma.$queryRaw`
         SELECT s.browser as name, COUNT(*)::int as value
         FROM scans s
@@ -69,7 +72,6 @@ export async function GET(req: NextRequest) {
         ORDER BY value DESC
         LIMIT 10
       ` as Promise<{ name: string; value: number }[]>,
-      // Location breakdown
       prisma.$queryRaw`
         SELECT s.country as name, COUNT(*)::int as value
         FROM scans s
@@ -80,14 +82,48 @@ export async function GET(req: NextRequest) {
       ` as Promise<{ name: string; value: number }[]>,
     ]);
 
+    const legacyScansOverTime = scansRaw.map((s) => ({ date: s.date.toISOString().split('T')[0], count: s.count }));
+    const legacyDevices = devicesRaw.map((d) => ({ name: d.name || 'Unknown', value: d.value }));
+    const legacyBrowsers = browsersRaw.map((b) => ({ name: b.name || 'Unknown', value: b.value }));
+    const legacyLocations = locationsRaw.map((l) => ({ name: l.name || 'Unknown', value: l.value }));
+
+    // Merge QRFY data with legacy data if available
+    if (qrfyData) {
+      // Merge scans over time by date
+      const dateMap = new Map<string, number>();
+      for (const s of legacyScansOverTime) dateMap.set(s.date, (dateMap.get(s.date) || 0) + s.count);
+      for (const s of qrfyData.scansOverTime) dateMap.set(s.date, (dateMap.get(s.date) || 0) + s.count);
+      const mergedScansOverTime = Array.from(dateMap.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      // Merge breakdowns
+      const mergeBreakdowns = (a: { name: string; value: number }[], b: { name: string; value: number }[]) => {
+        const map = new Map<string, number>();
+        for (const item of a) map.set(item.name, (map.get(item.name) || 0) + item.value);
+        for (const item of b) map.set(item.name, (map.get(item.name) || 0) + item.value);
+        return Array.from(map.entries()).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+      };
+
+      return NextResponse.json({
+        totalQRCodes,
+        activeQRCodes,
+        totalScans: totalScans + qrfyData.totalScans,
+        scansOverTime: mergedScansOverTime,
+        deviceBreakdown: mergeBreakdowns(legacyDevices, qrfyData.deviceBreakdown),
+        browserBreakdown: mergeBreakdowns(legacyBrowsers, qrfyData.browserBreakdown).slice(0, 10),
+        locationBreakdown: mergeBreakdowns(legacyLocations, qrfyData.locationBreakdown).slice(0, 10),
+      });
+    }
+
     return NextResponse.json({
       totalQRCodes,
       activeQRCodes,
       totalScans,
-      scansOverTime: scansRaw.map((s) => ({ date: s.date.toISOString().split('T')[0], count: s.count })),
-      deviceBreakdown: devicesRaw.map((d) => ({ name: d.name || 'Unknown', value: d.value })),
-      browserBreakdown: browsersRaw.map((b) => ({ name: b.name || 'Unknown', value: b.value })),
-      locationBreakdown: locationsRaw.map((l) => ({ name: l.name || 'Unknown', value: l.value })),
+      scansOverTime: legacyScansOverTime,
+      deviceBreakdown: legacyDevices,
+      browserBreakdown: legacyBrowsers,
+      locationBreakdown: legacyLocations,
     });
   } catch (error) {
     console.error('Analytics error:', error);

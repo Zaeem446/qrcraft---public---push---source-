@@ -3,30 +3,12 @@
 import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
-import Input from "@/components/ui/Input";
 import Card from "@/components/ui/Card";
-import ColorPicker from "@/components/ui/ColorPicker";
 import Spinner from "@/components/ui/Spinner";
+import ContentForms from "@/components/qr/ContentForms";
+import DesignOptions from "@/components/qr/DesignOptions";
 import toast from "react-hot-toast";
-
-const QRFY_SHAPE_STYLES = [
-  "square", "rounded", "dots", "classy", "classy-rounded", "extra-rounded",
-  "cross", "cross-rounded", "diamond", "diamond-special", "heart",
-  "horizontal-rounded", "ribbon", "shake", "sparkle", "star",
-  "vertical-rounded", "x", "x-rounded",
-];
-
-const QRFY_CORNER_SQUARE_STYLES = [
-  "default", "dot", "square", "extra-rounded",
-  "shape1", "shape2", "shape3", "shape4", "shape5", "shape6",
-  "shape7", "shape8", "shape9", "shape10", "shape11", "shape12",
-];
-
-const QRFY_CORNER_DOT_STYLES = [
-  "default", "dot", "square", "cross", "cross-rounded", "diamond",
-  "dot2", "dot3", "dot4", "heart", "rounded", "square2", "square3",
-  "star", "sun", "x", "x-rounded",
-];
+import { QR_TYPES } from "@/lib/utils";
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -34,7 +16,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [content, setContent] = useState<Record<string, any>>({});
-  const [design, setDesign] = useState<any>({});
+  const [design, setDesign] = useState<Record<string, any>>({});
   const [qrType, setQrType] = useState("");
   const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,11 +38,9 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Fetch preview from QRFY API or from stored image
   const fetchPreview = useCallback(async () => {
     setPreviewLoading(true);
     try {
-      // Try server-side preview with current design
       const res = await fetch("/api/qrcodes/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,7 +60,6 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
     setPreviewLoading(false);
   }, [qrType, content, design]);
 
-  // Debounced preview refresh on design/content change
   useEffect(() => {
     if (!loading && qrType) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -89,7 +68,6 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
     }
   }, [loading, design, content, qrType, fetchPreview]);
 
-  // Load initial image from QRFY if available
   useEffect(() => {
     if (!loading && qrfyId) {
       fetch(`/api/qrcodes/${id}/image?format=png`)
@@ -154,68 +132,42 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
 
   if (loading) return <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>;
 
+  const typeMeta = QR_TYPES.find(t => t.id === qrType);
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Edit QR Code</h1>
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Details */}
           <Card>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Details</h2>
-            <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-            <p className="text-sm text-gray-500 mt-2">Type: {qrType}</p>
-          </Card>
-
-          <Card>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Content</h2>
-            {qrType === "website" ? (
-              <Input label="URL" value={content.url || ""} onChange={(e) => setContent({ ...content, url: e.target.value })} />
-            ) : (
-              <div className="space-y-3">
-                {Object.entries(content).map(([key, value]) => (
-                  <Input key={key} label={key} value={String(value || "")} onChange={(e) => setContent({ ...content, [key]: e.target.value })} />
-                ))}
-              </div>
-            )}
-          </Card>
-
-          <Card>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Design</h2>
-            <div className="space-y-4">
-              <ColorPicker label="Dots Color" value={design.dotsColor || "#000000"} onChange={(c) => setDesign({ ...design, dotsColor: c })} />
-              <ColorPicker label="Background" value={design.backgroundColor || "#FFFFFF"} onChange={(c) => setDesign({ ...design, backgroundColor: c })} />
-              <ColorPicker label="Eye Color" value={design.cornersSquareColor || "#000000"} onChange={(c) => setDesign({ ...design, cornersSquareColor: c, cornersDotColor: c })} />
+            <div className="space-y-3">
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Dot Pattern</label>
-                <div className="flex flex-wrap gap-2">
-                  {QRFY_SHAPE_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, dotsType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.dotsType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Name</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Square Style</label>
-                <div className="flex flex-wrap gap-2">
-                  {QRFY_CORNER_SQUARE_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, cornersSquareType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersSquareType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Dot Style</label>
-                <div className="flex flex-wrap gap-2">
-                  {QRFY_CORNER_DOT_STYLES.map((s) => (
-                    <button key={s} onClick={() => setDesign({ ...design, cornersDotType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersDotType === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600")}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-600">Type:</span>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+                  {typeMeta?.name || qrType}
+                </span>
               </div>
             </div>
           </Card>
+
+          {/* Content */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Content</h2>
+            <ContentForms qrType={qrType} content={content} setContent={setContent} />
+          </div>
+
+          {/* Design */}
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Design</h2>
+            <DesignOptions design={design} setDesign={setDesign} />
+          </div>
 
           {/* Download section */}
           {qrfyId && (
@@ -235,6 +187,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
 
+        {/* Preview */}
         <div>
           <Card className="sticky top-24">
             <h3 className="text-sm font-medium text-gray-700 mb-4">Preview</h3>

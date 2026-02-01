@@ -19,7 +19,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'application/pdf', 'audio/mpeg'];
+    const allowedTypes = [
+      'image/png', 'image/jpeg', 'image/gif', 'image/svg+xml', 'image/webp',
+      'application/pdf',
+      'audio/mpeg',
+      'video/mp4', 'video/webm', 'video/quicktime',
+    ];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json({ error: 'File type not allowed' }, { status: 400 });
     }

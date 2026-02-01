@@ -10,8 +10,10 @@ function contentToString(type: string, content: Record<string, any>): string {
     case 'website':
     case 'instagram':
     case 'facebook':
-    case 'video':
       return content.url || 'https://example.com';
+
+    case 'video':
+      return content.url || content.fileUrl || 'https://example.com';
 
     case 'bitcoin':
       return content.address ? `bitcoin:${content.address}` : content.url || 'bitcoin:';
@@ -51,9 +53,66 @@ function contentToString(type: string, content: Record<string, any>): string {
       if (content.description) lines.push(`DESCRIPTION:${content.description}`);
       if (content.startDate) lines.push(`DTSTART:${content.startDate.replace(/[-:]/g, '')}`);
       if (content.endDate) lines.push(`DTEND:${content.endDate.replace(/[-:]/g, '')}`);
+      if (content.organizer) lines.push(`ORGANIZER:${content.organizer}`);
       lines.push('END:VEVENT');
       return lines.join('\n');
     }
+
+    case 'links': {
+      const parts = [content.title || 'Links'];
+      if (Array.isArray(content.links)) {
+        for (const link of content.links) {
+          if (link.url) parts.push(`${link.label || ''}: ${link.url}`);
+        }
+      }
+      return parts.join('\n') || 'https://example.com';
+    }
+
+    case 'business': {
+      const parts = [content.companyName || 'Business'];
+      if (content.address) parts.push(content.address);
+      if (content.phone) parts.push(content.phone);
+      if (content.email) parts.push(content.email);
+      if (content.website) parts.push(content.website);
+      return parts.join('\n');
+    }
+
+    case 'apps':
+      return content.iosUrl || content.androidUrl || content.otherUrl || 'https://example.com';
+
+    case 'coupon': {
+      const parts = [content.title || 'Coupon'];
+      if (content.code) parts.push(`Code: ${content.code}`);
+      if (content.discount) parts.push(`Discount: ${content.discount}`);
+      if (content.expiryDate) parts.push(`Expires: ${content.expiryDate}`);
+      return parts.join('\n');
+    }
+
+    case 'review':
+      return content.title || content.url || 'Leave a review';
+
+    case 'social': {
+      if (Array.isArray(content.platforms)) {
+        const urls = content.platforms.map((p: any) => `${p.platform || ''}: ${p.url || ''}`).join('\n');
+        return urls || 'https://example.com';
+      }
+      return content.url || 'https://example.com';
+    }
+
+    case 'menu': {
+      const parts = [content.restaurantName || 'Menu'];
+      if (Array.isArray(content.sections)) {
+        for (const section of content.sections) {
+          parts.push(section.name || 'Section');
+        }
+      }
+      return parts.join('\n');
+    }
+
+    case 'pdf':
+    case 'mp3':
+    case 'images':
+      return content.fileUrl || content.url || 'https://example.com';
 
     default:
       return content.url || content.text || 'https://example.com';
