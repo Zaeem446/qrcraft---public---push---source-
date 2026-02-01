@@ -3,13 +3,16 @@
 import Input from "@/components/ui/Input";
 import FileUploadField from "./FileUploadField";
 import DynamicListField from "./DynamicListField";
+import MultiFileUpload from "./MultiFileUpload";
+import PageDesignSection from "./PageDesignSection";
 import {
   GlobeAltIcon, UserIcon, WifiIcon, EnvelopeIcon,
   ChatBubbleBottomCenterTextIcon, ChatBubbleLeftIcon, DocumentIcon,
   VideoCameraIcon, MusicalNoteIcon, PhotoIcon, Bars3Icon,
   BuildingOfficeIcon, ClipboardDocumentListIcon, DevicePhoneMobileIcon,
   TicketIcon, StarIcon, ShareIcon, CalendarIcon, CurrencyDollarIcon,
-  DocumentTextIcon, CameraIcon, HandThumbUpIcon,
+  DocumentTextIcon, CameraIcon, HandThumbUpIcon, PlusIcon, TrashIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
 import { QR_TYPES } from "@/lib/utils";
 import { useState } from "react";
@@ -50,7 +53,18 @@ const SOCIAL_PLATFORMS = [
   { value: "other", label: "Other" },
 ];
 
-// ─── Page Design Color Picker (for dynamic QRFY types) ──────────────────────
+// ─── Day options for schedule ────────────────────────────────────────────────
+const DAYS_OF_WEEK = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
+];
+
+// ─── Page Design Color Picker (kept for non-priority types) ─────────────────
 function PageDesignPicker({ content, setContent, mode }: {
   content: Record<string, any>;
   setContent: (c: Record<string, any>) => void;
@@ -124,6 +138,59 @@ function PageDesignPicker({ content, setContent, mode }: {
   );
 }
 
+// ─── Schedule / Opening Hours ────────────────────────────────────────────────
+function ScheduleField({ value, onChange }: {
+  value: { day: string; open: string; close: string }[];
+  onChange: (v: { day: string; open: string; close: string }[]) => void;
+}) {
+  const items = Array.isArray(value) ? value : [];
+
+  const add = () => onChange([...items, { day: "monday", open: "09:00", close: "17:00" }]);
+  const remove = (idx: number) => onChange(items.filter((_, i) => i !== idx));
+  const update = (idx: number, key: string, val: string) =>
+    onChange(items.map((item, i) => (i === idx ? { ...item, [key]: val } : item)));
+
+  return (
+    <div>
+      <label className="text-xs font-medium text-gray-600 mb-2 block">Opening Hours</label>
+      <div className="space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            <select
+              value={item.day}
+              onChange={(e) => update(idx, "day", e.target.value)}
+              className="flex-1 px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white"
+            >
+              {DAYS_OF_WEEK.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
+            <input
+              type="time"
+              value={item.open}
+              onChange={(e) => update(idx, "open", e.target.value)}
+              className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700"
+            />
+            <span className="text-xs text-gray-400">to</span>
+            <input
+              type="time"
+              value={item.close}
+              onChange={(e) => update(idx, "close", e.target.value)}
+              className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700"
+            />
+            <button onClick={() => remove(idx)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+              <TrashIcon className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button onClick={add} className="mt-2 flex items-center gap-1.5 text-xs text-violet-600 font-medium hover:text-violet-700">
+        <PlusIcon className="h-3.5 w-3.5" /> Add hours
+      </button>
+    </div>
+  );
+}
+
 // ─── ContentForms ────────────────────────────────────────────────────────────
 
 interface ContentFormsProps {
@@ -136,17 +203,56 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
   const set = (key: string, val: any) => setContent({ ...content, [key]: val });
 
   switch (qrType) {
-    case "website":
+    // ── Website (multi-website support) ───────────────────────────────────
+    case "website": {
+      const websites = content.websites || [];
+      const addWebsite = () => set("websites", [...websites, { name: "", url: "", description: "" }]);
+      const removeWebsite = (idx: number) => set("websites", websites.filter((_: any, i: number) => i !== idx));
+      const updateWebsite = (idx: number, key: string, val: string) =>
+        set("websites", websites.map((w: any, i: number) => (i === idx ? { ...w, [key]: val } : w)));
+
       return (
-        <AccordionSection icon={<GlobeAltIcon className="h-5 w-5 text-gray-500" />} title="Website Information" subtitle="Input the URL this QR will redirect to." defaultOpen>
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Website URL <span className="text-red-500">*</span></label>
-            <input type="url" placeholder="E.g. https://www.mywebsite.com/" value={content.url || ""}
-              onChange={e => set("url", e.target.value)}
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<GlobeAltIcon className="h-5 w-5 text-gray-500" />} title="Website Information" subtitle="Input the URL(s) this QR will redirect to." defaultOpen>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Primary URL <span className="text-red-500">*</span></label>
+                <input type="url" placeholder="E.g. https://www.mywebsite.com/" value={content.url || ""}
+                  onChange={e => set("url", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+              </div>
+              {websites.length > 0 && (
+                <div className="space-y-3">
+                  <label className="text-xs font-medium text-gray-600 block">Additional Websites</label>
+                  {websites.map((w: any, idx: number) => (
+                    <div key={idx} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input type="text" placeholder="Website name" value={w.name || ""}
+                          onChange={e => updateWebsite(idx, "name", e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                        <button onClick={() => removeWebsite(idx)} className="text-xs text-red-500 hover:underline">Remove</button>
+                      </div>
+                      <input type="url" placeholder="https://..." value={w.url || ""}
+                        onChange={e => updateWebsite(idx, "url", e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                      <input type="text" placeholder="Description (optional)" value={w.description || ""}
+                        onChange={e => updateWebsite(idx, "description", e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button onClick={addWebsite} className="flex items-center gap-1.5 text-xs text-violet-600 font-medium hover:text-violet-700">
+                <PlusIcon className="h-3.5 w-3.5" /> Add website
+              </button>
+            </div>
+          </AccordionSection>
+          <AccordionSection icon={<PhotoIcon className="h-5 w-5 text-gray-500" />} title="Badge" subtitle="Upload a badge image for the landing page.">
+            <FileUploadField label="Badge Image" accept="image/*" value={content.badge || ""} onChange={v => set("badge", v)} />
+          </AccordionSection>
+        </>
       );
+    }
 
     case "instagram":
       return (
@@ -183,35 +289,43 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         </AccordionSection>
       );
 
+    // ── vCard (enhanced with photo, extra phones, design) ─────────────────
     case "vcard":
       return (
-        <AccordionSection icon={<UserIcon className="h-5 w-5 text-gray-500" />} title="Contact Information" subtitle="Fill in your contact details." defaultOpen>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="First Name" value={content.firstName || ""} onChange={e => set("firstName", e.target.value)} />
-              <Input label="Last Name" value={content.lastName || ""} onChange={e => set("lastName", e.target.value)} />
+        <>
+          <AccordionSection icon={<UserIcon className="h-5 w-5 text-gray-500" />} title="Contact Information" subtitle="Fill in your contact details." defaultOpen>
+            <div className="space-y-3">
+              <FileUploadField label="Contact Photo" accept="image/*" value={content.photo || ""} onChange={v => set("photo", v)} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="First Name" value={content.firstName || ""} onChange={e => set("firstName", e.target.value)} />
+                <Input label="Last Name" value={content.lastName || ""} onChange={e => set("lastName", e.target.value)} />
+              </div>
+              <Input label="Phone" value={content.phone || ""} onChange={e => set("phone", e.target.value)} placeholder="Main phone number" />
+              <Input label="Mobile Phone" value={content.mobilePhone || ""} onChange={e => set("mobilePhone", e.target.value)} placeholder="Mobile number" />
+              <Input label="Work Phone" value={content.workPhone || ""} onChange={e => set("workPhone", e.target.value)} placeholder="Work number" />
+              <Input label="Fax" value={content.fax || ""} onChange={e => set("fax", e.target.value)} placeholder="Fax number" />
+              <Input label="Email" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} />
+              <Input label="Company" value={content.company || ""} onChange={e => set("company", e.target.value)} />
+              <Input label="Job Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
+              <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Street" value={content.street || ""} onChange={e => set("street", e.target.value)} />
+                <Input label="City" value={content.city || ""} onChange={e => set("city", e.target.value)} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <Input label="State" value={content.state || ""} onChange={e => set("state", e.target.value)} />
+                <Input label="ZIP" value={content.zip || ""} onChange={e => set("zip", e.target.value)} />
+                <Input label="Country" value={content.country || ""} onChange={e => set("country", e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Note</label>
+                <textarea value={content.note || ""} onChange={e => set("note", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Optional note..." />
+              </div>
             </div>
-            <Input label="Phone" value={content.phone || ""} onChange={e => set("phone", e.target.value)} />
-            <Input label="Email" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} />
-            <Input label="Company" value={content.company || ""} onChange={e => set("company", e.target.value)} />
-            <Input label="Job Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
-            <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Street" value={content.street || ""} onChange={e => set("street", e.target.value)} />
-              <Input label="City" value={content.city || ""} onChange={e => set("city", e.target.value)} />
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              <Input label="State" value={content.state || ""} onChange={e => set("state", e.target.value)} />
-              <Input label="ZIP" value={content.zip || ""} onChange={e => set("zip", e.target.value)} />
-              <Input label="Country" value={content.country || ""} onChange={e => set("country", e.target.value)} />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Note</label>
-              <textarea value={content.note || ""} onChange={e => set("note", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Optional note..." />
-            </div>
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
+        </>
       );
 
     case "wifi":
@@ -282,22 +396,57 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         </AccordionSection>
       );
 
+    // ── PDF (fully enhanced) ──────────────────────────────────────────────
     case "pdf":
       return (
         <>
-          <AccordionSection icon={<DocumentIcon className="h-5 w-5 text-gray-500" />} title="PDF Document" subtitle="Upload a PDF and customize the landing page." defaultOpen>
+          <PageDesignSection content={content} setContent={setContent} mode="pdf" />
+          <AccordionSection icon={<DocumentIcon className="h-5 w-5 text-gray-500" />} title="PDF Documents" subtitle="Upload one or more PDF files." defaultOpen>
             <div className="space-y-3">
-              <FileUploadField label="Upload PDF *" accept=".pdf,application/pdf" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
-              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Document title" />
+              <MultiFileUpload
+                label="PDF Files *"
+                accept=".pdf,application/pdf"
+                value={content.pdfs || (content.fileUrl ? [{ file: content.fileUrl, name: content.fileName || "document.pdf" }] : [])}
+                onChange={v => set("pdfs", v)}
+              />
+            </div>
+          </AccordionSection>
+          <AccordionSection icon={<DocumentTextIcon className="h-5 w-5 text-gray-500" />} title="PDF Information" subtitle="Add details about your PDF.">
+            <div className="space-y-3">
+              <Input label="Company" value={content.company || ""} onChange={e => set("company", e.target.value)} placeholder="Company name" />
+              <Input label="PDF Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Document title" />
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
                 <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Describe this document..." />
               </div>
+              <Input label="Website URL" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourcompany.com" />
               <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="Download PDF" />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <AccordionSection icon={<PhotoIcon className="h-5 w-5 text-gray-500" />} title="Welcome Screen" subtitle="Customize the welcome screen shown before the PDF.">
+            <div className="space-y-3">
+              <FileUploadField label="Welcome Image (500x500)" accept="image/*" value={content.welcomeImage || ""} onChange={v => set("welcomeImage", v)} />
+              <FileUploadField label="Favicon" accept="image/*" value={content.favicon || ""} onChange={v => set("favicon", v)} />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Timer (seconds): {content.welcomeTimer ?? 5}
+                </label>
+                <input
+                  type="range"
+                  min={0}
+                  max={30}
+                  value={content.welcomeTimer ?? 5}
+                  onChange={e => set("welcomeTimer", parseInt(e.target.value))}
+                  className="w-full accent-violet-600"
+                />
+                <div className="flex justify-between text-[10px] text-gray-400">
+                  <span>0s</span>
+                  <span>30s</span>
+                </div>
+              </div>
+            </div>
+          </AccordionSection>
         </>
       );
 
@@ -365,11 +514,13 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         </>
       );
 
+    // ── Links (enhanced with logo, social links) ──────────────────────────
     case "links":
       return (
         <>
           <AccordionSection icon={<Bars3Icon className="h-5 w-5 text-gray-500" />} title="Link List" subtitle="Add multiple links." defaultOpen>
             <div className="space-y-3">
+              <FileUploadField label="Logo" accept="image/*" value={content.logo || ""} onChange={v => set("logo", v)} />
               <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="My Links" />
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
@@ -387,21 +538,38 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="3" />
+          <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Links" subtitle="Add social media profiles.">
+            <DynamicListField
+              label="Social Profiles"
+              fields={[
+                { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
+                { key: "url", label: "URL", placeholder: "https://..." },
+              ]}
+              value={content.socials || []}
+              onChange={v => set("socials", v)}
+            />
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="3color" />
         </>
       );
 
+    // ── Business (enhanced with cover, phone, email, schedule, CTA) ───────
     case "business":
       return (
         <>
           <AccordionSection icon={<BuildingOfficeIcon className="h-5 w-5 text-gray-500" />} title="Business Page" subtitle="Enter your business details." defaultOpen>
             <div className="space-y-3">
+              <FileUploadField label="Cover Image" accept="image/*" value={content.cover || ""} onChange={v => set("cover", v)} />
               <Input label="Company Name" value={content.companyName || ""} onChange={e => set("companyName", e.target.value)} />
               <Input label="Title / Headline" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Welcome to our business" />
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
                 <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="About your business..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Phone" value={content.phone || ""} onChange={e => set("phone", e.target.value)} placeholder="+1 555 123 4567" />
+                <Input label="Email" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} placeholder="info@business.com" />
               </div>
               <p className="text-xs font-medium text-gray-600 mt-2">Address</p>
               <Input label="Street" value={content.street || ""} onChange={e => set("street", e.target.value)} />
@@ -414,18 +582,32 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
                 <Input label="Country" value={content.country || ""} onChange={e => set("country", e.target.value)} />
               </div>
               <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourbusiness.com" />
-              <DynamicListField
-                label="Social Links"
-                fields={[
-                  { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
-                  { key: "url", label: "URL", placeholder: "https://..." },
-                ]}
-                value={content.socialLinks || []}
-                onChange={v => set("socialLinks", v)}
-              />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <AccordionSection icon={<ClockIcon className="h-5 w-5 text-gray-500" />} title="Opening Hours" subtitle="Set your business schedule.">
+            <ScheduleField
+              value={content.schedule || []}
+              onChange={v => set("schedule", v)}
+            />
+          </AccordionSection>
+          <AccordionSection icon={<GlobeAltIcon className="h-5 w-5 text-gray-500" />} title="Call to Action" subtitle="Add a button to your business page.">
+            <div className="space-y-3">
+              <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="Visit Website" />
+              <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://yourbusiness.com" />
+            </div>
+          </AccordionSection>
+          <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Links" subtitle="Add your social media profiles.">
+            <DynamicListField
+              label="Social Links"
+              fields={[
+                { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
+                { key: "url", label: "URL", placeholder: "https://..." },
+              ]}
+              value={content.socialLinks || []}
+              onChange={v => set("socialLinks", v)}
+            />
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
@@ -502,11 +684,13 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         </>
       );
 
+    // ── Social (enhanced with logo, PageDesignSection) ────────────────────
     case "social":
       return (
         <>
           <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Media" subtitle="Add all your social profiles." defaultOpen>
             <div className="space-y-3">
+              <FileUploadField label="Logo" accept="image/*" value={content.logo || ""} onChange={v => set("logo", v)} />
               <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Follow us" />
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
@@ -524,7 +708,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="3" />
+          <PageDesignSection content={content} setContent={setContent} mode="3color" />
         </>
       );
 

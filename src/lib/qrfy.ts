@@ -233,7 +233,20 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
 
   switch (ourType) {
     // ── Static / simple URL types ──────────────────────────────────────
-    case 'website':
+    case 'website': {
+      // Support multiple websites; send first URL as primary
+      const websites = Array.isArray(content.websites) ? content.websites : [];
+      const data: Record<string, any> = { url: content.url || '' };
+      if (websites.length > 0) {
+        data.websites = websites.filter((w: any) => w.url).map((w: any) => ({
+          name: w.name || '',
+          url: w.url || '',
+          description: w.description || '',
+        }));
+      }
+      if (content.badge) data.badge = toAbsoluteUrl(content.badge);
+      return { type: qrfyType, data };
+    }
     case 'instagram':
     case 'facebook':
       return { type: qrfyType, data: { url: content.url || '' } };
@@ -265,6 +278,11 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           zip: content.zip || '',
           country: content.country || '',
           note: content.note || '',
+          ...(content.photo ? { photo: toAbsoluteUrl(content.photo) } : {}),
+          ...(content.mobilePhone ? { mobilePhone: content.mobilePhone } : {}),
+          ...(content.workPhone ? { workPhone: content.workPhone } : {}),
+          ...(content.fax ? { fax: content.fax } : {}),
+          ...(content.pageDesign ? { design: { primary: content.pageDesign.primary || '#7C3AED', secondary: content.pageDesign.secondary || '#FFFFFF' } } : {}),
         },
       };
 
@@ -330,6 +348,19 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           title: content.title || '',
           description: content.description || '',
           button: content.buttonText || '',
+          ...(content.company ? { company: content.company } : {}),
+          ...(content.website ? { website: content.website } : {}),
+          ...(typeof content.template === 'number' ? { template: content.template } : {}),
+          ...(content.headerColor ? { headerColor: content.headerColor } : {}),
+          ...(content.titleFont ? { titleFont: content.titleFont } : {}),
+          ...(content.textFont ? { textFont: content.textFont } : {}),
+          ...((content.welcomeImage || content.favicon || content.welcomeTimer != null) ? {
+            welcomeScreen: {
+              ...(content.welcomeImage ? { image: toAbsoluteUrl(content.welcomeImage) } : {}),
+              ...(content.favicon ? { favicon: toAbsoluteUrl(content.favicon) } : {}),
+              ...(content.welcomeTimer != null ? { timer: content.welcomeTimer } : {}),
+            },
+          } : {}),
         },
       };
     }
@@ -390,6 +421,11 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       const links = Array.isArray(content.links)
         ? content.links.map((l: any) => ({ url: l.url || '', text: l.text || l.label || '' }))
         : [];
+      const linkSocials = Array.isArray(content.socials)
+        ? content.socials
+            .filter((s: any) => s.platform && s.url)
+            .map((s: any) => ({ id: s.platform, value: s.url }))
+        : [];
       return {
         type: 'link-list',
         data: {
@@ -398,7 +434,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           title: content.title || '',
           description: content.description || '',
           ...(content.logo ? { logo: toAbsoluteUrl(content.logo) } : {}),
-          ...(content.socials ? { socials: content.socials } : {}),
+          ...(linkSocials.length ? { socials: linkSocials } : {}),
         },
       };
     }
@@ -410,6 +446,9 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
             .filter((s: any) => s.platform && s.url)
             .map((s: any) => ({ id: s.platform, value: s.url }))
         : [];
+      // Use explicit CTA button if provided, otherwise fall back to website
+      const buttonText = content.buttonText || (content.website ? 'Visit Website' : '');
+      const buttonUrl = content.buttonUrl || content.website || '';
       return {
         type: 'business',
         data: {
@@ -424,9 +463,12 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
             country: content.country || '',
           },
           description: content.description || '',
-          ...(content.website ? { button: { text: 'Visit Website', url: content.website } } : {}),
+          ...(content.phone ? { phone: content.phone } : {}),
+          ...(content.email ? { email: content.email } : {}),
+          ...(content.cover ? { cover: toAbsoluteUrl(content.cover) } : {}),
+          ...(buttonUrl ? { button: { text: buttonText || 'Visit Website', url: buttonUrl } } : {}),
           ...(socials.length ? { socials } : {}),
-          ...(content.schedule ? { schedule: content.schedule } : {}),
+          ...(Array.isArray(content.schedule) && content.schedule.length ? { schedule: content.schedule } : {}),
         },
       };
     }
