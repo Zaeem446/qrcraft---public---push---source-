@@ -665,15 +665,39 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles (BorderPlugin-based frames) ───────────────────────────────
-const FRAME_STYLES = [
+// ─── Frame Styles with visual thumbnails ─────────────────────────────────────
+const FRAME_STYLES: { id: string; label: string }[] = [
   { id: "none", label: "None" },
-  { id: "bottom-text", label: "Bottom" },
-  { id: "top-text", label: "Top" },
-  { id: "both-text", label: "Both" },
+  { id: "bottom-text", label: "Bottom text" },
+  { id: "top-text", label: "Top text" },
+  { id: "both-text", label: "Both text" },
 ];
 
-// Dot pattern styles (@liquid-js/qr-code-styling DotType values)
+// Mini QR grid used inside frame thumbnails
+function MiniQR({ className = "" }: { className?: string }) {
+  return (
+    <div className={`grid grid-cols-5 gap-[1px] ${className}`}>
+      {[1,1,1,0,1, 1,0,1,1,0, 1,1,0,1,1, 0,1,1,0,1, 1,0,1,1,1].map((v, i) => (
+        <div key={i} className={`w-[3px] h-[3px] ${v ? "bg-current" : "bg-transparent"}`} />
+      ))}
+    </div>
+  );
+}
+
+function FrameThumb({ id }: { id: string }) {
+  if (id === "none") return (
+    <svg className="h-6 w-6 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+  );
+  return (
+    <div className="flex flex-col items-center text-gray-700">
+      {(id === "top-text" || id === "both-text") && <div className="w-full bg-gray-400 rounded-[1px] h-[4px] mb-[2px] flex items-center justify-center"><span className="text-[2px] text-white font-bold leading-none">Scan</span></div>}
+      <div className="border border-gray-400 rounded-[2px] p-[2px]"><MiniQR /></div>
+      {(id === "bottom-text" || id === "both-text") && <div className="w-full bg-gray-400 rounded-[1px] h-[4px] mt-[2px] flex items-center justify-center"><span className="text-[2px] text-white font-bold leading-none">Scan Me!</span></div>}
+    </div>
+  );
+}
+
+// Dot pattern styles with SVG visual thumbnails
 const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dots" },
@@ -681,17 +705,32 @@ const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "extra-rounded", label: "Extra Round" },
   { id: "classy", label: "Classy" },
   { id: "classy-rounded", label: "Classy Round" },
-  { id: "diamond", label: "Diamond" },
-  { id: "small-square", label: "Small Sq" },
-  { id: "tiny-square", label: "Tiny Sq" },
-  { id: "vertical-line", label: "V-Line" },
-  { id: "horizontal-line", label: "H-Line" },
-  { id: "random-dot", label: "Random" },
-  { id: "star", label: "Star" },
-  { id: "heart", label: "Heart" },
 ];
 
-// Corner square styles (@liquid-js/qr-code-styling CornerSquareType values)
+function PatternThumb({ id }: { id: string }) {
+  // 4x4 grid of dots showing the pattern visually
+  const cells = Array.from({ length: 16 });
+  const getShape = (i: number) => {
+    const x = (i % 4) * 11 + 5;
+    const y = Math.floor(i / 4) * 11 + 5;
+    const s = 4;
+    switch (id) {
+      case "dot": return <circle key={i} cx={x} cy={y} r={s} fill="currentColor" />;
+      case "rounded": return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} rx={2} fill="currentColor" />;
+      case "extra-rounded": return <circle key={i} cx={x} cy={y} r={s} fill="currentColor" />;
+      case "classy": return <path key={i} d={`M${x-s} ${y-s}h${s*2}v${s*2}h${-s*2}z`} fill="currentColor" />;
+      case "classy-rounded": return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} rx={s*0.4} fill="currentColor" />;
+      default: return <rect key={i} x={x-s} y={y-s} width={s*2} height={s*2} fill="currentColor" />;
+    }
+  };
+  return (
+    <svg viewBox="0 0 48 48" className="w-full h-full text-gray-800">
+      {cells.map((_, i) => getShape(i))}
+    </svg>
+  );
+}
+
+// Corner square styles with visual shape icons
 const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -701,7 +740,20 @@ const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
   { id: "inpoint", label: "Inpoint" },
 ];
 
-// Corner dot styles (@liquid-js/qr-code-styling CornerDotType values)
+function CornerSquareThumb({ id }: { id: string }) {
+  return (
+    <svg viewBox="0 0 28 28" className="w-6 h-6 text-gray-700">
+      {id === "dot" && <circle cx="14" cy="14" r="11" fill="none" stroke="currentColor" strokeWidth="3"/>}
+      {id === "square" && <rect x="3" y="3" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3"/>}
+      {id === "extra-rounded" && <rect x="3" y="3" width="22" height="22" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>}
+      {id === "classy" && <path d="M3 3h22v22H3z" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round"/>}
+      {id === "outpoint" && <><rect x="3" y="3" width="22" height="22" rx="3" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="14" cy="14" r="3" fill="currentColor"/></>}
+      {id === "inpoint" && <><rect x="3" y="3" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="3"/><rect x="10" y="10" width="8" height="8" rx="4" fill="currentColor"/></>}
+    </svg>
+  );
+}
+
+// Corner dot styles with visual shape icons
 const CORNER_DOT_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -711,6 +763,20 @@ const CORNER_DOT_STYLES: { id: string; label: string }[] = [
   { id: "outpoint", label: "Outpoint" },
   { id: "inpoint", label: "Inpoint" },
 ];
+
+function CornerDotThumb({ id }: { id: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5 text-gray-700">
+      {id === "dot" && <circle cx="12" cy="12" r="8" fill="currentColor"/>}
+      {id === "square" && <rect x="4" y="4" width="16" height="16" fill="currentColor"/>}
+      {id === "extra-rounded" && <rect x="4" y="4" width="16" height="16" rx="5" fill="currentColor"/>}
+      {id === "classy" && <rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/>}
+      {id === "heart" && <path d="M12 21s-7-5-7-10a4.5 4.5 0 019 0 4.5 4.5 0 019 0c0 5-7 10-7 10z" fill="currentColor" transform="translate(-1.5,-2) scale(0.95)"/>}
+      {id === "outpoint" && <><rect x="4" y="4" width="16" height="16" rx="2" fill="currentColor"/><circle cx="12" cy="12" r="3" fill="white"/></>}
+      {id === "inpoint" && <><circle cx="12" cy="12" r="9" fill="currentColor"/><rect x="9" y="9" width="6" height="6" fill="white"/></>}
+    </svg>
+  );
+}
 
 // ─── Accordion Section Component ────────────────────────────────────────────
 function AccordionSection({ icon, title, subtitle, children, defaultOpen = false }: {
@@ -1265,13 +1331,14 @@ export default function CreateQRPage() {
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Frame style</label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-6 sm:grid-cols-8 gap-2">
                       {FRAME_STYLES.map(f => (
                         <button key={f.id} onClick={() => { setDesign({ ...design, frameStyle: f.id }); qrInstanceRef.current = null; }}
-                          className={`px-4 py-2 text-sm rounded-lg border-2 transition-all ${
-                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                          }`}>
-                          {f.label}
+                          className={`aspect-square rounded-lg border-2 transition-all flex flex-col items-center justify-center p-1.5 ${
+                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}
+                          title={f.label}>
+                          <FrameThumb id={f.id} />
                         </button>
                       ))}
                     </div>
@@ -1318,13 +1385,14 @@ export default function CreateQRPage() {
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern style</label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                       {PATTERN_STYLES.map(p => (
                         <button key={p.id} onClick={() => { setDesign({ ...design, dotsType: p.id }); qrInstanceRef.current = null; }}
-                          className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
-                            design.dotsType === p.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
+                          title={p.label}
+                          className={`w-14 h-14 rounded-lg border-2 transition-all flex items-center justify-center p-1.5 ${
+                            design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                           }`}>
-                          {p.label}
+                          <PatternThumb id={p.id} />
                         </button>
                       ))}
                     </div>
@@ -1413,27 +1481,29 @@ export default function CreateQRPage() {
                   <p className="text-xs font-semibold text-gray-700">Corners</p>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner square style</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Frame around corner dots style</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_SQUARE_STYLES.map(c => (
                           <button key={c.id} onClick={() => { setDesign({ ...design, cornersSquareType: c.id }); qrInstanceRef.current = null; }}
-                            className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
-                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
+                            title={c.label}
+                            className={`w-11 h-11 rounded-lg border-2 transition-all flex items-center justify-center ${
+                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                             }`}>
-                            {c.label}
+                            <CornerSquareThumb id={c.id} />
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dot style</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dots type</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_DOT_STYLES.map(c => (
                           <button key={c.id} onClick={() => { setDesign({ ...design, cornersDotType: c.id }); qrInstanceRef.current = null; }}
-                            className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
-                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
+                            title={c.label}
+                            className={`w-11 h-11 rounded-lg border-2 transition-all flex items-center justify-center ${
+                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                             }`}>
-                            {c.label}
+                            <CornerDotThumb id={c.id} />
                           </button>
                         ))}
                       </div>
