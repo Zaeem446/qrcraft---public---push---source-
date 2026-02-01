@@ -970,11 +970,71 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── QR Live Preview (serialize-based for reliable plugin rendering) ─────────
-function QRLivePreview({ qrContainerRef }: { qrContainerRef: React.RefObject<HTMLDivElement | null> }) {
+// ─── QR Live Preview — CSS frame wrapper around clean QR SVG ─────────────────
+function QRLivePreview({ qrContainerRef, design }: {
+  qrContainerRef: React.RefObject<HTMLDivElement | null>;
+  design: {
+    frameStyle: string; frameColor: string; frameText: string;
+    frameTopText: string; frameTextColor: string;
+  };
+}) {
+  const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
+  const hasFrame = frameDef && frameDef.id !== "none" && frameDef.layers.length > 0;
+  const hasTop = hasFrame && frameDef.layers.some(l => l.textPos.includes("top"));
+  const hasBottom = hasFrame && frameDef.layers.some(l => l.textPos.includes("bottom"));
+  const outerLayer = hasFrame ? frameDef.layers[frameDef.layers.length - 1] : null;
+  const innerLayer = hasFrame && frameDef.layers.length > 1 ? frameDef.layers[0] : null;
+  const borderRadius = outerLayer ? `${outerLayer.round * 20}px` : "0";
+  const borderStyle = outerLayer?.dash ? (outerLayer.dash === "3 3" ? "dotted" : "dashed") : "solid";
+  const textColor = design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor;
+
+  // QR SVG element — always the same ref
+  const qrEl = <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />;
+
+  if (!hasFrame) {
+    return (
+      <div className="h-full bg-white flex items-center justify-center p-4">
+        <div className="w-full max-w-[200px]">{qrEl}</div>
+      </div>
+    );
+  }
+
+  const frameContent = (
+    <>
+      {hasTop && (
+        <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
+          {design.frameTopText || design.frameText || "Scan me!"}
+        </div>
+      )}
+      {qrEl}
+      {hasBottom && (
+        <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
+          {design.frameText || "Scan me!"}
+        </div>
+      )}
+    </>
+  );
+
   return (
     <div className="h-full bg-white flex items-center justify-center p-4">
-      <div ref={qrContainerRef} className="flex items-center justify-center w-full max-w-[280px] [&>svg]:w-full [&>svg]:h-auto" />
+      <div className="w-full max-w-[200px]">
+        <div style={{
+          border: `3px ${borderStyle} ${design.frameColor}`,
+          borderRadius,
+          padding: innerLayer ? "4px" : "8px",
+          background: "white",
+        }}>
+          {innerLayer ? (
+            <div style={{
+              border: `1.5px ${innerLayer.dash ? "dashed" : "solid"} ${design.frameColor}`,
+              borderRadius: `${innerLayer.round * 16}px`,
+              padding: "6px",
+            }}>
+              {frameContent}
+            </div>
+          ) : frameContent}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1088,20 +1148,18 @@ export default function CreateQRPage() {
     });
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
-  // Render QR — use serialize() to get final SVG after all plugins have run
+  // Render QR preview — clean QR only (no plugins), CSS frame handles the border
   const renderQR = useCallback(async () => {
     if (!qrType) return;
     try {
       const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
-      const plugins = await buildPlugins();
-      const opts = buildQROptions(256, plugins);
+      // Preview: no plugins — the CSS wrapper handles the frame visually
+      const opts = buildQROptions(256);
       const qr = new QRCodeStyling(opts);
       qrInstanceRef.current = qr;
-      // serialize() returns the final SVG string after all async drawing + plugins complete
       const svgString = await qr.serialize();
       if (svgString && qrContainerRef.current) {
         qrContainerRef.current.innerHTML = svgString;
-        // Remove fixed width/height attrs so CSS can control sizing
         const svg = qrContainerRef.current.querySelector("svg");
         if (svg) {
           svg.removeAttribute("width");
@@ -1109,7 +1167,7 @@ export default function CreateQRPage() {
         }
       }
     } catch (e) { console.error("QR preview error:", e); }
-  }, [qrType, buildQROptions, buildPlugins]);
+  }, [qrType, buildQROptions]);
 
   // Re-render QR on any design/content change
   useEffect(() => {
@@ -1278,7 +1336,7 @@ export default function CreateQRPage() {
     }
     // Steps 2-3: Show preview or QR code based on tab
     if (previewTab === "qrcode") {
-      return <QRLivePreview qrContainerRef={qrContainerRef} />;
+      return <QRLivePreview qrContainerRef={qrContainerRef} design={design} />;
     }
     // Preview tab: show type-specific preview with dynamic content
     if (qrType) {
