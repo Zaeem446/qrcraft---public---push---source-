@@ -770,16 +770,20 @@ interface DesignOptionsProps {
 export default function DesignOptions({ design, setDesign }: DesignOptionsProps) {
   const set = (key: string, val: any) => setDesign({ ...design, [key]: val });
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 1024 * 1024) { toast.error("Logo must be under 1MB"); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      if (result) set("logo", result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      set("logo", url);
+    } catch {
+      toast.error("Failed to upload logo");
+    }
   };
 
   return (

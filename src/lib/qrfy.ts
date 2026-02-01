@@ -160,9 +160,9 @@ function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
 export function mapDesignToStyle(design: Record<string, any>) {
   const style: Record<string, any> = {};
 
-  // Logo
-  if (design.logo) {
-    style.image = design.logo;
+  // Logo — must be a hosted URL (not base64); QRFY downloads it server-side
+  if (design.logo && !design.logo.startsWith('data:')) {
+    style.image = toAbsoluteUrl(design.logo);
   }
 
   // Shape / pattern
@@ -211,17 +211,32 @@ export function mapDesignToStyle(design: Record<string, any>) {
 
 // ─── Content Mapping ─────────────────────────────────────────────────────────
 
+// Helper: build a full URL for uploaded files (QRFY needs absolute URLs)
+function toAbsoluteUrl(path: string): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  // Relative paths like /uploads/xxx.pdf → full URL
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft.com';
+  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
+// Default landing-page design colors used by dynamic QRFY types
+const DEFAULT_DESIGN_2 = { primary: '#7C3AED', secondary: '#FFFFFF' };
+const DEFAULT_DESIGN_3 = { primary: '#7C3AED', secondary: '#FFFFFF', tertiary: '#F3F4F6' };
+const DEFAULT_DESIGN_COLOR = { color: '#7C3AED' };
+
 export function mapContentToData(ourType: string, content: Record<string, any>) {
   const qrfyType = mapTypeToQrfy(ourType);
+  const design2 = content.pageDesign || DEFAULT_DESIGN_2;
+  const design3 = content.pageDesign || DEFAULT_DESIGN_3;
+  const designC = content.pageDesign || DEFAULT_DESIGN_COLOR;
 
   switch (ourType) {
+    // ── Static / simple URL types ──────────────────────────────────────
     case 'website':
     case 'instagram':
     case 'facebook':
       return { type: qrfyType, data: { url: content.url || '' } };
-
-    case 'video':
-      return { type: qrfyType, data: { url: content.url || content.fileUrl || '' } };
 
     case 'bitcoin':
       return {
@@ -232,6 +247,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     case 'text':
       return { type: 'text', data: { text: content.text || content.url || '' } };
 
+    // ── vCard ──────────────────────────────────────────────────────────
     case 'vcard':
       return {
         type: 'vcard',
@@ -240,33 +256,42 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           lastName: content.lastName || '',
           phone: content.phone || '',
           email: content.email || '',
-          organization: content.org || '',
+          company: content.company || content.org || '',
           title: content.title || '',
-          website: content.website || '',
-          address: content.address || '',
+          url: content.website || '',
+          street: content.street || '',
+          city: content.city || '',
+          state: content.state || '',
+          zip: content.zip || '',
+          country: content.country || '',
+          note: content.note || '',
         },
       };
 
+    // ── WiFi ───────────────────────────────────────────────────────────
     case 'wifi':
       return {
         type: 'wifi',
         data: {
           ssid: content.ssid || '',
           password: content.password || '',
-          encryption: content.encryption || 'WPA',
+          authType: content.authType || content.encryption || 'WPA',
+          hidden: content.hidden || false,
         },
       };
 
+    // ── Email ──────────────────────────────────────────────────────────
     case 'email':
       return {
         type: 'email',
         data: {
           email: content.email || '',
           subject: content.subject || '',
-          body: content.message || '',
+          body: content.message || content.body || '',
         },
       };
 
+    // ── SMS ────────────────────────────────────────────────────────────
     case 'sms':
       return {
         type: 'sms',
@@ -276,6 +301,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
+    // ── WhatsApp ───────────────────────────────────────────────────────
     case 'whatsapp':
       return {
         type: 'whatsapp',
@@ -285,103 +311,229 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    case 'links':
+    // ── PDF ────────────────────────────────────────────────────────────
+    case 'pdf': {
+      const pdfs: { file: string; name?: string }[] = [];
+      if (content.fileUrl) {
+        pdfs.push({ file: toAbsoluteUrl(content.fileUrl), name: content.fileName || 'document.pdf' });
+      }
+      if (Array.isArray(content.pdfs)) {
+        for (const p of content.pdfs) {
+          if (p.file || p.fileUrl) pdfs.push({ file: toAbsoluteUrl(p.file || p.fileUrl), name: p.name });
+        }
+      }
       return {
-        type: qrfyType,
+        type: 'pdf',
         data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          pdfs,
           title: content.title || '',
-          links: Array.isArray(content.links) ? content.links : [],
-        },
-      };
-
-    case 'business':
-      return {
-        type: qrfyType,
-        data: {
-          companyName: content.companyName || '',
-          address: content.address || '',
-          phone: content.phone || '',
-          email: content.email || '',
-          website: content.website || '',
           description: content.description || '',
-          hours: content.hours || '',
-          socialLinks: Array.isArray(content.socialLinks) ? content.socialLinks : [],
+          button: content.buttonText || '',
+        },
+      };
+    }
+
+    // ── Video ──────────────────────────────────────────────────────────
+    case 'video': {
+      const videos: string[] = [];
+      if (content.fileUrl) videos.push(toAbsoluteUrl(content.fileUrl));
+      if (content.url) videos.push(content.url);
+      if (Array.isArray(content.videos)) {
+        for (const v of content.videos) videos.push(typeof v === 'string' ? v : v.url || v.file || '');
+      }
+      return {
+        type: 'video',
+        data: {
+          design: { color: designC.color || designC.primary || '#7C3AED' },
+          videos: videos.filter(Boolean),
+          title: content.title || '',
+          description: content.description || '',
+          autoplay: content.autoplay ?? false,
+        },
+      };
+    }
+
+    // ── MP3 ────────────────────────────────────────────────────────────
+    case 'mp3':
+      return {
+        type: 'mp3',
+        data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          mp3: toAbsoluteUrl(content.fileUrl || content.url || ''),
+          website: content.website || '',
+          title: content.title || '',
+          description: content.description || '',
         },
       };
 
+    // ── Images ─────────────────────────────────────────────────────────
+    case 'images': {
+      let images: string[] = [];
+      if (content.fileUrl) images.push(toAbsoluteUrl(content.fileUrl));
+      if (Array.isArray(content.images)) {
+        images = content.images.map((img: any) => toAbsoluteUrl(typeof img === 'string' ? img : img.url || img.file || ''));
+      }
+      return {
+        type: 'images',
+        data: {
+          design: { color: designC.color || designC.primary || '#7C3AED' },
+          images: images.filter(Boolean),
+          title: content.title || '',
+          description: content.description || '',
+        },
+      };
+    }
+
+    // ── Link List ──────────────────────────────────────────────────────
+    case 'links': {
+      const links = Array.isArray(content.links)
+        ? content.links.map((l: any) => ({ url: l.url || '', text: l.text || l.label || '' }))
+        : [];
+      return {
+        type: 'link-list',
+        data: {
+          design: { primary: design3.primary, secondary: design3.secondary, tertiary: design3.tertiary || '#F3F4F6' },
+          links,
+          title: content.title || '',
+          description: content.description || '',
+          ...(content.logo ? { logo: toAbsoluteUrl(content.logo) } : {}),
+          ...(content.socials ? { socials: content.socials } : {}),
+        },
+      };
+    }
+
+    // ── Business ───────────────────────────────────────────────────────
+    case 'business': {
+      const socials = Array.isArray(content.socialLinks)
+        ? content.socialLinks
+            .filter((s: any) => s.platform && s.url)
+            .map((s: any) => ({ id: s.platform, value: s.url }))
+        : [];
+      return {
+        type: 'business',
+        data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          title: content.title || content.companyName || '',
+          company: content.companyName || '',
+          address: {
+            street: content.street || content.address || '',
+            city: content.city || '',
+            state: content.state || '',
+            zip: content.zip || '',
+            country: content.country || '',
+          },
+          description: content.description || '',
+          ...(content.website ? { button: { text: 'Visit Website', url: content.website } } : {}),
+          ...(socials.length ? { socials } : {}),
+          ...(content.schedule ? { schedule: content.schedule } : {}),
+        },
+      };
+    }
+
+    // ── Menu ───────────────────────────────────────────────────────────
+    case 'menu': {
+      const sections = Array.isArray(content.sections) ? content.sections : [];
+      return {
+        type: 'menu',
+        data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          sections,
+          schedule: content.schedule || {},
+          ...(content.restaurantName ? { cover: content.restaurantName } : {}),
+        },
+      };
+    }
+
+    // ── App ────────────────────────────────────────────────────────────
     case 'apps':
       return {
-        type: qrfyType,
+        type: 'app',
         data: {
-          appName: content.appName || '',
-          iosUrl: content.iosUrl || '',
-          androidUrl: content.androidUrl || '',
-          otherUrl: content.otherUrl || '',
+          design: { primary: design2.primary, secondary: design2.secondary },
+          name: content.appName || content.name || '',
+          website: content.website || content.otherUrl || '',
+          description: content.description || '',
+          apps: {
+            ...(content.iosUrl ? { apple: content.iosUrl } : {}),
+            ...(content.androidUrl ? { google: content.androidUrl } : {}),
+          },
+          ...(content.logo ? { logo: toAbsoluteUrl(content.logo) } : {}),
         },
       };
 
-    case 'coupon':
+    // ── Coupon ─────────────────────────────────────────────────────────
+    case 'coupon': {
+      let validUntil = 0;
+      if (content.expiryDate) {
+        validUntil = new Date(content.expiryDate).getTime();
+      }
       return {
-        type: qrfyType,
+        type: 'coupon',
         data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
           title: content.title || '',
           description: content.description || '',
-          discount: content.discount || '',
-          code: content.code || '',
-          expiryDate: content.expiryDate || '',
-          terms: content.terms || '',
+          validUntil: validUntil || (Date.now() + 30 * 24 * 60 * 60 * 1000),
+          badge: content.badge || content.discount || '',
+          ...(content.buttonUrl ? { button: { text: content.buttonText || 'Redeem', url: content.buttonUrl } } : {}),
         },
       };
+    }
 
+    // ── Review / Feedback ──────────────────────────────────────────────
     case 'review':
       return {
-        type: qrfyType,
+        type: 'feedback',
         data: {
+          design: { color: designC.color || designC.primary || '#7C3AED' },
+          name: content.title || content.name || 'Feedback',
+          categories: Array.isArray(content.categories) ? content.categories : [],
           title: content.title || '',
           description: content.description || '',
-          ratingType: content.ratingType || 'stars',
+          email: '',
+          ...(content.website ? { website: content.website } : {}),
         },
       };
 
-    case 'social':
+    // ── Social ─────────────────────────────────────────────────────────
+    case 'social': {
+      const socials = Array.isArray(content.platforms)
+        ? content.platforms
+            .filter((s: any) => s.platform && s.url)
+            .map((s: any) => ({ id: s.platform, value: s.url }))
+        : [];
       return {
-        type: qrfyType,
+        type: 'social',
         data: {
-          platforms: Array.isArray(content.platforms) ? content.platforms : [],
-        },
-      };
-
-    case 'event':
-      return {
-        type: qrfyType,
-        data: {
+          design: { primary: design3.primary, secondary: design3.secondary, tertiary: design3.tertiary || '#F3F4F6' },
           title: content.title || '',
           description: content.description || '',
-          startDate: content.startDate || '',
-          endDate: content.endDate || '',
-          location: content.location || '',
-          organizer: content.organizer || '',
+          ...(socials.length ? { socials } : {}),
+          ...(content.logo ? { logo: toAbsoluteUrl(content.logo) } : {}),
         },
       };
+    }
 
-    case 'menu':
+    // ── Event ──────────────────────────────────────────────────────────
+    case 'event': {
+      let from = 0, to = 0;
+      if (content.startDate) from = new Date(content.startDate).getTime();
+      if (content.endDate) to = new Date(content.endDate).getTime();
       return {
-        type: qrfyType,
+        type: 'event',
         data: {
-          restaurantName: content.restaurantName || '',
-          sections: Array.isArray(content.sections) ? content.sections : [],
+          design: { primary: design2.primary, secondary: design2.secondary },
+          title: content.title || '',
+          description: content.description || '',
+          eventDate: {
+            from: from || Date.now(),
+            to: to || (Date.now() + 3600000),
+          },
+          ...(content.buttonUrl ? { button: { text: content.buttonText || 'RSVP', url: content.buttonUrl } } : {}),
         },
       };
-
-    case 'pdf':
-    case 'mp3':
-    case 'images':
-      return {
-        type: qrfyType,
-        data: {
-          fileUrl: content.fileUrl || content.url || '',
-        },
-      };
+    }
 
     default:
       // For all other types, pass content through as data

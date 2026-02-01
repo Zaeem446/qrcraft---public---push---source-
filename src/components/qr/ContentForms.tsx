@@ -50,6 +50,80 @@ const SOCIAL_PLATFORMS = [
   { value: "other", label: "Other" },
 ];
 
+// ─── Page Design Color Picker (for dynamic QRFY types) ──────────────────────
+function PageDesignPicker({ content, setContent, mode }: {
+  content: Record<string, any>;
+  setContent: (c: Record<string, any>) => void;
+  mode: "2" | "3" | "color";
+}) {
+  const pd = content.pageDesign || {};
+  const setPD = (key: string, val: string) => setContent({ ...content, pageDesign: { ...pd, [key]: val } });
+
+  return (
+    <AccordionSection
+      icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h3.75c.621 0 1.125.504 1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125h1.5A1.125 1.125 0 0112 7.875v1.5c0 .621.504 1.125 1.125 1.125h3.75"/></svg>}
+      title="Landing Page Design" subtitle="Choose colors for the QR landing page.">
+      <div className="space-y-3">
+        {mode === "color" ? (
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Accent Color</label>
+            <div className="flex items-center gap-2">
+              <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                <input type="color" value={pd.color || pd.primary || "#7C3AED"} onChange={e => setPD("color", e.target.value)}
+                  className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
+                <div className="w-full h-full" style={{ backgroundColor: pd.color || pd.primary || "#7C3AED" }} />
+              </div>
+              <input type="text" value={pd.color || pd.primary || "#7C3AED"} onChange={e => setPD("color", e.target.value)}
+                className="w-28 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Primary Color</label>
+              <div className="flex items-center gap-2">
+                <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                  <input type="color" value={pd.primary || "#7C3AED"} onChange={e => setPD("primary", e.target.value)}
+                    className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
+                  <div className="w-full h-full" style={{ backgroundColor: pd.primary || "#7C3AED" }} />
+                </div>
+                <input type="text" value={pd.primary || "#7C3AED"} onChange={e => setPD("primary", e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Secondary Color</label>
+              <div className="flex items-center gap-2">
+                <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                  <input type="color" value={pd.secondary || "#FFFFFF"} onChange={e => setPD("secondary", e.target.value)}
+                    className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
+                  <div className="w-full h-full" style={{ backgroundColor: pd.secondary || "#FFFFFF" }} />
+                </div>
+                <input type="text" value={pd.secondary || "#FFFFFF"} onChange={e => setPD("secondary", e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
+              </div>
+            </div>
+          </div>
+        )}
+        {mode === "3" && (
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Tertiary Color</label>
+            <div className="flex items-center gap-2">
+              <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
+                <input type="color" value={pd.tertiary || "#F3F4F6"} onChange={e => setPD("tertiary", e.target.value)}
+                  className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
+                <div className="w-full h-full" style={{ backgroundColor: pd.tertiary || "#F3F4F6" }} />
+              </div>
+              <input type="text" value={pd.tertiary || "#F3F4F6"} onChange={e => setPD("tertiary", e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
+            </div>
+          </div>
+        )}
+      </div>
+    </AccordionSection>
+  );
+}
+
 // ─── ContentForms ────────────────────────────────────────────────────────────
 
 interface ContentFormsProps {
@@ -119,10 +193,23 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
             </div>
             <Input label="Phone" value={content.phone || ""} onChange={e => set("phone", e.target.value)} />
             <Input label="Email" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} />
-            <Input label="Organization" value={content.org || ""} onChange={e => set("org", e.target.value)} />
-            <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
+            <Input label="Company" value={content.company || ""} onChange={e => set("company", e.target.value)} />
+            <Input label="Job Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
             <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} />
-            <Input label="Address" value={content.address || ""} onChange={e => set("address", e.target.value)} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Street" value={content.street || ""} onChange={e => set("street", e.target.value)} />
+              <Input label="City" value={content.city || ""} onChange={e => set("city", e.target.value)} />
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <Input label="State" value={content.state || ""} onChange={e => set("state", e.target.value)} />
+              <Input label="ZIP" value={content.zip || ""} onChange={e => set("zip", e.target.value)} />
+              <Input label="Country" value={content.country || ""} onChange={e => set("country", e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Note</label>
+              <textarea value={content.note || ""} onChange={e => set("note", e.target.value)}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Optional note..." />
+            </div>
           </div>
         </AccordionSection>
       );
@@ -131,15 +218,23 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
       return (
         <AccordionSection icon={<WifiIcon className="h-5 w-5 text-gray-500" />} title="WiFi Information" subtitle="Enter your network details." defaultOpen>
           <div className="space-y-3">
-            <Input label="Network Name (SSID)" value={content.ssid || ""} onChange={e => set("ssid", e.target.value)} />
+            <Input label="Network Name (SSID) *" value={content.ssid || ""} onChange={e => set("ssid", e.target.value)} />
             <Input label="Password" value={content.password || ""} onChange={e => set("password", e.target.value)} />
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Encryption</label>
-              <select value={content.encryption || "WPA"} onChange={e => set("encryption", e.target.value)}
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Authentication Type <span className="text-red-500">*</span></label>
+              <select value={content.authType || content.encryption || "WPA"} onChange={e => set("authType", e.target.value)}
                 className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
-                <option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option>
+                <option value="WPA">WPA/WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="WPA2-EAP">WPA2-EAP</option>
+                <option value="nopass">None</option>
               </select>
             </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={content.hidden || false} onChange={e => set("hidden", e.target.checked)}
+                className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+              <span className="text-sm text-gray-600">Hidden network</span>
+            </label>
           </div>
         </AccordionSection>
       );
@@ -148,10 +243,10 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
       return (
         <AccordionSection icon={<EnvelopeIcon className="h-5 w-5 text-gray-500" />} title="Email Information" subtitle="Pre-fill an email for your recipients." defaultOpen>
           <div className="space-y-3">
-            <Input label="Email Address" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} placeholder="hello@company.com" />
+            <Input label="Email Address *" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} placeholder="hello@company.com" />
             <Input label="Subject" value={content.subject || ""} onChange={e => set("subject", e.target.value)} placeholder="E.g. Inquiry about services" />
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Message</label>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Message Body</label>
               <textarea value={content.message || ""} onChange={e => set("message", e.target.value)}
                 className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={4} placeholder="Your pre-written message..." />
             </div>
@@ -189,191 +284,271 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
 
     case "pdf":
       return (
-        <AccordionSection icon={<DocumentIcon className="h-5 w-5 text-gray-500" />} title="PDF Document" subtitle="Upload a PDF file." defaultOpen>
-          <FileUploadField label="Upload PDF" accept=".pdf,application/pdf" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<DocumentIcon className="h-5 w-5 text-gray-500" />} title="PDF Document" subtitle="Upload a PDF and customize the landing page." defaultOpen>
+            <div className="space-y-3">
+              <FileUploadField label="Upload PDF *" accept=".pdf,application/pdf" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Document title" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Describe this document..." />
+              </div>
+              <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="Download PDF" />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "video":
       return (
-        <AccordionSection icon={<VideoCameraIcon className="h-5 w-5 text-gray-500" />} title="Video" subtitle="Link to a video or upload one." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Video URL" value={content.url || ""} onChange={e => set("url", e.target.value)} placeholder="https://youtube.com/watch?v=..." />
-            <div className="flex items-center gap-2 text-xs text-gray-400"><div className="flex-1 h-px bg-gray-200" />or<div className="flex-1 h-px bg-gray-200" /></div>
-            <FileUploadField label="Upload Video" accept="video/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<VideoCameraIcon className="h-5 w-5 text-gray-500" />} title="Video" subtitle="Link to a video or upload one." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Video URL" value={content.url || ""} onChange={e => set("url", e.target.value)} placeholder="https://youtube.com/watch?v=..." />
+              <div className="flex items-center gap-2 text-xs text-gray-400"><div className="flex-1 h-px bg-gray-200" />or<div className="flex-1 h-px bg-gray-200" /></div>
+              <FileUploadField label="Upload Video" accept="video/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Video title" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Describe this video..." />
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={content.autoplay || false} onChange={e => set("autoplay", e.target.checked)}
+                  className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+                <span className="text-sm text-gray-600">Autoplay video</span>
+              </label>
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+        </>
       );
 
     case "mp3":
       return (
-        <AccordionSection icon={<MusicalNoteIcon className="h-5 w-5 text-gray-500" />} title="MP3 Audio" subtitle="Link to audio or upload a file." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Audio URL" value={content.url || ""} onChange={e => set("url", e.target.value)} placeholder="https://example.com/song.mp3" />
-            <div className="flex items-center gap-2 text-xs text-gray-400"><div className="flex-1 h-px bg-gray-200" />or<div className="flex-1 h-px bg-gray-200" /></div>
-            <FileUploadField label="Upload Audio" accept="audio/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<MusicalNoteIcon className="h-5 w-5 text-gray-500" />} title="MP3 Audio" subtitle="Upload audio and customize the page." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Audio URL" value={content.url || ""} onChange={e => set("url", e.target.value)} placeholder="https://example.com/song.mp3" />
+              <div className="flex items-center gap-2 text-xs text-gray-400"><div className="flex-1 h-px bg-gray-200" />or<div className="flex-1 h-px bg-gray-200" /></div>
+              <FileUploadField label="Upload Audio *" accept="audio/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} />
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Song or audio title" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Artist, album, etc." />
+              </div>
+              <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yoursite.com" />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "images":
       return (
-        <AccordionSection icon={<PhotoIcon className="h-5 w-5 text-gray-500" />} title="Image Gallery" subtitle="Upload images to share." defaultOpen>
-          <FileUploadField label="Upload Images" accept="image/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} multiple />
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<PhotoIcon className="h-5 w-5 text-gray-500" />} title="Image Gallery" subtitle="Upload images to share." defaultOpen>
+            <div className="space-y-3">
+              <FileUploadField label="Upload Images *" accept="image/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} multiple />
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Gallery title" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Describe these images..." />
+              </div>
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+        </>
       );
 
     case "links":
       return (
-        <AccordionSection icon={<Bars3Icon className="h-5 w-5 text-gray-500" />} title="Link List" subtitle="Add multiple links." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="My Links" />
-            <DynamicListField
-              label="Links"
-              fields={[
-                { key: "label", label: "Label", placeholder: "Link name" },
-                { key: "url", label: "URL", placeholder: "https://..." },
-              ]}
-              value={content.links || []}
-              onChange={v => set("links", v)}
-            />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<Bars3Icon className="h-5 w-5 text-gray-500" />} title="Link List" subtitle="Add multiple links." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="My Links" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Short description..." />
+              </div>
+              <DynamicListField
+                label="Links"
+                fields={[
+                  { key: "text", label: "Label", placeholder: "Link name" },
+                  { key: "url", label: "URL", placeholder: "https://..." },
+                ]}
+                value={content.links || []}
+                onChange={v => set("links", v)}
+              />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="3" />
+        </>
       );
 
     case "business":
       return (
-        <AccordionSection icon={<BuildingOfficeIcon className="h-5 w-5 text-gray-500" />} title="Business Page" subtitle="Enter your business details." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Company Name" value={content.companyName || ""} onChange={e => set("companyName", e.target.value)} />
-            <Input label="Address" value={content.address || ""} onChange={e => set("address", e.target.value)} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Phone" value={content.phone || ""} onChange={e => set("phone", e.target.value)} />
-              <Input label="Email" type="email" value={content.email || ""} onChange={e => set("email", e.target.value)} />
+        <>
+          <AccordionSection icon={<BuildingOfficeIcon className="h-5 w-5 text-gray-500" />} title="Business Page" subtitle="Enter your business details." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Company Name" value={content.companyName || ""} onChange={e => set("companyName", e.target.value)} />
+              <Input label="Title / Headline" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Welcome to our business" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="About your business..." />
+              </div>
+              <p className="text-xs font-medium text-gray-600 mt-2">Address</p>
+              <Input label="Street" value={content.street || ""} onChange={e => set("street", e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="City" value={content.city || ""} onChange={e => set("city", e.target.value)} />
+                <Input label="State" value={content.state || ""} onChange={e => set("state", e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="ZIP" value={content.zip || ""} onChange={e => set("zip", e.target.value)} />
+                <Input label="Country" value={content.country || ""} onChange={e => set("country", e.target.value)} />
+              </div>
+              <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourbusiness.com" />
+              <DynamicListField
+                label="Social Links"
+                fields={[
+                  { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
+                  { key: "url", label: "URL", placeholder: "https://..." },
+                ]}
+                value={content.socialLinks || []}
+                onChange={v => set("socialLinks", v)}
+              />
             </div>
-            <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} />
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
-              <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} />
-            </div>
-            <Input label="Business Hours" value={content.hours || ""} onChange={e => set("hours", e.target.value)} placeholder="Mon-Fri 9AM-5PM" />
-            <DynamicListField
-              label="Social Links"
-              fields={[
-                { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
-                { key: "url", label: "URL", placeholder: "https://..." },
-              ]}
-              value={content.socialLinks || []}
-              onChange={v => set("socialLinks", v)}
-            />
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "menu":
       return (
-        <AccordionSection icon={<ClipboardDocumentListIcon className="h-5 w-5 text-gray-500" />} title="Menu" subtitle="Create your restaurant menu." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Restaurant Name" value={content.restaurantName || ""} onChange={e => set("restaurantName", e.target.value)} />
-            <MenuSections sections={content.sections || []} onChange={v => set("sections", v)} />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<ClipboardDocumentListIcon className="h-5 w-5 text-gray-500" />} title="Menu" subtitle="Create your restaurant menu." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Restaurant Name" value={content.restaurantName || ""} onChange={e => set("restaurantName", e.target.value)} />
+              <MenuSections sections={content.sections || []} onChange={v => set("sections", v)} />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "apps":
       return (
-        <AccordionSection icon={<DevicePhoneMobileIcon className="h-5 w-5 text-gray-500" />} title="App Download" subtitle="Link to your app on the stores." defaultOpen>
-          <div className="space-y-3">
-            <Input label="App Name" value={content.appName || ""} onChange={e => set("appName", e.target.value)} />
-            <Input label="iOS App Store URL" value={content.iosUrl || ""} onChange={e => set("iosUrl", e.target.value)} placeholder="https://apps.apple.com/..." />
-            <Input label="Google Play URL" value={content.androidUrl || ""} onChange={e => set("androidUrl", e.target.value)} placeholder="https://play.google.com/..." />
-            <Input label="Other URL" value={content.otherUrl || ""} onChange={e => set("otherUrl", e.target.value)} placeholder="https://..." />
-          </div>
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<DevicePhoneMobileIcon className="h-5 w-5 text-gray-500" />} title="App Download" subtitle="Link to your app on the stores." defaultOpen>
+            <div className="space-y-3">
+              <Input label="App Name *" value={content.appName || ""} onChange={e => set("appName", e.target.value)} />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="What does your app do?" />
+              </div>
+              <Input label="Website *" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourapp.com" />
+              <Input label="iOS App Store URL" value={content.iosUrl || ""} onChange={e => set("iosUrl", e.target.value)} placeholder="https://apps.apple.com/..." />
+              <Input label="Google Play URL" value={content.androidUrl || ""} onChange={e => set("androidUrl", e.target.value)} placeholder="https://play.google.com/..." />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "coupon":
       return (
-        <AccordionSection icon={<TicketIcon className="h-5 w-5 text-gray-500" />} title="Coupon" subtitle="Create a digital coupon." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Summer Sale!" />
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
-              <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} />
+        <>
+          <AccordionSection icon={<TicketIcon className="h-5 w-5 text-gray-500" />} title="Coupon" subtitle="Create a digital coupon." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Title *" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Summer Sale!" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Coupon details..." />
+              </div>
+              <Input label="Badge / Discount" value={content.badge || content.discount || ""} onChange={e => set("badge", e.target.value)} placeholder="20% OFF" />
+              <Input label="Expiry Date *" type="date" value={content.expiryDate || ""} onChange={e => set("expiryDate", e.target.value)} />
+              <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="Redeem Now" />
+              <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://yourstore.com/redeem" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Discount" value={content.discount || ""} onChange={e => set("discount", e.target.value)} placeholder="20% OFF" />
-              <Input label="Coupon Code" value={content.code || ""} onChange={e => set("code", e.target.value)} placeholder="SAVE20" />
-            </div>
-            <Input label="Expiry Date" type="date" value={content.expiryDate || ""} onChange={e => set("expiryDate", e.target.value)} />
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Terms & Conditions</label>
-              <textarea value={content.terms || ""} onChange={e => set("terms", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} />
-            </div>
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "review":
       return (
-        <AccordionSection icon={<StarIcon className="h-5 w-5 text-gray-500" />} title="Review" subtitle="Collect feedback and reviews." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Rate our service!" />
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
-              <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} />
+        <>
+          <AccordionSection icon={<StarIcon className="h-5 w-5 text-gray-500" />} title="Feedback" subtitle="Collect feedback and reviews." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Name *" value={content.name || content.title || ""} onChange={e => set("name", e.target.value)} placeholder="Your business name" />
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Rate our service!" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Help us improve..." />
+              </div>
+              <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourbusiness.com" />
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Rating Type</label>
-              <select value={content.ratingType || "stars"} onChange={e => set("ratingType", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
-                <option value="stars">Stars</option>
-                <option value="emoji">Emoji</option>
-                <option value="thumbs">Thumbs Up/Down</option>
-                <option value="scale">1-10 Scale</option>
-              </select>
-            </div>
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+        </>
       );
 
     case "social":
       return (
-        <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Media" subtitle="Add all your social profiles." defaultOpen>
-          <DynamicListField
-            label="Social Platforms"
-            fields={[
-              { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
-              { key: "url", label: "URL", placeholder: "https://..." },
-            ]}
-            value={content.platforms || []}
-            onChange={v => set("platforms", v)}
-          />
-        </AccordionSection>
+        <>
+          <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Media" subtitle="Add all your social profiles." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Follow us" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Connect with us on social media" />
+              </div>
+              <DynamicListField
+                label="Social Platforms"
+                fields={[
+                  { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
+                  { key: "url", label: "URL", placeholder: "https://..." },
+                ]}
+                value={content.platforms || []}
+                onChange={v => set("platforms", v)}
+              />
+            </div>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="3" />
+        </>
       );
 
     case "event":
       return (
-        <AccordionSection icon={<CalendarIcon className="h-5 w-5 text-gray-500" />} title="Event" subtitle="Enter event details." defaultOpen>
-          <div className="space-y-3">
-            <Input label="Event Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
-              <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} />
+        <>
+          <AccordionSection icon={<CalendarIcon className="h-5 w-5 text-gray-500" />} title="Event" subtitle="Enter event details." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Event Title" value={content.title || ""} onChange={e => set("title", e.target.value)} />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="Event details..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Start Date *" type="datetime-local" value={content.startDate || ""} onChange={e => set("startDate", e.target.value)} />
+                <Input label="End Date *" type="datetime-local" value={content.endDate || ""} onChange={e => set("endDate", e.target.value)} />
+              </div>
+              <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="RSVP" />
+              <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://event.com/register" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Input label="Start Date" type="datetime-local" value={content.startDate || ""} onChange={e => set("startDate", e.target.value)} />
-              <Input label="End Date" type="datetime-local" value={content.endDate || ""} onChange={e => set("endDate", e.target.value)} />
-            </div>
-            <Input label="Location" value={content.location || ""} onChange={e => set("location", e.target.value)} />
-            <Input label="Organizer" value={content.organizer || ""} onChange={e => set("organizer", e.target.value)} />
-          </div>
-        </AccordionSection>
+          </AccordionSection>
+          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+        </>
       );
 
     case "bitcoin":
