@@ -971,6 +971,8 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
 }
 
 // ─── QR Live Preview — CSS frame wrapper around clean QR SVG ─────────────────
+// The qrContainerRef div is ALWAYS rendered in the same place in the tree
+// to prevent React from unmounting/remounting it (which causes double QRs).
 function QRLivePreview({ qrContainerRef, design }: {
   qrContainerRef: React.RefObject<HTMLDivElement | null>;
   design: {
@@ -984,55 +986,42 @@ function QRLivePreview({ qrContainerRef, design }: {
   const hasBottom = hasFrame && frameDef.layers.some(l => l.textPos.includes("bottom"));
   const outerLayer = hasFrame ? frameDef.layers[frameDef.layers.length - 1] : null;
   const innerLayer = hasFrame && frameDef.layers.length > 1 ? frameDef.layers[0] : null;
-  const borderRadius = outerLayer ? `${outerLayer.round * 20}px` : "0";
-  const borderStyle = outerLayer?.dash ? (outerLayer.dash === "3 3" ? "dotted" : "dashed") : "solid";
-  const textColor = design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor;
+  const textColor = hasFrame ? (design.frameTextColor === "#FFFFFF" ? design.frameColor : design.frameTextColor) : "#000";
 
-  // QR SVG element — always the same ref
-  const qrEl = <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />;
+  // Frame wrapper styles (applied to a wrapper div, NOT moving the ref)
+  const outerStyle: React.CSSProperties = hasFrame ? {
+    border: `3px ${outerLayer?.dash ? (outerLayer.dash === "3 3" ? "dotted" : "dashed") : "solid"} ${design.frameColor}`,
+    borderRadius: outerLayer ? `${outerLayer.round * 20}px` : "0",
+    padding: innerLayer ? "4px" : "8px",
+    background: "white",
+  } : {};
 
-  if (!hasFrame) {
-    return (
-      <div className="h-full bg-white flex items-center justify-center p-4">
-        <div className="w-full max-w-[200px]">{qrEl}</div>
-      </div>
-    );
-  }
-
-  const frameContent = (
-    <>
-      {hasTop && (
-        <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
-          {design.frameTopText || design.frameText || "Scan me!"}
-        </div>
-      )}
-      {qrEl}
-      {hasBottom && (
-        <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
-          {design.frameText || "Scan me!"}
-        </div>
-      )}
-    </>
-  );
+  const innerStyle: React.CSSProperties | null = innerLayer ? {
+    border: `1.5px ${innerLayer.dash ? "dashed" : "solid"} ${design.frameColor}`,
+    borderRadius: `${innerLayer.round * 16}px`,
+    padding: "6px",
+  } : null;
 
   return (
     <div className="h-full bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-[200px]">
-        <div style={{
-          border: `3px ${borderStyle} ${design.frameColor}`,
-          borderRadius,
-          padding: innerLayer ? "4px" : "8px",
-          background: "white",
-        }}>
-          {innerLayer ? (
-            <div style={{
-              border: `1.5px ${innerLayer.dash ? "dashed" : "solid"} ${design.frameColor}`,
-              borderRadius: `${innerLayer.round * 16}px`,
-              padding: "6px",
-            }}>
-              {frameContent}
-            </div>
-          ) : frameContent}
+        {/* Outer frame (or transparent when no frame) */}
+        <div style={outerStyle}>
+          {/* Inner frame for multi-layer (or nothing) */}
+          <div style={innerStyle || undefined}>
+            {hasTop && (
+              <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
+                {design.frameTopText || design.frameText || "Scan me!"}
+              </div>
+            )}
+            {/* QR container — NEVER moves in the tree */}
+            <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />
+            {hasBottom && (
+              <div className="text-center font-bold text-sm py-2 truncate" style={{ color: textColor }}>
+                {design.frameText || "Scan me!"}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
