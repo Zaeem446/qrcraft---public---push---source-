@@ -34,10 +34,12 @@ export function WebsitePreview({ content }: { content: Record<string, any> }) {
   );
 }
 
-export function PdfPreview() {
+export function PdfPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#EF4444";
   return (
     <div className="h-full flex flex-col bg-white">
-      <div className="bg-red-500 px-4 py-4 text-center">
+      <div className="px-4 py-4 text-center" style={{ backgroundColor: primary }}>
         <div className="w-14 h-14 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
           <DocumentIcon className="h-8 w-8 text-white" />
         </div>
@@ -52,7 +54,7 @@ export function PdfPreview() {
         <div className="h-3 bg-gray-100 rounded-full w-3/4" />
       </div>
       <div className="p-3">
-        <div className="bg-red-500 rounded-lg py-2.5 text-center">
+        <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
           <span className="text-white text-xs font-semibold">Download PDF</span>
         </div>
       </div>
@@ -60,9 +62,12 @@ export function PdfPreview() {
   );
 }
 
-export function LinksPreview() {
+export function LinksPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#7C3AED";
+  const secondary = pd.secondary || "#4338CA";
   return (
-    <div className="h-full bg-gradient-to-b from-purple-600 to-indigo-700 p-4 text-center">
+    <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
       <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
         <UserIcon className="h-8 w-8 text-white/70" />
       </div>
@@ -77,10 +82,12 @@ export function LinksPreview() {
   );
 }
 
-export function VcardPreview() {
+export function VcardPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#14B8A6";
   return (
     <div className="h-full bg-white">
-      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-4 pt-8 pb-10 text-center">
+      <div className="px-4 pt-8 pb-10 text-center" style={{ backgroundColor: primary }}>
         <div className="w-16 h-16 bg-white/30 rounded-full mx-auto mb-2 flex items-center justify-center">
           <UserIcon className="h-8 w-8 text-white/80" />
         </div>
@@ -94,7 +101,7 @@ export function VcardPreview() {
             <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
           </div>
         ))}
-        <div className="bg-teal-500 rounded-xl py-2.5 text-center mt-2">
+        <div className="rounded-xl py-2.5 text-center mt-2" style={{ backgroundColor: primary }}>
           <span className="text-white text-xs font-semibold">Save Contact</span>
         </div>
       </div>
@@ -102,10 +109,12 @@ export function VcardPreview() {
   );
 }
 
-export function BusinessPreview() {
+export function BusinessPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#059669";
   return (
     <div className="h-full bg-white">
-      <div className="bg-emerald-600 px-4 pt-6 pb-8 text-center">
+      <div className="px-4 pt-6 pb-8 text-center" style={{ backgroundColor: primary }}>
         <div className="w-14 h-14 bg-white/20 rounded-2xl mx-auto mb-2 flex items-center justify-center">
           <BuildingOfficeIcon className="h-7 w-7 text-white/80" />
         </div>
@@ -124,17 +133,19 @@ export function BusinessPreview() {
   );
 }
 
-export function VideoPreview() {
+export function VideoPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#DC2626";
   return (
     <div className="h-full bg-gray-950 flex flex-col">
       <div className="flex-1 flex items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
-        <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center z-10 shadow-lg">
+        <div className="w-14 h-14 rounded-full flex items-center justify-center z-10 shadow-lg" style={{ backgroundColor: primary }}>
           <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
         </div>
       </div>
       <div className="p-4">
-        <div className="h-1 bg-gray-700 rounded-full mb-3"><div className="h-1 bg-red-500 rounded-full w-1/3" /></div>
+        <div className="h-1 bg-gray-700 rounded-full mb-3"><div className="h-1 rounded-full w-1/3" style={{ backgroundColor: primary }} /></div>
         <p className="text-white text-xs font-semibold mb-1">Product Launch Video</p>
         <p className="text-gray-500 text-[10px]">1,234 views &bull; 2 days ago</p>
       </div>
@@ -142,10 +153,12 @@ export function VideoPreview() {
   );
 }
 
-export function ImagesPreview() {
+export function ImagesPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#8B5E3C";
   return (
     <div className="h-full bg-amber-50 flex flex-col">
-      <div className="bg-[#8B5E3C] px-4 pt-5 pb-4 text-center">
+      <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
         <p className="text-white text-lg font-bold italic">Nature&apos;s Canvas</p>
         <p className="text-white/80 text-xs mt-1">Browse our gallery of nature photos</p>
       </div>
@@ -234,9 +247,12 @@ export function InstagramPreview() {
   );
 }
 
-export function SocialPreview() {
+export function SocialPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#8B5CF6";
+  const secondary = pd.secondary || "#EC4899";
   return (
-    <div className="h-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-pink-500 p-4 text-center">
+    <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
       <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
         <UserIcon className="h-8 w-8 text-white/70" />
       </div>
@@ -291,28 +307,32 @@ export function WhatsappPreview() {
   );
 }
 
-export function Mp3Preview() {
+export function Mp3Preview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#22C55E";
   return (
     <div className="h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center p-5">
-      <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+      <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
         <MusicalNoteIcon className="h-12 w-12 text-white" />
       </div>
       <p className="text-white text-sm font-bold mb-0.5">Summer Vibes</p>
       <p className="text-gray-400 text-[10px] mb-5">The Audio Band</p>
       <div className="w-full space-y-2">
-        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 bg-green-400 rounded-full" /></div>
+        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} /></div>
         <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
       </div>
     </div>
   );
 }
 
-export function MenuPreview() {
+export function MenuPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#14B8A6";
   return (
     <div className="h-full bg-white flex flex-col">
-      <div className="bg-teal-50 px-4 pt-5 pb-4 text-center">
+      <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary + "1A" }}>
         <p className="text-base font-bold text-gray-900">The Cuisine</p>
-        <p className="text-xs text-teal-600 mt-0.5">New American Food and Beverage</p>
+        <p className="text-xs mt-0.5" style={{ color: primary }}>New American Food and Beverage</p>
       </div>
       <div className="flex-1 px-4">
         {["Appetizers", "Beverages", "Main Dishes", "Dessert"].map((cat) => (
@@ -326,11 +346,13 @@ export function MenuPreview() {
   );
 }
 
-export function AppsPreview() {
+export function AppsPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#EC4899";
   return (
-    <div className="h-full bg-gradient-to-b from-pink-500 to-rose-600 flex flex-col items-center justify-center p-5">
+    <div className="h-full flex flex-col items-center justify-center p-5" style={{ background: `linear-gradient(to bottom, ${primary}, ${primary}DD)` }}>
       <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
-        <DevicePhoneMobileIcon className="h-10 w-10 text-pink-500" />
+        <DevicePhoneMobileIcon className="h-10 w-10" style={{ color: primary }} />
       </div>
       <p className="text-white text-base font-bold mb-1">Get Our App</p>
       <p className="text-white/70 text-xs mb-6">Download now for free</p>
@@ -346,16 +368,21 @@ export function AppsPreview() {
   );
 }
 
-export function CouponPreview() {
+export function CouponPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#F59E0B";
   return (
     <div className="h-full bg-gradient-to-b from-yellow-50 to-amber-50 flex flex-col items-center justify-center p-5">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed border-amber-300 relative">
-        <p className="text-center text-3xl font-black text-amber-500">20%</p>
-        <p className="text-center text-lg font-bold text-amber-600">OFF</p>
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed relative" style={{ borderColor: primary + "80" }}>
+        <p className="text-center text-3xl font-black" style={{ color: primary }}>20%</p>
+        <p className="text-center text-lg font-bold" style={{ color: primary }}>OFF</p>
         <p className="text-center text-xs text-gray-500 mt-2">Your next purchase</p>
         <div className="mt-4 bg-gray-100 rounded-lg px-4 py-2 text-center">
           <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">SAVE20</span>
         </div>
+      </div>
+      <div className="rounded-xl py-2.5 text-center w-full mt-4" style={{ backgroundColor: primary }}>
+        <span className="text-white text-xs font-semibold">Redeem Now</span>
       </div>
     </div>
   );
@@ -375,10 +402,12 @@ export function WifiPreview() {
   );
 }
 
-export function EventPreview() {
+export function EventPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#14B8A6";
   return (
     <div className="h-full bg-white">
-      <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-5 text-center">
+      <div className="px-4 py-5 text-center" style={{ backgroundColor: primary }}>
         <CalendarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
         <p className="text-white text-sm font-bold">Tech Conference 2026</p>
         <p className="text-white/80 text-xs">The Future of Innovation</p>
@@ -394,7 +423,7 @@ export function EventPreview() {
             <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
           </div>
         ))}
-        <div className="bg-teal-500 rounded-xl py-3 text-center mt-3">
+        <div className="rounded-xl py-3 text-center mt-3" style={{ backgroundColor: primary }}>
           <span className="text-white text-xs font-semibold">Add to Calendar</span>
         </div>
       </div>
@@ -445,17 +474,19 @@ export function SmsPreview() {
   );
 }
 
-export function ReviewPreview() {
+export function ReviewPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#F59E0B";
   return (
     <div className="h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col items-center justify-center p-5">
       <div className="flex gap-1.5 mb-3">
         {[1,2,3,4,5].map(i => (
-          <svg key={i} className="h-8 w-8 text-amber-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+          <svg key={i} className="h-8 w-8" style={{ color: primary }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
         ))}
       </div>
       <p className="text-lg font-bold text-gray-900">Rate Us!</p>
       <p className="text-xs text-gray-500 mt-1 mb-4">We value your honest feedback</p>
-      <div className="bg-amber-500 rounded-xl py-2.5 text-center w-full mt-3">
+      <div className="rounded-xl py-2.5 text-center w-full mt-3" style={{ backgroundColor: primary }}>
         <span className="text-white text-xs font-semibold">Submit Review</span>
       </div>
     </div>
@@ -515,25 +546,25 @@ export function DefaultPhonePreview() {
 export function renderPreviewForType(type: string, dynamicContent?: Record<string, any>) {
   switch (type) {
     case "website": return <WebsitePreview content={dynamicContent || {}} />;
-    case "pdf": return <PdfPreview />;
-    case "links": return <LinksPreview />;
-    case "vcard": return <VcardPreview />;
-    case "business": return <BusinessPreview />;
-    case "video": return <VideoPreview />;
-    case "images": return <ImagesPreview />;
+    case "pdf": return <PdfPreview content={dynamicContent || {}} />;
+    case "links": return <LinksPreview content={dynamicContent || {}} />;
+    case "vcard": return <VcardPreview content={dynamicContent || {}} />;
+    case "business": return <BusinessPreview content={dynamicContent || {}} />;
+    case "video": return <VideoPreview content={dynamicContent || {}} />;
+    case "images": return <ImagesPreview content={dynamicContent || {}} />;
     case "facebook": return <FacebookPreview />;
     case "instagram": return <InstagramPreview />;
-    case "social": return <SocialPreview />;
+    case "social": return <SocialPreview content={dynamicContent || {}} />;
     case "whatsapp": return <WhatsappPreview />;
-    case "mp3": return <Mp3Preview />;
-    case "menu": return <MenuPreview />;
-    case "apps": return <AppsPreview />;
-    case "coupon": return <CouponPreview />;
+    case "mp3": return <Mp3Preview content={dynamicContent || {}} />;
+    case "menu": return <MenuPreview content={dynamicContent || {}} />;
+    case "apps": return <AppsPreview content={dynamicContent || {}} />;
+    case "coupon": return <CouponPreview content={dynamicContent || {}} />;
     case "wifi": return <WifiPreview />;
-    case "event": return <EventPreview />;
+    case "event": return <EventPreview content={dynamicContent || {}} />;
     case "email": return <EmailPreview />;
     case "sms": return <SmsPreview />;
-    case "review": return <ReviewPreview />;
+    case "review": return <ReviewPreview content={dynamicContent || {}} />;
     case "bitcoin": return <BitcoinPreview />;
     case "text": return <TextPreview />;
     default: return <DefaultPhonePreview />;

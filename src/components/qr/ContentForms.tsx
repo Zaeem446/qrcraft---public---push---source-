@@ -64,80 +64,6 @@ const DAYS_OF_WEEK = [
   { value: "sunday", label: "Sunday" },
 ];
 
-// ─── Page Design Color Picker (kept for non-priority types) ─────────────────
-function PageDesignPicker({ content, setContent, mode }: {
-  content: Record<string, any>;
-  setContent: (c: Record<string, any>) => void;
-  mode: "2" | "3" | "color";
-}) {
-  const pd = content.pageDesign || {};
-  const setPD = (key: string, val: string) => setContent({ ...content, pageDesign: { ...pd, [key]: val } });
-
-  return (
-    <AccordionSection
-      icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h3.75c.621 0 1.125.504 1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125h1.5A1.125 1.125 0 0112 7.875v1.5c0 .621.504 1.125 1.125 1.125h3.75"/></svg>}
-      title="Landing Page Design" subtitle="Choose colors for the QR landing page.">
-      <div className="space-y-3">
-        {mode === "color" ? (
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Accent Color</label>
-            <div className="flex items-center gap-2">
-              <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                <input type="color" value={pd.color || pd.primary || "#7C3AED"} onChange={e => setPD("color", e.target.value)}
-                  className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-                <div className="w-full h-full" style={{ backgroundColor: pd.color || pd.primary || "#7C3AED" }} />
-              </div>
-              <input type="text" value={pd.color || pd.primary || "#7C3AED"} onChange={e => setPD("color", e.target.value)}
-                className="w-28 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Primary Color</label>
-              <div className="flex items-center gap-2">
-                <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                  <input type="color" value={pd.primary || "#7C3AED"} onChange={e => setPD("primary", e.target.value)}
-                    className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-                  <div className="w-full h-full" style={{ backgroundColor: pd.primary || "#7C3AED" }} />
-                </div>
-                <input type="text" value={pd.primary || "#7C3AED"} onChange={e => setPD("primary", e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Secondary Color</label>
-              <div className="flex items-center gap-2">
-                <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                  <input type="color" value={pd.secondary || "#FFFFFF"} onChange={e => setPD("secondary", e.target.value)}
-                    className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-                  <div className="w-full h-full" style={{ backgroundColor: pd.secondary || "#FFFFFF" }} />
-                </div>
-                <input type="text" value={pd.secondary || "#FFFFFF"} onChange={e => setPD("secondary", e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
-              </div>
-            </div>
-          </div>
-        )}
-        {mode === "3" && (
-          <div>
-            <label className="text-xs font-medium text-gray-600 mb-1.5 block">Tertiary Color</label>
-            <div className="flex items-center gap-2">
-              <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-                <input type="color" value={pd.tertiary || "#F3F4F6"} onChange={e => setPD("tertiary", e.target.value)}
-                  className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-                <div className="w-full h-full" style={{ backgroundColor: pd.tertiary || "#F3F4F6" }} />
-              </div>
-              <input type="text" value={pd.tertiary || "#F3F4F6"} onChange={e => setPD("tertiary", e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
-            </div>
-          </div>
-        )}
-      </div>
-    </AccordionSection>
-  );
-}
-
 // ─── Schedule / Opening Hours ────────────────────────────────────────────────
 function ScheduleField({ value, onChange }: {
   value: { day: string; open: string; close: string }[];
@@ -471,7 +397,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               </label>
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+          <PageDesignSection content={content} setContent={setContent} mode="1color" />
         </>
       );
 
@@ -492,7 +418,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yoursite.com" />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
@@ -510,7 +436,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               </div>
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+          <PageDesignSection content={content} setContent={setContent} mode="1color" />
         </>
       );
 
@@ -620,7 +546,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <MenuSections sections={content.sections || []} onChange={v => set("sections", v)} />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
@@ -640,7 +566,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Google Play URL" value={content.androidUrl || ""} onChange={e => set("androidUrl", e.target.value)} placeholder="https://play.google.com/..." />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
@@ -661,7 +587,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://yourstore.com/redeem" />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
@@ -680,7 +606,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourbusiness.com" />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="color" />
+          <PageDesignSection content={content} setContent={setContent} mode="1color" />
         </>
       );
 
@@ -731,7 +657,7 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://event.com/register" />
             </div>
           </AccordionSection>
-          <PageDesignPicker content={content} setContent={setContent} mode="2" />
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
       );
 
