@@ -665,56 +665,41 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles ───────────────────────────────────────────────────────────
+// ─── Frame Styles (visual frame wrappers around the QR code) ────────────────
 const FRAME_STYLES = [
   { id: "none", label: "None" },
-  { id: "bottom-frame", label: "Bottom Frame" },
+  { id: "bottom-frame", label: "Bottom" },
   { id: "bottom-tooltip", label: "Tooltip" },
-  { id: "top-header", label: "Top Header" },
-  { id: "box-bottom", label: "Box Bottom" },
-  { id: "box-top", label: "Box Top" },
-  { id: "banner-bottom", label: "Banner" },
-  { id: "rounded-bottom", label: "Rounded" },
-  { id: "rounded-top", label: "Round Top" },
+  { id: "top-header", label: "Top" },
+  { id: "box", label: "Box" },
+  { id: "banner", label: "Banner" },
+  { id: "rounded", label: "Rounded" },
   { id: "balloon", label: "Balloon" },
-  { id: "leaf", label: "Leaf" },
-  { id: "circle-bottom", label: "Circle" },
-  { id: "wave", label: "Wave" },
-  { id: "ribbon", label: "Ribbon" },
-  { id: "badge-bottom", label: "Badge" },
-  { id: "stamp", label: "Stamp" },
-  { id: "cloud", label: "Cloud" },
-  { id: "flag", label: "Flag" },
 ];
 
-const PATTERN_STYLES = [
+// Dot pattern styles (qr-code-styling DotType values)
+const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dots", label: "Dots" },
   { id: "rounded", label: "Rounded" },
   { id: "extra-rounded", label: "Extra Round" },
   { id: "classy", label: "Classy" },
   { id: "classy-rounded", label: "Classy Round" },
-  { id: "star", label: "Star" },
 ];
 
-const CORNER_FRAME_STYLES = [
-  { id: "none", label: "None" },
+// Corner square styles (qr-code-styling CornerSquareType values)
+const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
+  { id: "none", label: "Default" },
   { id: "dot", label: "Dot" },
   { id: "square", label: "Square" },
   { id: "extra-rounded", label: "Rounded" },
-  { id: "right-bottom-square", label: "RB Square" },
-  { id: "left-top-square", label: "LT Square" },
-  { id: "right-top-square", label: "RT Square" },
 ];
 
-const CORNER_DOT_STYLES = [
-  { id: "none", label: "None" },
+// Corner dot styles (qr-code-styling CornerDotType values)
+const CORNER_DOT_STYLES: { id: string; label: string }[] = [
+  { id: "none", label: "Default" },
   { id: "dot", label: "Dot" },
   { id: "square", label: "Square" },
-  { id: "right-bottom-square", label: "RB Square" },
-  { id: "left-top-square", label: "LT Square" },
-  { id: "diamond", label: "Diamond" },
-  { id: "star", label: "Star" },
 ];
 
 // ─── Accordion Section Component ────────────────────────────────────────────
@@ -795,6 +780,50 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
+// ─── QR Frame Wrapper (renders frame around QR image) ───────────────────────
+function QRFramePreview({ qrDataUrl, design }: { qrDataUrl: string | null; design: any }) {
+  const frameColor = design.useGradientFrame
+    ? `linear-gradient(135deg, ${design.frameColor}, ${design.frameColor2})`
+    : design.frameColor;
+  const frameBg = design.frameBgTransparent ? "transparent" : design.frameBgColor;
+
+  if (!qrDataUrl) {
+    return (
+      <div className="h-full bg-white flex items-center justify-center p-6">
+        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+          <QrCodeIcon className="h-10 w-10 text-gray-300" />
+        </div>
+      </div>
+    );
+  }
+
+  if (design.frameStyle === "none") {
+    return (
+      <div className="h-full bg-white flex items-center justify-center p-4">
+        <img src={qrDataUrl} alt="QR" className="w-44 h-44" />
+      </div>
+    );
+  }
+
+  // Frame styles that wrap around the QR code
+  return (
+    <div className="h-full bg-white flex flex-col items-center justify-center p-4">
+      <div className="relative" style={{ background: frameBg, borderRadius: design.frameStyle === "rounded" || design.frameStyle === "balloon" ? 16 : 8, padding: "12px 12px 8px", border: `3px solid`, borderImage: design.useGradientFrame ? `${frameColor} 1` : "none", borderColor: design.useGradientFrame ? "transparent" : design.frameColor }}>
+        {/* QR Image */}
+        <img src={qrDataUrl} alt="QR" className="w-36 h-36" />
+        {/* Frame text below */}
+        <div className="mt-2 text-center py-1.5 rounded-md" style={{ background: design.useGradientFrame ? frameColor : design.frameColor }}>
+          <span className="text-xs font-semibold" style={{ color: design.frameTextColor }}>{design.frameText}</span>
+        </div>
+        {/* Balloon pointer */}
+        {design.frameStyle === "balloon" && (
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45" style={{ background: design.useGradientFrame ? design.frameColor : design.frameColor }} />
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
 
@@ -835,36 +864,76 @@ export default function CreateQRPage() {
   });
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
+  const qrInstanceRef = useRef<any>(null);
 
   const activePreview = hoveredType || qrType || "";
 
-  // Generate QR preview
+  // Build QR options from current design state
+  const buildQROptions = useCallback((size: number) => {
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const dotsOptions: any = { color: design.dotsColor, type: design.dotsType };
+    if (design.patternGradient) {
+      dotsOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.dotsColor }, { offset: 1, color: design.patternColor2 }] };
+      delete dotsOptions.color;
+    }
+    const bgOptions: any = { color: design.bgTransparent ? "transparent" : design.backgroundColor };
+    if (design.useGradientBg && !design.bgTransparent) {
+      bgOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.backgroundColor }, { offset: 1, color: design.bgColor2 }] };
+      delete bgOptions.color;
+    }
+    const cornersSquareOptions: any = { color: design.cornersSquareColor };
+    if (design.cornersSquareType !== "none") cornersSquareOptions.type = design.cornersSquareType;
+    const cornersDotOptions: any = { color: design.cornersDotColor };
+    if (design.cornersDotType !== "none") cornersDotOptions.type = design.cornersDotType;
+
+    return {
+      width: size, height: size,
+      data: content.url || baseUrl + "/r/preview",
+      dotsOptions,
+      cornersSquareOptions,
+      cornersDotOptions,
+      backgroundOptions: bgOptions,
+      imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin, imageSize: design.logoSize },
+      image: design.logo || undefined,
+    };
+  }, [design, content.url]);
+
+  // Generate QR preview as data URL
   const generatePreview = useCallback(async () => {
     if (!qrType) return;
     try {
       const QRCodeStyling = (await import("qr-code-styling")).default;
-      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-      const qr = new QRCodeStyling({
-        width: 256, height: 256,
-        data: content.url || baseUrl + "/r/preview",
-        dotsOptions: { color: design.dotsColor, type: design.dotsType as any },
-        cornersSquareOptions: design.cornersSquareType !== "none" ? { color: design.cornersSquareColor, type: design.cornersSquareType as any } : { color: design.cornersSquareColor },
-        cornersDotOptions: design.cornersDotType !== "none" ? { color: design.cornersDotColor, type: design.cornersDotType as any } : { color: design.cornersDotColor },
-        backgroundOptions: { color: design.bgTransparent ? "transparent" : design.backgroundColor },
-        imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin },
-        image: design.logo || undefined,
-      });
+      const qr = new QRCodeStyling(buildQROptions(256));
       const blob = await qr.getRawData("png");
       if (blob) {
         const blobObj = blob instanceof Blob ? blob : new Blob([new Uint8Array(blob as any)], { type: "image/png" });
-        setQrDataUrl(URL.createObjectURL(blobObj));
+        const url = URL.createObjectURL(blobObj);
+        setQrDataUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
       }
     } catch (e) { console.error("QR preview error:", e); }
-  }, [qrType, design, content.url]);
+  }, [qrType, buildQROptions]);
 
+  // Regenerate QR on any design/content change
   useEffect(() => {
-    if (step >= 2 && qrType) generatePreview();
-  }, [step, design, qrType, generatePreview]);
+    if (step >= 2 && qrType) {
+      const timer = setTimeout(() => generatePreview(), 150);
+      return () => clearTimeout(timer);
+    }
+  }, [step, design, qrType, content, generatePreview]);
+
+  // Logo upload via FileReader (client-side base64)
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 1024 * 1024) { toast.error("Logo must be under 1MB"); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      if (result) setDesign(prev => ({ ...prev, logo: result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Please enter a name"); return; }
@@ -884,16 +953,7 @@ export default function CreateQRPage() {
   const handleDownload = async (format: "png" | "svg" | "jpeg") => {
     try {
       const QRCodeStyling = (await import("qr-code-styling")).default;
-      const baseUrl = window.location.origin;
-      const qr = new QRCodeStyling({
-        width: 1024, height: 1024, data: content.url || baseUrl + "/r/preview",
-        dotsOptions: { color: design.dotsColor, type: design.dotsType as any },
-        cornersSquareOptions: design.cornersSquareType !== "none" ? { color: design.cornersSquareColor, type: design.cornersSquareType as any } : { color: design.cornersSquareColor },
-        cornersDotOptions: design.cornersDotType !== "none" ? { color: design.cornersDotColor, type: design.cornersDotType as any } : { color: design.cornersDotColor },
-        backgroundOptions: { color: design.bgTransparent ? "transparent" : design.backgroundColor },
-        imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin },
-        image: design.logo || undefined,
-      });
+      const qr = new QRCodeStyling(buildQROptions(1024));
       qr.download({ name: name || "qrcode", extension: format === "jpeg" ? "jpeg" : format });
     } catch { toast.error("Download failed"); }
   };
@@ -997,12 +1057,8 @@ export default function CreateQRPage() {
       return <DefaultPhonePreview />;
     }
     // Steps 2-3: Show preview or QR code based on tab
-    if (previewTab === "qrcode" && qrDataUrl) {
-      return (
-        <div className="h-full bg-white flex items-center justify-center p-6">
-          <img src={qrDataUrl} alt="QR" className="w-48 h-48 rounded-lg" />
-        </div>
-      );
+    if (previewTab === "qrcode") {
+      return <QRFramePreview qrDataUrl={qrDataUrl} design={design} />;
     }
     // Preview tab: show type-specific preview with dynamic content
     if (qrType) {
@@ -1140,7 +1196,7 @@ export default function CreateQRPage() {
                 <button onClick={() => setStep(1)} className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                   <ArrowLeftIcon className="h-4 w-4" /> Back
                 </button>
-                <button onClick={() => setStep(3)} className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 rounded-lg text-sm text-white font-medium hover:bg-violet-700 transition-colors">
+                <button onClick={() => { setStep(3); setPreviewTab("qrcode"); }} className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 rounded-lg text-sm text-white font-medium hover:bg-violet-700 transition-colors">
                   Next <ArrowRightIcon className="h-4 w-4" />
                 </button>
               </div>
@@ -1331,7 +1387,7 @@ export default function CreateQRPage() {
                     <div>
                       <label className="text-xs font-medium text-gray-600 mb-2 block">Frame around corner dots style</label>
                       <div className="flex flex-wrap gap-2">
-                        {CORNER_FRAME_STYLES.map(c => (
+                        {CORNER_SQUARE_STYLES.map(c => (
                           <button key={c.id} onClick={() => setDesign({ ...design, cornersSquareType: c.id })}
                             className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${
                               design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
@@ -1359,12 +1415,8 @@ export default function CreateQRPage() {
                               <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
                             ) : c.id === "dot" ? (
                               <div className="w-4 h-4 rounded-full bg-gray-700" />
-                            ) : c.id === "diamond" ? (
-                              <div className="w-3 h-3 bg-gray-700 rotate-45" />
-                            ) : c.id === "star" ? (
-                              <StarIcon className="h-4 w-4 text-gray-700" />
                             ) : (
-                              <div className={`w-4 h-4 bg-gray-700 ${c.id.includes("rounded") ? "rounded-sm" : ""}`} />
+                              <div className="w-4 h-4 bg-gray-700" />
                             )}
                           </button>
                         ))}
@@ -1387,17 +1439,7 @@ export default function CreateQRPage() {
                   <label className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
                     <PhotoSolidIcon className="h-6 w-6 text-gray-400" />
                     <span className="text-[9px] text-gray-400 mt-0.5">Upload</span>
-                    <input type="file" accept="image/*" className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        if (file.size > 1024 * 1024) { toast.error("Logo must be under 1MB"); return; }
-                        const formData = new FormData();
-                        formData.append("file", file);
-                        const res = await fetch("/api/upload", { method: "POST", body: formData });
-                        const data = await res.json();
-                        if (data.url) setDesign({ ...design, logo: data.url });
-                      }} />
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </label>
                   {design.logo && (
                     <div className="flex items-center gap-2 mt-3">
@@ -1408,6 +1450,16 @@ export default function CreateQRPage() {
                   )}
                 </div>
               </AccordionSection>
+
+              {/* Download buttons */}
+              <div className="bg-white border border-gray-200 rounded-xl p-5">
+                <p className="text-sm font-semibold text-gray-900 mb-3">Download QR Code</p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors">PNG</button>
+                  <button onClick={() => handleDownload("svg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">SVG</button>
+                  <button onClick={() => handleDownload("jpeg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">JPEG</button>
+                </div>
+              </div>
 
               {/* Bottom buttons */}
               <div className="flex items-center justify-between pt-4">
