@@ -20,6 +20,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [content, setContent] = useState<Record<string, any>>({});
   const [design, setDesign] = useState<any>({});
   const [qrType, setQrType] = useState("");
+  const [slug, setSlug] = useState("");
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
@@ -31,6 +32,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         setContent(data.content);
         setDesign(data.design || {});
         setQrType(data.type);
+        setSlug(data.slug || "");
       })
       .catch(() => toast.error("Failed to load QR code"))
       .finally(() => setLoading(false));
@@ -42,7 +44,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
       const qr = new QRCodeStyling({
         width: 256,
         height: 256,
-        data: window.location.origin + "/r/preview",
+        data: slug ? window.location.origin + "/r/" + slug : window.location.origin + "/r/preview",
         shape: (design.shape as "square" | "circle") || "square",
         dotsOptions: { color: design.dotsColor || "#000000", type: (design.dotsType || "square") as any },
         cornersSquareOptions: { color: design.cornersSquareColor || "#000000", type: (design.cornersSquareType || "square") as any },
@@ -56,7 +58,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         setQrDataUrl(URL.createObjectURL(blob));
       }
     } catch {}
-  }, [design]);
+  }, [design, slug]);
 
   useEffect(() => {
     if (!loading) generatePreview();

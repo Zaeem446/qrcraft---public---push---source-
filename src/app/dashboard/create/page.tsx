@@ -845,7 +845,7 @@ export default function CreateQRPage() {
   const activePreview = hoveredType || qrType || "";
 
   // Build QR options from current design state
-  const buildQROptions = useCallback((size: number, plugins?: any[]) => {
+  const buildQROptions = useCallback((size: number, plugins?: any[], slug?: string) => {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     const dotsOptions: any = { color: design.dotsColor, type: design.dotsType };
     if (design.patternGradient) {
@@ -864,7 +864,7 @@ export default function CreateQRPage() {
 
     return {
       width: size, height: size,
-      data: content.url || baseUrl + "/r/preview",
+      data: slug ? baseUrl + "/r/" + slug : baseUrl + "/r/preview",
       shape: design.shape,
       dotsOptions,
       cornersSquareOptions: { color: design.cornersSquareColor, type: design.cornersSquareType as any },
@@ -964,8 +964,21 @@ export default function CreateQRPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, type: qrType, content, design }),
       });
-      if (res.ok) { toast.success("QR code created!"); router.push("/dashboard"); }
-      else { const d = await res.json(); toast.error(d.error || "Failed to create"); }
+      if (res.ok) {
+        const data = await res.json();
+        const slug = data.slug;
+        // Auto-download the QR with the real redirect URL
+        try {
+          const { QRCodeStyling, browserUtils } = await import("@liquid-js/qr-code-styling");
+          const plugins = await buildPlugins();
+          const qr = new QRCodeStyling(buildQROptions(1024, plugins, slug));
+          if (browserUtils) {
+            await browserUtils.download(qr, { name: name || "qrcode", extension: "png" });
+          }
+        } catch {}
+        toast.success("QR code created and downloaded!");
+        router.push("/dashboard");
+      } else { const d = await res.json(); toast.error(d.error || "Failed to create"); }
     } catch { toast.error("Something went wrong"); }
     setSaving(false);
   };
