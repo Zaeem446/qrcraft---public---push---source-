@@ -665,24 +665,26 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles (16 styles like reference site) ────────────────────────────
-const FRAME_STYLES: { id: string; label: string }[] = [
-  { id: "none", label: "None" },
-  { id: "bottom-frame", label: "Bottom Frame" },
-  { id: "bottom-tooltip", label: "Bottom Tooltip" },
-  { id: "top-header", label: "Top Header" },
-  { id: "box", label: "Box" },
-  { id: "banner-bottom", label: "Banner Bottom" },
-  { id: "rounded-bottom", label: "Rounded Bottom" },
-  { id: "balloon", label: "Balloon" },
-  { id: "speech-left", label: "Speech Left" },
-  { id: "ticket", label: "Ticket" },
-  { id: "stamp", label: "Stamp" },
-  { id: "ribbon", label: "Ribbon" },
-  { id: "badge", label: "Badge" },
-  { id: "tab-top", label: "Tab Top" },
-  { id: "pill-bottom", label: "Pill Bottom" },
-  { id: "tag", label: "Tag" },
+// ─── Frame Styles — each maps 1:1 to a BorderPlugin config ──────────────────
+// BorderPlugin supports: round(0-1), size, color, dasharray, text(top/bottom/left/right)
+// Thumbnails show exactly what the plugin renders: a border rect + text labels
+const FRAME_STYLES: { id: string; label: string; round: number; dash?: string; textPos: ("bottom" | "top" | "left" | "right")[] }[] = [
+  { id: "none",             label: "None",              round: 0,   textPos: [] },
+  { id: "square-bottom",    label: "Square + Bottom",   round: 0,   textPos: ["bottom"] },
+  { id: "square-top",       label: "Square + Top",      round: 0,   textPos: ["top"] },
+  { id: "square-both",      label: "Square + Both",     round: 0,   textPos: ["top", "bottom"] },
+  { id: "rounded-bottom",   label: "Rounded + Bottom",  round: 0.2, textPos: ["bottom"] },
+  { id: "rounded-top",      label: "Rounded + Top",     round: 0.2, textPos: ["top"] },
+  { id: "rounded-both",     label: "Rounded + Both",    round: 0.2, textPos: ["top", "bottom"] },
+  { id: "pill-bottom",      label: "Pill + Bottom",     round: 0.5, textPos: ["bottom"] },
+  { id: "pill-both",        label: "Pill + Both",       round: 0.5, textPos: ["top", "bottom"] },
+  { id: "circle-bottom",    label: "Circle + Bottom",   round: 1,   textPos: ["bottom"] },
+  { id: "dash-bottom",      label: "Dashed + Bottom",   round: 0,   dash: "8 4", textPos: ["bottom"] },
+  { id: "dash-rounded",     label: "Dashed Rounded",    round: 0.2, dash: "8 4", textPos: ["bottom"] },
+  { id: "dotted-bottom",    label: "Dotted + Bottom",   round: 0,   dash: "3 3", textPos: ["bottom"] },
+  { id: "dotted-pill",      label: "Dotted Pill",       round: 0.5, dash: "3 3", textPos: ["bottom"] },
+  { id: "square-notext",    label: "Square Border",     round: 0,   textPos: [] },
+  { id: "rounded-notext",   label: "Rounded Border",    round: 0.2, textPos: [] },
 ];
 
 // ─── Mini QR SVG (used in frame thumbs) ──────────────────────────────────────
@@ -692,29 +694,27 @@ function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
   return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
 }
 
-function FrameThumb({ id }: { id: string }) {
+function FrameThumb({ id, round, dash, textPos }: { id: string; round: number; dash?: string; textPos: string[] }) {
   if (id === "none") return (
     <svg className="w-full h-full text-gray-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={3}><circle cx="24" cy="24" r="18"/><line x1="10" y1="10" x2="38" y2="38"/></svg>
   );
-  // All frame thumbnails: 48x56 viewBox, mini QR centered, frame elements around it
+  // Thumbnail accurately represents BorderPlugin: border rect + text positions
+  const hasTop = textPos.includes("top");
+  const hasBottom = textPos.includes("bottom");
+  const qrY = hasTop ? 14 : 4;
+  const qrH = 30;
+  const totalH = qrH + (hasTop ? 12 : 0) + (hasBottom ? 12 : 0) + 8;
+  const borderRx = round * 10;
   return (
-    <svg viewBox="0 0 48 56" className="w-full h-full text-gray-800">
-      {/* Frame-specific decorations */}
-      {id === "bottom-frame" && <><rect x="4" y="2" width="40" height="40" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={6} s={28}/><rect x="4" y="44" width="40" height="10" rx="2" fill="currentColor"/><text x="24" y="52" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text></>}
-      {id === "bottom-tooltip" && <><rect x="6" y="2" width="36" height="36" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={11} y={5} s={26}/><path d="M8 40h32v12H8z" fill="currentColor" rx="2"/><path d="M20 40l4-4 4 4" fill="currentColor"/><text x="24" y="49" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "top-header" && <><rect x="4" y="12" width="40" height="10" rx="2" fill="currentColor"/><text x="24" y="20" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text><rect x="4" y="24" width="40" height="30" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={28} s={24}/></>}
-      {id === "box" && <><rect x="3" y="3" width="42" height="50" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/><MiniQRSvg x={10} y={6} s={28}/><line x1="3" y1="38" x2="45" y2="38" stroke="currentColor" strokeWidth="1.5"/><text x="24" y="50" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text></>}
-      {id === "banner-bottom" && <><MiniQRSvg x={10} y={2} s={28}/><rect x="0" y="34" width="48" height="14" fill="currentColor"/><text x="24" y="44" textAnchor="middle" fill="white" fontSize="6" fontWeight="bold">Scan Me!</text></>}
-      {id === "rounded-bottom" && <><rect x="4" y="2" width="40" height="44" rx="8" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={5} s={24}/><rect x="8" y="34" width="32" height="10" rx="5" fill="currentColor"/><text x="24" y="42" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "balloon" && <><rect x="4" y="2" width="40" height="40" rx="8" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={6} s={28}/><path d="M18 42l6 10 6-10" fill="none" stroke="currentColor" strokeWidth="2"/></>}
-      {id === "speech-left" && <><rect x="6" y="2" width="38" height="38" rx="6" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={6} s={24}/><path d="M6 30 Q0 40 4 46" fill="none" stroke="currentColor" strokeWidth="2"/><text x="26" y="48" fill="currentColor" fontSize="5" fontWeight="bold">Scan!</text></>}
-      {id === "ticket" && <><rect x="3" y="3" width="42" height="50" rx="4" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="4 2"/><MiniQRSvg x={10} y={6} s={28}/><line x1="3" y1="38" x2="45" y2="38" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2"/><text x="24" y="50" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "stamp" && <><rect x="5" y="4" width="38" height="48" rx="2" fill="none" stroke="currentColor" strokeWidth="3" strokeDasharray="2 3" strokeLinecap="round"/><MiniQRSvg x={11} y={8} s={26}/><text x="24" y="48" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "ribbon" && <><MiniQRSvg x={10} y={4} s={28}/><path d="M4 36h40v14l-4-3-4 3-4-3-4 3-4-3-4 3-4-3-4 3-4-3-4 3z" fill="currentColor"/><text x="24" y="46" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "badge" && <><circle cx="24" cy="22" r="20" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={12} y={10} s={24}/><rect x="8" y="44" width="32" height="10" rx="5" fill="currentColor"/><text x="24" y="52" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "tab-top" && <><rect x="10" y="0" width="28" height="10" rx="4" fill="currentColor"/><text x="24" y="8" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan</text><rect x="4" y="10" width="40" height="38" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={14} s={28}/></>}
-      {id === "pill-bottom" && <><rect x="6" y="2" width="36" height="36" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={11} y={5} s={26}/><rect x="6" y="42" width="36" height="12" rx="6" fill="currentColor"/><text x="24" y="51" textAnchor="middle" fill="white" fontSize="5" fontWeight="bold">Scan Me!</text></>}
-      {id === "tag" && <><rect x="4" y="6" width="40" height="44" rx="3" fill="none" stroke="currentColor" strokeWidth="2"/><MiniQRSvg x={10} y={10} s={28}/><circle cx="24" cy="3" r="3" fill="none" stroke="currentColor" strokeWidth="1.5"/><text x="24" y="48" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text></>}
+    <svg viewBox={`0 0 48 ${totalH}`} className="w-full h-full text-gray-800">
+      {/* Border */}
+      <rect x="3" y="2" width="42" height={totalH - 4} rx={borderRx} fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray={dash || "none"} />
+      {/* Top text */}
+      {hasTop && <text x="24" y="12" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
+      {/* Mini QR */}
+      <MiniQRSvg x={10} y={qrY} s={28} />
+      {/* Bottom text */}
+      {hasBottom && <text x="24" y={totalH - 6} textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
     </svg>
   );
 }
@@ -983,32 +983,27 @@ export default function CreateQRPage() {
     };
   }, [design, content.url]);
 
-  // Build BorderPlugin instances
+  // Build BorderPlugin instances from FRAME_STYLES properties
   const buildPlugins = useCallback(async () => {
     if (design.frameStyle === "none") return [];
     const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
+    const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
+    if (!frameDef) return [];
     const txt = design.frameText || "Scan me!";
     const topTxt = design.frameTopText || txt;
-    const textBase: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
-    // Map each frame style to a unique BorderPlugin config
-    const configs: Record<string, any> = {
-      "bottom-frame":    { size: 20, color: design.frameColor, round: 0.05, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "bottom-tooltip":  { size: 24, color: design.frameColor, round: 0.05, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "top-header":      { size: 20, color: design.frameColor, round: 0.05, text: { ...textBase, top: { ...textBase, content: topTxt } } },
-      "box":             { size: 18, color: design.frameColor, round: 0.08, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "banner-bottom":   { size: 22, color: design.frameColor, round: 0, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "rounded-bottom":  { size: 20, color: design.frameColor, round: 0.3, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "balloon":         { size: 20, color: design.frameColor, round: 0.25, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "speech-left":     { size: 18, color: design.frameColor, round: 0.2, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "ticket":          { size: 20, color: design.frameColor, round: 0.1, dasharray: "8 4", text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "stamp":           { size: 22, color: design.frameColor, round: 0.05, dasharray: "4 4", text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "ribbon":          { size: 20, color: design.frameColor, round: 0, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "badge":           { size: 24, color: design.frameColor, round: 0.5, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "tab-top":         { size: 20, color: design.frameColor, round: 0.1, text: { ...textBase, top: { ...textBase, content: topTxt } } },
-      "pill-bottom":     { size: 20, color: design.frameColor, round: 0.15, text: { ...textBase, bottom: { ...textBase, content: txt } } },
-      "tag":             { size: 18, color: design.frameColor, round: 0.08, text: { ...textBase, top: { ...textBase, content: topTxt } } },
+    const textStyle: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
+    const textConfig: any = {};
+    if (frameDef.textPos.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
+    if (frameDef.textPos.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
+    if (frameDef.textPos.includes("left")) textConfig.left = { ...textStyle, content: txt };
+    if (frameDef.textPos.includes("right")) textConfig.right = { ...textStyle, content: txt };
+    const cfg: any = {
+      size: 20,
+      color: design.frameColor,
+      round: frameDef.round,
+      text: { ...textStyle, ...textConfig },
     };
-    const cfg = configs[design.frameStyle] || configs["bottom-frame"];
+    if (frameDef.dash) cfg.dasharray = frameDef.dash;
     return [new BorderPlugin(cfg)];
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
@@ -1377,7 +1372,7 @@ export default function CreateQRPage() {
                             design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                           }`}
                           title={f.label}>
-                          <FrameThumb id={f.id} />
+                          <FrameThumb id={f.id} round={f.round} dash={f.dash} textPos={f.textPos} />
                         </button>
                       ))}
                     </div>
@@ -1389,7 +1384,7 @@ export default function CreateQRPage() {
                         <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
                           className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                       </div>
-                      {(design.frameStyle === "top-text" || design.frameStyle === "both-text") && (
+                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.textPos.includes("top"); })() && (
                         <div>
                           <label className="text-xs font-medium text-gray-600 mb-1.5 block">Top text</label>
                           <input type="text" value={design.frameTopText} onChange={e => setDesign({ ...design, frameTopText: e.target.value })}
