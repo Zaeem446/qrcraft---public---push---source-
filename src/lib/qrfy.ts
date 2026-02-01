@@ -47,31 +47,100 @@ export function mapTypeToQrfy(ourType: string): string {
   return TYPE_MAP[ourType] || 'url';
 }
 
-// ─── Style Mapping (simplified — direct passthroughs) ───────────────────────
+// ─── Style Mapping ──────────────────────────────────────────────────────────
 
-// Confirmed QRFY shape styles (6)
+// QRFY shape styles (19 native + backward-compat aliases)
 const SHAPE_STYLE_MAP: Record<string, string> = {
+  // 19 native QRFY styles (identity)
   square: 'square',
   rounded: 'rounded',
   dots: 'dots',
   classy: 'classy',
   'classy-rounded': 'classy-rounded',
   'extra-rounded': 'extra-rounded',
+  cross: 'cross',
+  'cross-rounded': 'cross-rounded',
+  diamond: 'diamond',
+  'diamond-special': 'diamond-special',
+  heart: 'heart',
+  'horizontal-rounded': 'horizontal-rounded',
+  ribbon: 'ribbon',
+  shake: 'shake',
+  sparkle: 'sparkle',
+  star: 'star',
+  'vertical-rounded': 'vertical-rounded',
+  x: 'x',
+  'x-rounded': 'x-rounded',
+  // Backward-compat aliases from old UI
+  dot: 'dots',
+  'small-square': 'square',
+  'tiny-square': 'square',
+  'vertical-line': 'vertical-rounded',
+  'horizontal-line': 'horizontal-rounded',
+  'random-dot': 'dots',
+  wave: 'rounded',
+  weave: 'cross',
+  pentagon: 'sparkle',
+  hexagon: 'sparkle',
+  'zebra-horizontal': 'horizontal-rounded',
+  'zebra-vertical': 'vertical-rounded',
+  'blocks-horizontal': 'horizontal-rounded',
+  'blocks-vertical': 'vertical-rounded',
 };
 
-// Confirmed QRFY corner square styles (4)
+// QRFY corner square styles (16 native + backward-compat aliases)
 const CORNER_SQUARE_MAP: Record<string, string> = {
+  // 16 native QRFY styles (identity)
   default: 'default',
-  square: 'square',
   dot: 'dot',
+  square: 'square',
   'extra-rounded': 'extra-rounded',
+  shape1: 'shape1',
+  shape2: 'shape2',
+  shape3: 'shape3',
+  shape4: 'shape4',
+  shape5: 'shape5',
+  shape6: 'shape6',
+  shape7: 'shape7',
+  shape8: 'shape8',
+  shape9: 'shape9',
+  shape10: 'shape10',
+  shape11: 'shape11',
+  shape12: 'shape12',
+  // Backward-compat aliases
+  classy: 'shape1',
+  outpoint: 'shape2',
+  inpoint: 'shape3',
+  'center-circle': 'shape4',
 };
 
-// Confirmed QRFY corner dot styles (3)
+// QRFY corner dot styles (17 native + backward-compat aliases)
 const CORNER_DOT_MAP: Record<string, string> = {
+  // 17 native QRFY styles (identity)
   default: 'default',
   dot: 'dot',
   square: 'square',
+  cross: 'cross',
+  'cross-rounded': 'cross-rounded',
+  diamond: 'diamond',
+  dot2: 'dot2',
+  dot3: 'dot3',
+  dot4: 'dot4',
+  heart: 'heart',
+  rounded: 'rounded',
+  square2: 'square2',
+  square3: 'square3',
+  star: 'star',
+  sun: 'sun',
+  x: 'x',
+  'x-rounded': 'x-rounded',
+  // Backward-compat aliases
+  'extra-rounded': 'rounded',
+  classy: 'square2',
+  outpoint: 'diamond',
+  inpoint: 'cross',
+  pentagon: 'dot2',
+  hexagon: 'dot3',
 };
 
 function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
@@ -445,7 +514,7 @@ export async function createStaticQRImage(
     Object.assign(body, data);
   } else {
     // Use a placeholder URL for preview of dynamic types
-    body.data = { url: content.url || 'https://qrcraft.com/preview' };
+    body.url = content.url || 'https://qrcraft.com/preview';
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {
@@ -533,14 +602,21 @@ export function transformQrfyReport(report: any) {
 
 export const QRFY_SHAPE_STYLES = [
   'square', 'rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded',
+  'cross', 'cross-rounded', 'diamond', 'diamond-special', 'heart',
+  'horizontal-rounded', 'ribbon', 'shake', 'sparkle', 'star',
+  'vertical-rounded', 'x', 'x-rounded',
 ] as const;
 
 export const QRFY_CORNER_SQUARE_STYLES = [
-  'default', 'square', 'dot', 'extra-rounded',
+  'default', 'dot', 'square', 'extra-rounded',
+  'shape1', 'shape2', 'shape3', 'shape4', 'shape5', 'shape6',
+  'shape7', 'shape8', 'shape9', 'shape10', 'shape11', 'shape12',
 ] as const;
 
 export const QRFY_CORNER_DOT_STYLES = [
-  'default', 'dot', 'square',
+  'default', 'dot', 'square', 'cross', 'cross-rounded', 'diamond',
+  'dot2', 'dot3', 'dot4', 'heart', 'rounded', 'square2', 'square3',
+  'star', 'sun', 'x', 'x-rounded',
 ] as const;
 
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);
