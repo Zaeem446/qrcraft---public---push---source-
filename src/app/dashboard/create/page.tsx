@@ -37,6 +37,13 @@ import {
   FolderIcon,
   QrCodeIcon,
   PhotoIcon as PhotoSolidIcon,
+  MagnifyingGlassIcon,
+  PlusCircleIcon,
+  HomeIcon,
+  HeartIcon,
+  EllipsisHorizontalIcon,
+  BellIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
@@ -49,27 +56,42 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   ChatBubbleBottomCenterTextIcon, CurrencyDollarIcon, DocumentTextIcon,
 };
 
-// ─── Phone Preview Data ─────────────────────────────────────────────────────
-const PHONE_PREVIEWS: Record<string, React.FC> = {
-  website: () => (
-    <div className="h-full flex flex-col">
-      <div className="bg-blue-500 px-4 py-3 flex items-center gap-2">
-        <GlobeAltIcon className="h-4 w-4 text-white" />
-        <span className="text-white text-xs">https://example.com</span>
+// ─── Phone Preview Components (Matching Reference Site Exactly) ─────────────
+// These receive content state so they can update in real-time
+
+function WebsitePreview({ content }: { content: Record<string, any> }) {
+  const url = content?.url || "https://qr-generator.ai";
+  const displayUrl = url.replace(/^https?:\/\//, "").replace(/\/$/, "") || "qr-generator.ai";
+  return (
+    <div className="h-full flex flex-col bg-white">
+      <div className="bg-blue-500 px-3 py-2.5 flex items-center gap-2">
+        <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
+          <GlobeAltIcon className="h-2.5 w-2.5 text-white" />
+        </div>
+        <span className="text-white text-[11px] truncate">{displayUrl}</span>
       </div>
-      <div className="flex-1 bg-white p-4 space-y-3">
-        <div className="h-24 bg-gray-100 rounded-lg" />
-        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
-        <div className="h-3 bg-gray-100 rounded-full w-full" />
-        <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+      <div className="flex-1 p-4 space-y-3">
+        <div className="h-28 bg-gray-100 rounded-lg" />
+        <div className="space-y-2">
+          <div className="h-3 bg-gray-200 rounded-full w-3/4" />
+          <div className="h-3 bg-gray-100 rounded-full w-full" />
+          <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+          <div className="h-3 bg-gray-200 rounded-full w-2/3" />
+        </div>
       </div>
     </div>
-  ),
-  pdf: () => (
+  );
+}
+
+function PdfPreview() {
+  return (
     <div className="h-full flex flex-col bg-white">
-      <div className="bg-red-500 px-4 py-3 text-center">
-        <DocumentIcon className="h-6 w-6 text-white mx-auto" />
-        <p className="text-white text-xs mt-1">PDF Document</p>
+      <div className="bg-red-500 px-4 py-4 text-center">
+        <div className="w-14 h-14 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
+          <DocumentIcon className="h-8 w-8 text-white" />
+        </div>
+        <p className="text-white text-sm font-bold">Company Report</p>
+        <p className="text-white/70 text-[10px] mt-0.5">PDF Document • 2.4 MB</p>
       </div>
       <div className="flex-1 p-4 space-y-2">
         <div className="h-3 bg-gray-200 rounded-full w-full" />
@@ -77,315 +99,592 @@ const PHONE_PREVIEWS: Record<string, React.FC> = {
         <div className="h-3 bg-gray-100 rounded-full w-4/5" />
         <div className="h-3 bg-gray-200 rounded-full w-full" />
         <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+        <div className="h-3 bg-gray-100 rounded-full w-full" />
+        <div className="h-3 bg-gray-200 rounded-full w-2/3" />
+      </div>
+      <div className="p-3">
+        <div className="bg-red-500 rounded-lg py-2.5 text-center">
+          <span className="text-white text-xs font-semibold">Download PDF</span>
+        </div>
       </div>
     </div>
-  ),
-  links: () => (
-    <div className="h-full bg-gradient-to-b from-purple-500 to-purple-600 p-4">
-      <div className="w-12 h-12 bg-white/20 rounded-full mx-auto mb-2" />
-      <p className="text-white text-xs text-center font-semibold mb-3">My Links</p>
-      {["Portfolio", "Blog", "Twitter"].map((l) => (
-        <div key={l} className="bg-white/20 rounded-lg px-3 py-2 mb-2 text-center">
-          <span className="text-white text-xs">{l}</span>
+  );
+}
+
+function LinksPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-purple-600 to-indigo-700 p-4 text-center">
+      <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
+        <UserIcon className="h-8 w-8 text-white/70" />
+      </div>
+      <p className="text-white text-sm font-bold mb-0.5">Sarah Johnson</p>
+      <p className="text-white/60 text-[10px] mb-4">Digital Creator & Designer</p>
+      {["Portfolio Website", "Latest Blog Post", "Twitter Profile", "YouTube Channel"].map((l) => (
+        <div key={l} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center hover:bg-white/25 transition-colors">
+          <span className="text-white text-xs font-medium">{l}</span>
         </div>
       ))}
     </div>
-  ),
-  vcard: () => (
+  );
+}
+
+function VcardPreview() {
+  return (
     <div className="h-full bg-white">
-      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-4 pt-6 pb-8 text-center">
-        <div className="w-14 h-14 bg-white/30 rounded-full mx-auto mb-2" />
-        <p className="text-white text-sm font-bold">John Smith</p>
-        <p className="text-white/80 text-xs">Software Engineer</p>
+      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 px-4 pt-8 pb-10 text-center">
+        <div className="w-16 h-16 bg-white/30 rounded-full mx-auto mb-2 flex items-center justify-center">
+          <UserIcon className="h-8 w-8 text-white/80" />
+        </div>
+        <p className="text-white text-base font-bold">John Smith</p>
+        <p className="text-white/80 text-xs">Software Engineer at TechCo</p>
       </div>
-      <div className="px-4 py-3 space-y-2 -mt-4">
-        {["Phone", "Email", "Website"].map((f) => (
-          <div key={f} className="bg-white rounded-lg shadow-sm border border-gray-100 px-3 py-2">
-            <p className="text-[10px] text-gray-400">{f}</p>
-            <p className="text-xs text-gray-700">example@mail.com</p>
+      <div className="px-4 py-3 space-y-2 -mt-5">
+        {[
+          { label: "Phone", value: "+1 (555) 123-4567" },
+          { label: "Email", value: "john@techco.com" },
+          { label: "Website", value: "www.johnsmith.dev" },
+        ].map((f) => (
+          <div key={f.label} className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+            <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+            <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
+          </div>
+        ))}
+        <div className="bg-teal-500 rounded-xl py-2.5 text-center mt-2">
+          <span className="text-white text-xs font-semibold">Save Contact</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BusinessPreview() {
+  return (
+    <div className="h-full bg-white">
+      <div className="bg-emerald-600 px-4 pt-6 pb-8 text-center">
+        <div className="w-14 h-14 bg-white/20 rounded-2xl mx-auto mb-2 flex items-center justify-center">
+          <BuildingOfficeIcon className="h-7 w-7 text-white/80" />
+        </div>
+        <p className="text-white text-base font-bold">Green Valley Co.</p>
+        <p className="text-white/70 text-xs">Organic & Sustainable Products</p>
+      </div>
+      <div className="px-4 py-3 space-y-0.5 -mt-3">
+        {["About Us", "Our Products", "Locations", "Contact"].map((s) => (
+          <div key={s} className="bg-white flex items-center justify-between py-3 px-1 border-b border-gray-100">
+            <span className="text-sm text-gray-700">{s}</span>
+            <ChevronRightIcon className="h-4 w-4 text-gray-400" />
           </div>
         ))}
       </div>
     </div>
-  ),
-  business: () => (
-    <div className="h-full bg-white">
-      <div className="bg-emerald-500 px-4 pt-5 pb-6 text-center">
-        <div className="w-12 h-12 bg-white/20 rounded-xl mx-auto mb-2" />
-        <p className="text-white text-sm font-bold">My Business</p>
-        <p className="text-white/80 text-xs">New American Food and Beverage</p>
+  );
+}
+
+function VideoPreview() {
+  return (
+    <div className="h-full bg-gray-950 flex flex-col">
+      <div className="flex-1 flex items-center justify-center relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
+        <div className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center z-10 shadow-lg">
+          <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
+        </div>
       </div>
-      <div className="px-4 py-3 space-y-2">
-        {["About", "Services", "Contact"].map((s) => (
-          <div key={s} className="flex items-center justify-between py-2 border-b border-gray-100">
-            <span className="text-xs text-gray-700">{s}</span>
-            <ChevronRightIcon className="h-3 w-3 text-gray-400" />
+      <div className="p-4">
+        <div className="h-1 bg-gray-700 rounded-full mb-3">
+          <div className="h-1 bg-red-500 rounded-full w-1/3" />
+        </div>
+        <p className="text-white text-xs font-semibold mb-1">Product Launch Video</p>
+        <p className="text-gray-500 text-[10px]">1,234 views • 2 days ago</p>
+      </div>
+    </div>
+  );
+}
+
+function ImagesPreview() {
+  return (
+    <div className="h-full bg-amber-50 flex flex-col">
+      <div className="bg-[#8B5E3C] px-4 pt-5 pb-4 text-center">
+        <p className="text-white text-lg font-bold italic">Nature&apos;s Canvas</p>
+        <p className="text-white/80 text-xs mt-1 leading-relaxed">Browse our gallery of nature photos and order prints of any image!</p>
+      </div>
+      <div className="px-4 py-3">
+        <div className="bg-white rounded-xl py-2.5 text-center mb-3 shadow-sm border border-amber-100">
+          <span className="text-sm text-gray-700 font-medium">View All</span>
+        </div>
+      </div>
+      <div className="flex-1 px-4 pb-4">
+        <div className="h-full rounded-xl overflow-hidden bg-gradient-to-br from-orange-300 via-red-300 to-amber-400 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-2">
+            <div className="flex gap-1">
+              <div className="h-8 flex-1 bg-amber-200/50 rounded" />
+              <div className="h-8 flex-1 bg-emerald-200/50 rounded" />
+              <div className="h-8 flex-1 bg-orange-200/50 rounded" />
+            </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
-  ),
-  video: () => (
-    <div className="h-full bg-black flex flex-col">
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-          <div className="w-0 h-0 border-l-[10px] border-l-white border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-1" />
-        </div>
+  );
+}
+
+function FacebookPreview() {
+  return (
+    <div className="h-full bg-white">
+      <div className="bg-[#1877F2] px-4 py-3 flex items-center gap-2">
+        <span className="text-white text-sm font-bold">facebook</span>
       </div>
       <div className="p-3">
-        <div className="h-1 bg-gray-600 rounded-full mb-2"><div className="h-1 bg-red-500 rounded-full w-1/3" /></div>
-        <div className="h-2 bg-gray-800 rounded w-2/3" />
-      </div>
-    </div>
-  ),
-  images: () => (
-    <div className="h-full bg-amber-50">
-      <div className="bg-amber-600 px-4 py-3 text-center">
-        <p className="text-white text-sm font-bold">Nature&apos;s Canvas</p>
-        <p className="text-white/80 text-xs">Browse our gallery of nature photos</p>
-      </div>
-      <div className="p-3">
-        <div className="bg-white rounded-lg p-2 text-center mb-2 shadow-sm">
-          <span className="text-xs text-gray-600">View All</span>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-10 h-10 bg-blue-100 rounded-full" />
+          <div>
+            <p className="text-xs font-semibold text-gray-900">Business Page</p>
+            <p className="text-[10px] text-gray-500">2h • 🌍</p>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {[1,2,3,4].map(i => (
-            <div key={i} className={`h-14 rounded-lg ${i%2===0?'bg-amber-200':'bg-emerald-200'}`} />
-          ))}
+        <p className="text-xs text-gray-700 mb-2">Check out our latest updates! 🎉</p>
+        <div className="h-28 bg-blue-50 rounded-lg mb-2" />
+        <div className="flex justify-around py-2 border-t border-gray-100">
+          <span className="text-[10px] text-gray-500 font-medium">👍 Like</span>
+          <span className="text-[10px] text-gray-500 font-medium">💬 Comment</span>
+          <span className="text-[10px] text-gray-500 font-medium">↗ Share</span>
         </div>
       </div>
     </div>
-  ),
-  facebook: () => (
-    <div className="h-full bg-white">
-      <div className="bg-blue-600 px-4 py-3 flex items-center gap-2">
-        <HandThumbUpIcon className="h-4 w-4 text-white" />
-        <span className="text-white text-xs font-semibold">Facebook</span>
-      </div>
-      <div className="p-3 space-y-2">
-        <div className="h-20 bg-blue-50 rounded-lg" />
-        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
-        <div className="flex gap-2 pt-1">
-          <div className="flex-1 h-8 bg-blue-500 rounded-lg" />
-          <div className="flex-1 h-8 bg-gray-100 rounded-lg" />
+  );
+}
+
+function InstagramPreview() {
+  return (
+    <div className="h-full bg-white flex flex-col">
+      {/* Header */}
+      <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <ChevronRightIcon className="h-4 w-4 text-gray-900 rotate-180" />
+          <span className="text-xs font-bold text-gray-900">stunningtravelphotography</span>
+          <svg className="h-3 w-3 text-blue-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" /></svg>
+        </div>
+        <div className="flex items-center gap-2">
+          <BellIcon className="h-4 w-4 text-gray-900" />
+          <EllipsisHorizontalIcon className="h-4 w-4 text-gray-900" />
         </div>
       </div>
-    </div>
-  ),
-  instagram: () => (
-    <div className="h-full bg-white">
-      <div className="px-3 py-2 border-b border-gray-100 flex items-center gap-1">
-        <ChevronDownIcon className="h-3 w-3 text-gray-500 rotate-90" />
-        <span className="text-xs font-semibold text-gray-900">travelphotography</span>
-      </div>
+
+      {/* Profile section */}
       <div className="px-3 py-2 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500" />
-        <div className="flex gap-4 text-center">
-          <div><p className="text-xs font-bold">879</p><p className="text-[9px] text-gray-500">Posts</p></div>
-          <div><p className="text-xs font-bold">113k</p><p className="text-[9px] text-gray-500">Followers</p></div>
-          <div><p className="text-xs font-bold">2.1k</p><p className="text-[9px] text-gray-500">Following</p></div>
+        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 p-[2px] flex-shrink-0">
+          <div className="w-full h-full rounded-full bg-white p-[1px]">
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-200 to-purple-200" />
+          </div>
+        </div>
+        <div className="flex gap-5 text-center flex-1">
+          <div><p className="text-xs font-bold text-gray-900">879</p><p className="text-[9px] text-gray-500">Posts</p></div>
+          <div><p className="text-xs font-bold text-gray-900">113k</p><p className="text-[9px] text-gray-500">Followers</p></div>
+          <div><p className="text-xs font-bold text-gray-900">2,160</p><p className="text-[9px] text-gray-500">Following</p></div>
         </div>
       </div>
-      <div className="px-3 py-1">
-        <p className="text-[10px] font-semibold text-gray-900">Travel Photography</p>
-        <p className="text-[9px] text-gray-500">We provide the best travel photos</p>
+
+      {/* Bio */}
+      <div className="px-3 pb-1">
+        <p className="text-[11px] font-bold text-gray-900">Stunning Travel Photography</p>
+        <p className="text-[10px] text-gray-500">Travel and Photography Magazine</p>
+        <p className="text-[9px] text-gray-700 mt-0.5 leading-relaxed">We provide the best travel photos available! Contact us to order prints.</p>
+        <p className="text-[9px] text-blue-900">www.stunningtravel.com</p>
       </div>
-      <div className="grid grid-cols-3 gap-0.5 mt-1">
+
+      {/* Action buttons */}
+      <div className="px-3 py-1.5 flex gap-1">
+        <div className="flex-1 bg-blue-500 rounded-md py-1 text-center"><span className="text-[9px] text-white font-semibold">Follow</span></div>
+        <div className="flex-1 bg-gray-100 rounded-md py-1 text-center"><span className="text-[9px] text-gray-900 font-semibold">Message</span></div>
+        <div className="flex-1 bg-gray-100 rounded-md py-1 text-center"><span className="text-[9px] text-gray-900 font-semibold">Contact</span></div>
+        <div className="bg-gray-100 rounded-md py-1 px-1.5"><ChevronDownIcon className="h-2.5 w-2.5 text-gray-900" /></div>
+      </div>
+
+      {/* Story Highlights */}
+      <div className="px-3 py-1.5 flex gap-3 overflow-hidden">
+        {["Japan", "Italy", "Greece", "USA"].map((name, i) => (
+          <div key={name} className="flex flex-col items-center gap-0.5">
+            <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden">
+              <div className={`w-full h-full ${i===0?'bg-pink-100':i===1?'bg-amber-100':i===2?'bg-blue-100':'bg-emerald-100'}`} />
+            </div>
+            <span className="text-[8px] text-gray-600">{name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Grid tabs */}
+      <div className="flex border-t border-gray-100">
+        <div className="flex-1 py-1.5 flex justify-center border-b-2 border-gray-900"><Bars3Icon className="h-4 w-4 text-gray-900" /></div>
+        <div className="flex-1 py-1.5 flex justify-center"><VideoCameraIcon className="h-4 w-4 text-gray-400" /></div>
+        <div className="flex-1 py-1.5 flex justify-center"><UserIcon className="h-4 w-4 text-gray-400" /></div>
+      </div>
+
+      {/* Photo Grid */}
+      <div className="grid grid-cols-3 gap-[1px] flex-1">
         {[1,2,3,4,5,6].map(i => (
-          <div key={i} className={`h-12 ${i%3===0?'bg-sky-200':i%2===0?'bg-amber-200':'bg-emerald-200'}`} />
+          <div key={i} className={`${i%3===0?'bg-sky-200':i%2===0?'bg-amber-100':'bg-emerald-100'}`} />
         ))}
       </div>
-    </div>
-  ),
-  social: () => (
-    <div className="h-full bg-gradient-to-b from-violet-500 to-fuchsia-500 p-4 text-center">
-      <div className="w-14 h-14 bg-white/20 rounded-full mx-auto mb-2" />
-      <p className="text-white text-sm font-bold mb-1">Social Links</p>
-      <p className="text-white/70 text-xs mb-3">Follow me everywhere</p>
-      <div className="space-y-2">
-        {["Instagram", "Twitter", "LinkedIn", "YouTube"].map((s) => (
-          <div key={s} className="bg-white/20 rounded-lg px-3 py-2">
-            <span className="text-white text-xs">{s}</span>
-          </div>
-        ))}
+
+      {/* Bottom Nav */}
+      <div className="flex justify-around items-center py-2 border-t border-gray-100">
+        <HomeIcon className="h-5 w-5 text-gray-900" />
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
+        <PlusCircleIcon className="h-5 w-5 text-gray-400" />
+        <VideoCameraIcon className="h-5 w-5 text-gray-400" />
+        <div className="w-5 h-5 rounded-full bg-gray-300" />
       </div>
     </div>
-  ),
-  whatsapp: () => (
-    <div className="h-full bg-[#075e54]">
-      <div className="bg-[#128c7e] px-3 py-2 flex items-center gap-2">
-        <div className="w-8 h-8 bg-white/20 rounded-full" />
-        <div>
+  );
+}
+
+function SocialPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-violet-500 via-fuchsia-500 to-pink-500 p-4 text-center">
+      <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center">
+        <UserIcon className="h-8 w-8 text-white/70" />
+      </div>
+      <p className="text-white text-sm font-bold mb-0.5">@creativestudio</p>
+      <p className="text-white/60 text-[10px] mb-4">Follow us everywhere</p>
+      {[
+        { name: "Instagram", color: "from-pink-500 to-purple-500" },
+        { name: "Twitter / X", color: "from-gray-800 to-gray-900" },
+        { name: "LinkedIn", color: "from-blue-600 to-blue-700" },
+        { name: "YouTube", color: "from-red-500 to-red-600" },
+        { name: "TikTok", color: "from-gray-900 to-gray-800" },
+      ].map((s) => (
+        <div key={s.name} className={`bg-gradient-to-r ${s.color} rounded-xl px-4 py-2.5 mb-2 shadow-sm`}>
+          <span className="text-white text-xs font-medium">{s.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WhatsappPreview() {
+  return (
+    <div className="h-full bg-[#ECE5DD] flex flex-col">
+      <div className="bg-[#075E54] px-3 py-2.5 flex items-center gap-2">
+        <ChevronRightIcon className="h-4 w-4 text-white rotate-180" />
+        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+          <BuildingOfficeIcon className="h-4 w-4 text-white/80" />
+        </div>
+        <div className="flex-1">
           <p className="text-white text-xs font-semibold">Business Name</p>
-          <p className="text-white/70 text-[9px]">online</p>
+          <p className="text-white/60 text-[9px]">online</p>
         </div>
       </div>
-      <div className="p-3">
-        <div className="bg-[#dcf8c6] rounded-lg p-2 ml-auto max-w-[80%]">
-          <p className="text-[10px] text-gray-800">Hi! How can we help you?</p>
+      <div className="flex-1 p-3 space-y-2">
+        <div className="bg-white rounded-xl rounded-tl-sm p-2.5 max-w-[85%] shadow-sm">
+          <p className="text-[10px] text-gray-800">Welcome! 👋 How can we help you today?</p>
+          <p className="text-[8px] text-gray-400 text-right mt-1">10:30 AM</p>
+        </div>
+        <div className="bg-[#DCF8C6] rounded-xl rounded-tr-sm p-2.5 ml-auto max-w-[80%] shadow-sm">
+          <p className="text-[10px] text-gray-800">Hi! I&apos;d like more information please</p>
+          <p className="text-[8px] text-gray-400 text-right mt-1">10:31 AM ✓✓</p>
+        </div>
+      </div>
+      <div className="px-3 pb-3">
+        <div className="bg-white rounded-full px-3 py-2 flex items-center gap-2">
+          <span className="text-[10px] text-gray-400 flex-1">Type a message...</span>
+          <div className="w-6 h-6 bg-[#25D366] rounded-full flex items-center justify-center">
+            <ArrowRightIcon className="h-3 w-3 text-white" />
+          </div>
         </div>
       </div>
     </div>
-  ),
-  mp3: () => (
-    <div className="h-full bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center p-4">
-      <div className="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mb-3">
-        <MusicalNoteIcon className="h-10 w-10 text-green-400" />
+  );
+}
+
+function Mp3Preview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center p-5">
+      <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+        <MusicalNoteIcon className="h-12 w-12 text-white" />
       </div>
-      <p className="text-white text-xs font-semibold mb-1">Audio Track</p>
-      <p className="text-white/60 text-[10px] mb-3">Artist Name</p>
-      <div className="w-full h-1 bg-white/20 rounded-full"><div className="w-1/3 h-1 bg-green-400 rounded-full" /></div>
-    </div>
-  ),
-  menu: () => (
-    <div className="h-full bg-white">
-      <div className="bg-teal-50 px-4 pt-4 pb-3 text-center">
-        <div className="w-12 h-12 bg-teal-100 rounded-full mx-auto mb-1.5 flex items-center justify-center">
-          <span className="text-[8px] font-bold text-teal-700">CUISINE</span>
+      <p className="text-white text-sm font-bold mb-0.5">Summer Vibes</p>
+      <p className="text-gray-400 text-[10px] mb-5">The Audio Band</p>
+      <div className="w-full space-y-2">
+        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 bg-green-400 rounded-full relative"><div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" /></div></div>
+        <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
+      </div>
+      <div className="flex items-center gap-6 mt-4">
+        <ArrowPathIcon className="h-4 w-4 text-gray-500" />
+        <ChevronRightIcon className="h-5 w-5 text-white rotate-180" />
+        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+          <div className="w-0 h-0 border-l-[8px] border-l-gray-900 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent ml-0.5" />
         </div>
-        <p className="text-sm font-bold text-gray-900">The Cuisine</p>
-        <p className="text-xs text-teal-600">New American Food and Beverage</p>
+        <ChevronRightIcon className="h-5 w-5 text-white" />
+        <ArrowPathIcon className="h-4 w-4 text-gray-500 -scale-x-100" />
       </div>
-      <div className="px-4 py-2 space-y-0">
+    </div>
+  );
+}
+
+function MenuPreview() {
+  return (
+    <div className="h-full bg-white flex flex-col">
+      <div className="bg-teal-50 px-4 pt-5 pb-4 text-center">
+        <div className="w-16 h-16 border-2 border-teal-300 rounded-full mx-auto mb-2 flex items-center justify-center relative">
+          <span className="text-[6px] font-black text-teal-700 tracking-tighter leading-none text-center">THE<br/>CUISINE<br/>RESTAURANT</span>
+        </div>
+        <p className="text-base font-bold text-gray-900">The Cuisine</p>
+        <p className="text-xs text-teal-600 mt-0.5">New American Food and Beverage</p>
+      </div>
+      <div className="flex-1 px-4">
         {["Appetizers", "Beverages", "Main Dishes", "Dessert"].map((cat) => (
-          <div key={cat} className="flex items-center justify-between py-2.5 border-b border-gray-100">
-            <span className="text-xs text-gray-700">{cat}</span>
-            <ChevronRightIcon className="h-3 w-3 text-gray-400" />
+          <div key={cat} className="flex items-center justify-between py-3.5 border-b border-gray-100">
+            <span className="text-sm text-gray-700">{cat}</span>
+            <ArrowRightIcon className="h-3.5 w-3.5 text-gray-400" />
           </div>
         ))}
       </div>
     </div>
-  ),
-  apps: () => (
-    <div className="h-full bg-gradient-to-b from-pink-500 to-rose-500 flex flex-col items-center justify-center p-4">
-      <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-3">
-        <DevicePhoneMobileIcon className="h-8 w-8 text-pink-500" />
+  );
+}
+
+function AppsPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-pink-500 to-rose-600 flex flex-col items-center justify-center p-5">
+      <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
+        <DevicePhoneMobileIcon className="h-10 w-10 text-pink-500" />
       </div>
-      <p className="text-white text-sm font-bold mb-1">Get Our App</p>
-      <p className="text-white/80 text-xs mb-4">Download now</p>
-      <div className="space-y-2 w-full">
-        <div className="bg-black rounded-lg px-3 py-2 text-center"><span className="text-white text-[10px]">App Store</span></div>
-        <div className="bg-black rounded-lg px-3 py-2 text-center"><span className="text-white text-[10px]">Google Play</span></div>
-      </div>
-    </div>
-  ),
-  coupon: () => (
-    <div className="h-full bg-yellow-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-md p-4 w-full border-2 border-dashed border-yellow-400">
-        <p className="text-center text-lg font-black text-yellow-600">20% OFF</p>
-        <p className="text-center text-xs text-gray-500 mt-1">Your next purchase</p>
-        <div className="mt-3 bg-gray-100 rounded-lg px-3 py-1.5 text-center">
-          <span className="text-xs font-mono font-bold text-gray-700">SAVE20</span>
+      <p className="text-white text-base font-bold mb-1">Get Our App</p>
+      <p className="text-white/70 text-xs mb-6">Download now for free</p>
+      <div className="w-full space-y-3">
+        <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-lg">🍎</span>
+          <div><p className="text-[9px] text-gray-400">Download on the</p><p className="text-white text-xs font-semibold">App Store</p></div>
+        </div>
+        <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-lg">▶️</span>
+          <div><p className="text-[9px] text-gray-400">GET IT ON</p><p className="text-white text-xs font-semibold">Google Play</p></div>
         </div>
       </div>
     </div>
-  ),
-  wifi: () => (
-    <div className="h-full bg-gradient-to-b from-red-400 to-red-500 flex flex-col items-center justify-center p-4">
-      <WifiIcon className="h-16 w-16 text-white/30 mb-2" />
-      <p className="text-white text-sm font-bold mb-1">Join the &ldquo;Hotel Bar&rdquo;</p>
-      <p className="text-white/80 text-xs mb-4">WiFi network?</p>
-      <button className="w-full bg-red-400 border border-white/30 rounded-xl py-2 text-white text-xs font-semibold mb-2">Connect</button>
-      <button className="w-full bg-white/10 rounded-xl py-2 text-white/80 text-xs">Close</button>
-    </div>
-  ),
-  event: () => (
-    <div className="h-full bg-white">
-      <div className="bg-teal-500 px-4 py-4 text-center">
-        <p className="text-white text-sm font-bold">Tech Conference 2026</p>
-        <p className="text-white/80 text-xs">March 15, 2026</p>
+  );
+}
+
+function CouponPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-yellow-50 to-amber-50 flex flex-col items-center justify-center p-5">
+      <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed border-amber-300 relative">
+        <div className="absolute -left-3 top-1/2 w-6 h-6 bg-amber-50 rounded-full border-2 border-dashed border-amber-300" />
+        <div className="absolute -right-3 top-1/2 w-6 h-6 bg-amber-50 rounded-full border-2 border-dashed border-amber-300" />
+        <p className="text-center text-3xl font-black text-amber-500">20%</p>
+        <p className="text-center text-lg font-bold text-amber-600">OFF</p>
+        <p className="text-center text-xs text-gray-500 mt-2">Your next purchase</p>
+        <div className="mt-4 bg-gray-100 rounded-lg px-4 py-2 text-center">
+          <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">SAVE20</span>
+        </div>
+        <p className="text-center text-[9px] text-gray-400 mt-2">Valid until March 2026</p>
       </div>
-      <div className="p-3 space-y-2">
-        {["Date & Time", "Location", "Description"].map(f => (
-          <div key={f} className="bg-gray-50 rounded-lg p-2">
-            <p className="text-[10px] text-gray-400">{f}</p>
-            <div className="h-2 bg-gray-200 rounded-full w-3/4 mt-1" />
+    </div>
+  );
+}
+
+function WifiPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-[#F87171] to-[#EF4444] flex flex-col items-center justify-center px-6 py-8">
+      {/* WiFi Icon - Large and faded */}
+      <svg className="w-28 h-28 text-white/20 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1.5 8.5c5.5-5.5 14-5.5 19.5 0" /><path d="M5 12c3.5-3.5 9-3.5 12.5 0" /><path d="M8.5 15.5c2-2 5-2 7 0" /><circle cx="12" cy="19" r="1" fill="currentColor" />
+      </svg>
+      <p className="text-white text-base font-semibold mb-0.5 text-center">Join the &ldquo;Hotel Bar&rdquo;</p>
+      <p className="text-white/80 text-sm mb-6 text-center">WiFi network?</p>
+      <button className="w-full bg-[#F87171] border-2 border-white/30 rounded-2xl py-3 text-white font-semibold text-sm mb-3">Connect</button>
+      <button className="w-full bg-white/10 rounded-2xl py-3 text-white/80 text-sm">Close</button>
+    </div>
+  );
+}
+
+function EventPreview() {
+  return (
+    <div className="h-full bg-white">
+      <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-5 text-center">
+        <CalendarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
+        <p className="text-white text-sm font-bold">Tech Conference 2026</p>
+        <p className="text-white/80 text-xs">The Future of Innovation</p>
+      </div>
+      <div className="p-4 space-y-3">
+        {[
+          { label: "Date & Time", value: "March 15, 2026 • 9:00 AM" },
+          { label: "Location", value: "Convention Center, San Francisco" },
+          { label: "Organizer", value: "TechEvents Inc." },
+        ].map(f => (
+          <div key={f.label} className="bg-gray-50 rounded-xl p-3">
+            <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+            <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
           </div>
         ))}
-        <div className="bg-teal-500 rounded-lg py-2 text-center mt-2">
+        <div className="bg-teal-500 rounded-xl py-3 text-center mt-3">
           <span className="text-white text-xs font-semibold">Add to Calendar</span>
         </div>
       </div>
     </div>
-  ),
-  email: () => (
-    <div className="h-full bg-white">
-      <div className="bg-blue-500 px-4 py-3"><p className="text-white text-xs font-semibold">New Email</p></div>
-      <div className="p-3 space-y-2">
-        <div className="border-b border-gray-100 pb-2"><p className="text-[10px] text-gray-400">To:</p><div className="h-2 bg-gray-200 rounded w-1/2 mt-1" /></div>
-        <div className="border-b border-gray-100 pb-2"><p className="text-[10px] text-gray-400">Subject:</p><div className="h-2 bg-gray-200 rounded w-2/3 mt-1" /></div>
-        <div><p className="text-[10px] text-gray-400">Message:</p><div className="h-2 bg-gray-100 rounded w-full mt-1" /><div className="h-2 bg-gray-100 rounded w-4/5 mt-1" /></div>
+  );
+}
+
+function EmailPreview() {
+  return (
+    <div className="h-full bg-white flex flex-col">
+      <div className="bg-blue-500 px-4 py-3 flex items-center justify-between">
+        <span className="text-white text-xs font-semibold">New Email</span>
+        <ArrowRightIcon className="h-4 w-4 text-white" />
       </div>
-    </div>
-  ),
-  sms: () => (
-    <div className="h-full bg-gray-100">
-      <div className="bg-white px-3 py-2 border-b border-gray-200 text-center">
-        <p className="text-xs font-semibold text-gray-900">Messages</p>
+      <div className="flex-1 p-4 space-y-3">
+        <div className="border-b border-gray-100 pb-3">
+          <p className="text-[10px] text-gray-400 font-medium">To:</p>
+          <p className="text-xs text-gray-700 mt-0.5">hello@company.com</p>
+        </div>
+        <div className="border-b border-gray-100 pb-3">
+          <p className="text-[10px] text-gray-400 font-medium">Subject:</p>
+          <p className="text-xs text-gray-700 mt-0.5">Inquiry about your services</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-gray-400 font-medium">Message:</p>
+          <div className="mt-2 space-y-1.5">
+            <div className="h-2.5 bg-gray-100 rounded w-full" />
+            <div className="h-2.5 bg-gray-100 rounded w-4/5" />
+            <div className="h-2.5 bg-gray-100 rounded w-full" />
+            <div className="h-2.5 bg-gray-100 rounded w-3/4" />
+          </div>
+        </div>
       </div>
-      <div className="p-3 mt-4">
-        <div className="bg-blue-500 rounded-2xl rounded-br-sm p-2.5 ml-auto max-w-[80%]">
-          <p className="text-[10px] text-white">Hello! This is a pre-written SMS message.</p>
+      <div className="p-3">
+        <div className="bg-blue-500 rounded-xl py-2.5 text-center">
+          <span className="text-white text-xs font-semibold">Send Email</span>
         </div>
       </div>
     </div>
-  ),
-  review: () => (
-    <div className="h-full bg-amber-50 flex flex-col items-center justify-center p-4">
-      <div className="flex gap-1 mb-2">{[1,2,3,4,5].map(i => <StarIcon key={i} className="h-6 w-6 text-amber-400" />)}</div>
-      <p className="text-sm font-bold text-gray-900">Rate Us!</p>
-      <p className="text-xs text-gray-500 mt-1">We value your feedback</p>
-      <div className="bg-white rounded-xl shadow-sm p-3 w-full mt-3">
-        <div className="h-2 bg-gray-200 rounded-full w-full" />
-        <div className="h-2 bg-gray-100 rounded-full w-3/4 mt-1.5" />
-      </div>
-    </div>
-  ),
-  bitcoin: () => (
-    <div className="h-full bg-gradient-to-b from-orange-400 to-amber-500 flex flex-col items-center justify-center p-4">
-      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-3 shadow-lg">
-        <span className="text-2xl font-bold text-orange-500">₿</span>
-      </div>
-      <p className="text-white font-bold text-sm">Bitcoin Payment</p>
-      <p className="text-white/80 text-xs mt-1">Send BTC to this address</p>
-    </div>
-  ),
-  text: () => (
-    <div className="h-full bg-white flex flex-col items-center justify-center p-4">
-      <DocumentTextIcon className="h-10 w-10 text-gray-300 mb-3" />
-      <div className="w-full space-y-1.5">
-        <div className="h-2.5 bg-gray-200 rounded-full w-full" />
-        <div className="h-2.5 bg-gray-100 rounded-full w-5/6" />
-        <div className="h-2.5 bg-gray-100 rounded-full w-4/5" />
-        <div className="h-2.5 bg-gray-200 rounded-full w-full" />
-      </div>
-    </div>
-  ),
-};
+  );
+}
 
-// Default preview: QR code with "Select a type" prompt
-const DefaultPhonePreview = () => (
-  <div className="h-full bg-white flex flex-col items-center justify-center p-4">
-    <div className="w-32 h-32 border-4 border-dashed border-violet-200 rounded-2xl flex items-center justify-center mb-3 relative">
-      <QrCodeIcon className="h-16 w-16 text-violet-300" />
-      <span className="absolute -top-1 -right-1 w-4 h-4 bg-violet-400 rounded text-white text-[8px] flex items-center justify-center">LOGO</span>
+function SmsPreview() {
+  return (
+    <div className="h-full bg-white flex flex-col">
+      <div className="bg-gray-50 px-3 py-2.5 border-b border-gray-200 text-center">
+        <p className="text-sm font-semibold text-gray-900">Messages</p>
+      </div>
+      <div className="flex-1 p-3 space-y-3 bg-white">
+        <div className="bg-gray-100 rounded-2xl rounded-tl-sm p-3 max-w-[85%]">
+          <p className="text-xs text-gray-800">Hey! How are you doing?</p>
+        </div>
+        <div className="bg-blue-500 rounded-2xl rounded-br-sm p-3 ml-auto max-w-[80%]">
+          <p className="text-xs text-white">Hello! This is a pre-written SMS message from QR code.</p>
+        </div>
+      </div>
+      <div className="p-3 border-t border-gray-100">
+        <div className="bg-gray-100 rounded-full px-4 py-2 flex items-center">
+          <span className="text-xs text-gray-400 flex-1">iMessage</span>
+          <ArrowRightIcon className="h-4 w-4 text-blue-500" />
+        </div>
+      </div>
     </div>
-    <div className="bg-violet-500 rounded-xl px-4 py-2.5 text-center w-full">
-      <p className="text-white text-xs font-medium">Select a type of QR code on the left</p>
+  );
+}
+
+function ReviewPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col items-center justify-center p-5">
+      <div className="flex gap-1.5 mb-3">
+        {[1,2,3,4,5].map(i => (
+          <svg key={i} className="h-8 w-8 text-amber-400" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+        ))}
+      </div>
+      <p className="text-lg font-bold text-gray-900">Rate Us!</p>
+      <p className="text-xs text-gray-500 mt-1 mb-4">We value your honest feedback</p>
+      <div className="bg-white rounded-2xl shadow-sm p-4 w-full">
+        <textarea className="w-full text-xs text-gray-400 resize-none bg-transparent outline-none" rows={3} defaultValue="" placeholder="Share your experience..." readOnly />
+      </div>
+      <div className="bg-amber-500 rounded-xl py-2.5 text-center w-full mt-3">
+        <span className="text-white text-xs font-semibold">Submit Review</span>
+      </div>
     </div>
-  </div>
-);
+  );
+}
+
+function BitcoinPreview() {
+  return (
+    <div className="h-full bg-gradient-to-b from-orange-400 via-amber-500 to-yellow-500 flex flex-col items-center justify-center p-5">
+      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-2xl">
+        <span className="text-3xl font-black text-orange-500">₿</span>
+      </div>
+      <p className="text-white font-bold text-base mb-1">Bitcoin Payment</p>
+      <p className="text-white/70 text-xs mb-5">Send BTC to this address</p>
+      <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 w-full">
+        <p className="text-[8px] text-white/60 font-mono text-center break-all">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</p>
+      </div>
+      <div className="bg-white rounded-xl py-2.5 text-center w-full mt-3">
+        <span className="text-orange-500 text-xs font-bold">Copy Address</span>
+      </div>
+    </div>
+  );
+}
+
+function TextPreview() {
+  return (
+    <div className="h-full bg-white flex flex-col items-center justify-center p-5">
+      <DocumentTextIcon className="h-12 w-12 text-gray-300 mb-4" />
+      <div className="w-full space-y-2 bg-gray-50 rounded-xl p-4">
+        <div className="h-3 bg-gray-200 rounded-full w-full" />
+        <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+        <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+        <div className="h-3 bg-gray-200 rounded-full w-full" />
+        <div className="h-3 bg-gray-100 rounded-full w-2/3" />
+        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
+      </div>
+    </div>
+  );
+}
+
+// ─── Default Preview (QR with dashed border like reference) ─────────────────
+function DefaultPhonePreview() {
+  return (
+    <div className="h-full bg-white flex flex-col items-center justify-center p-5">
+      {/* Dashed corner brackets like the reference */}
+      <div className="relative w-36 h-36 mb-4">
+        {/* Corner brackets */}
+        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-violet-400 rounded-tl-lg" />
+        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-violet-400 rounded-tr-lg" />
+        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-violet-400 rounded-bl-lg" />
+        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-violet-400 rounded-br-lg" />
+        {/* QR icon in center */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="relative">
+            <QrCodeIcon className="h-20 w-20 text-gray-900" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="bg-white px-1 text-[8px] font-bold text-gray-400 border border-gray-200 rounded">LOGO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-violet-500 rounded-2xl px-5 py-3 text-center w-full">
+        <p className="text-white text-xs font-medium">Select a type of QR code on the left</p>
+      </div>
+    </div>
+  );
+}
 
 // ─── Frame Styles ───────────────────────────────────────────────────────────
 const FRAME_STYLES = [
-  { id: "none", label: "No Frame" },
-  { id: "simple", label: "Simple" },
-  { id: "rounded", label: "Rounded" },
-  { id: "bold", label: "Bold" },
-  { id: "shadow", label: "Shadow" },
-  { id: "ticket", label: "Ticket" },
-  { id: "badge", label: "Badge" },
-  { id: "banner", label: "Banner" },
+  { id: "none", label: "None" },
+  { id: "bottom-frame", label: "Bottom Frame" },
+  { id: "bottom-tooltip", label: "Tooltip" },
+  { id: "top-header", label: "Top Header" },
+  { id: "box-bottom", label: "Box Bottom" },
+  { id: "box-top", label: "Box Top" },
+  { id: "banner-bottom", label: "Banner" },
+  { id: "rounded-bottom", label: "Rounded" },
+  { id: "rounded-top", label: "Round Top" },
+  { id: "balloon", label: "Balloon" },
+  { id: "leaf", label: "Leaf" },
+  { id: "circle-bottom", label: "Circle" },
+  { id: "wave", label: "Wave" },
+  { id: "ribbon", label: "Ribbon" },
+  { id: "badge-bottom", label: "Badge" },
+  { id: "stamp", label: "Stamp" },
+  { id: "cloud", label: "Cloud" },
+  { id: "flag", label: "Flag" },
 ];
 
 const PATTERN_STYLES = [
@@ -399,14 +698,23 @@ const PATTERN_STYLES = [
 ];
 
 const CORNER_FRAME_STYLES = [
-  { id: "square", label: "Square" },
+  { id: "none", label: "None" },
   { id: "dot", label: "Dot" },
+  { id: "square", label: "Square" },
   { id: "extra-rounded", label: "Rounded" },
+  { id: "right-bottom-square", label: "RB Square" },
+  { id: "left-top-square", label: "LT Square" },
+  { id: "right-top-square", label: "RT Square" },
 ];
 
 const CORNER_DOT_STYLES = [
-  { id: "square", label: "Square" },
+  { id: "none", label: "None" },
   { id: "dot", label: "Dot" },
+  { id: "square", label: "Square" },
+  { id: "right-bottom-square", label: "RB Square" },
+  { id: "left-top-square", label: "LT Square" },
+  { id: "diamond", label: "Diamond" },
+  { id: "star", label: "Star" },
 ];
 
 // ─── Accordion Section Component ────────────────────────────────────────────
@@ -419,58 +727,67 @@ function AccordionSection({ icon, title, subtitle, children, defaultOpen = false
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
+    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors"
       >
-        <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
         <div className="flex-1 text-left">
           <p className="text-sm font-semibold text-gray-900">{title}</p>
           <p className="text-xs text-gray-500">{subtitle}</p>
         </div>
-        <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDownIcon className={`h-5 w-5 text-gray-400 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <div className="px-5 pb-5 border-t border-gray-100">{children}</div>}
+      {open && <div className="px-5 pb-5 border-t border-gray-100 pt-4">{children}</div>}
     </div>
   );
 }
 
-// ─── Inline Color Picker ────────────────────────────────────────────────────
+// ─── Inline Color Picker (matching reference layout) ────────────────────────
 function InlineColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <div>
-      <label className="text-xs font-medium text-gray-500 mb-1.5 block">{label}</label>
+      <label className="text-xs font-medium text-gray-600 mb-2 block">{label}</label>
       <div className="flex items-center gap-2">
-        <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-gray-200">
+        <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
           <input type="color" value={value} onChange={e => onChange(e.target.value)}
             className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
           <div className="w-full h-full" style={{ backgroundColor: value }} />
         </div>
         <input type="text" value={value} onChange={e => onChange(e.target.value)}
-          className="w-24 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
+          className="w-28 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
       </div>
     </div>
   );
 }
 
-// ─── Phone Mockup Component ─────────────────────────────────────────────────
+// ─── Phone Mockup Component (matching reference iPhone frame) ───────────────
 function PhoneMockup({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative mx-auto w-[260px]">
-      <div className="bg-gray-900 rounded-[2.5rem] p-2.5 shadow-2xl">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[100px] h-[24px] bg-gray-900 rounded-b-2xl z-10" />
+      <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+        {/* Dynamic Island */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90px] h-[22px] bg-gray-900 rounded-b-2xl z-10" />
         <div className="bg-white rounded-[2rem] overflow-hidden relative">
-          <div className="h-8 bg-white flex items-end justify-center pb-0.5">
-            <div className="w-[50px] h-[4px] bg-gray-900 rounded-full" />
+          {/* Status bar */}
+          <div className="h-7 bg-white flex items-center justify-between px-5 pt-1">
+            <span className="text-[9px] font-semibold text-gray-900">9:41</span>
+            <div className="flex items-center gap-0.5">
+              <div className="flex gap-[1px]">{[1,2,3,4].map(i=><div key={i} className="w-[3px] h-[3px] bg-gray-900 rounded-[0.5px]" style={{height:`${i*2+2}px`}} />)}</div>
+              <div className="w-1.5 h-1.5 rounded-full bg-gray-900 ml-0.5" />
+              <svg className="w-5 h-2.5 text-gray-900 ml-0.5" viewBox="0 0 25 12" fill="currentColor"><rect x="0" y="1" width="20" height="10" rx="2" stroke="currentColor" fill="none" strokeWidth="1"/><rect x="2" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="21" y="4" width="3" height="4" rx="1" fill="currentColor" opacity="0.4"/></svg>
+            </div>
           </div>
-          <div className="h-[380px] overflow-hidden">
+          {/* Content */}
+          <div className="h-[400px] overflow-hidden">
             {children}
           </div>
+          {/* Home indicator */}
           <div className="h-6 flex items-center justify-center">
-            <div className="w-[80px] h-[3px] bg-gray-300 rounded-full" />
+            <div className="w-[80px] h-[4px] bg-gray-300 rounded-full" />
           </div>
         </div>
       </div>
@@ -493,9 +810,9 @@ export default function CreateQRPage() {
     dotsColor: "#000000",
     dotsType: "square",
     cornersSquareColor: "#000000",
-    cornersSquareType: "square",
+    cornersSquareType: "none",
     cornersDotColor: "#000000",
-    cornersDotType: "square",
+    cornersDotType: "none",
     backgroundColor: "#FFFFFF",
     logo: "",
     logoSize: 0.3,
@@ -511,6 +828,10 @@ export default function CreateQRPage() {
     patternColor2: "#7C3AED",
     bgTransparent: false,
     frameBgTransparent: false,
+    useGradientBg: false,
+    bgColor2: "#7C3AED",
+    useGradientFrameBg: false,
+    frameBgColor2: "#7C3AED",
   });
   const [saving, setSaving] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -525,10 +846,10 @@ export default function CreateQRPage() {
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
       const qr = new QRCodeStyling({
         width: 256, height: 256,
-        data: baseUrl + "/r/preview",
+        data: content.url || baseUrl + "/r/preview",
         dotsOptions: { color: design.dotsColor, type: design.dotsType as any },
-        cornersSquareOptions: { color: design.cornersSquareColor, type: design.cornersSquareType as any },
-        cornersDotOptions: { color: design.cornersDotColor, type: design.cornersDotType as any },
+        cornersSquareOptions: design.cornersSquareType !== "none" ? { color: design.cornersSquareColor, type: design.cornersSquareType as any } : { color: design.cornersSquareColor },
+        cornersDotOptions: design.cornersDotType !== "none" ? { color: design.cornersDotColor, type: design.cornersDotType as any } : { color: design.cornersDotColor },
         backgroundOptions: { color: design.bgTransparent ? "transparent" : design.backgroundColor },
         imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin },
         image: design.logo || undefined,
@@ -539,7 +860,7 @@ export default function CreateQRPage() {
         setQrDataUrl(URL.createObjectURL(blobObj));
       }
     } catch (e) { console.error("QR preview error:", e); }
-  }, [qrType, design]);
+  }, [qrType, design, content.url]);
 
   useEffect(() => {
     if (step >= 2 && qrType) generatePreview();
@@ -565,10 +886,10 @@ export default function CreateQRPage() {
       const QRCodeStyling = (await import("qr-code-styling")).default;
       const baseUrl = window.location.origin;
       const qr = new QRCodeStyling({
-        width: 1024, height: 1024, data: baseUrl + "/r/preview",
+        width: 1024, height: 1024, data: content.url || baseUrl + "/r/preview",
         dotsOptions: { color: design.dotsColor, type: design.dotsType as any },
-        cornersSquareOptions: { color: design.cornersSquareColor, type: design.cornersSquareType as any },
-        cornersDotOptions: { color: design.cornersDotColor, type: design.cornersDotType as any },
+        cornersSquareOptions: design.cornersSquareType !== "none" ? { color: design.cornersSquareColor, type: design.cornersSquareType as any } : { color: design.cornersSquareColor },
+        cornersDotOptions: design.cornersDotType !== "none" ? { color: design.cornersDotColor, type: design.cornersDotType as any } : { color: design.cornersDotColor },
         backgroundOptions: { color: design.bgTransparent ? "transparent" : design.backgroundColor },
         imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin },
         image: design.logo || undefined,
@@ -582,9 +903,9 @@ export default function CreateQRPage() {
     switch (qrType) {
       case "website":
         return (
-          <AccordionSection icon={<GlobeAltIcon className="h-4 w-4 text-gray-500" />} title="Website Information" subtitle="Input the URL this QR will redirect to." defaultOpen>
-            <div className="pt-4">
-              <label className="text-xs font-medium text-gray-500 mb-1.5 block">Website URL <span className="text-red-500">*</span></label>
+          <AccordionSection icon={<GlobeAltIcon className="h-5 w-5 text-gray-500" />} title="Website Information" subtitle="Input the URL this QR will redirect to." defaultOpen>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Website URL <span className="text-red-500">*</span></label>
               <input type="url" placeholder="E.g. https://www.mywebsite.com/" value={content.url || ""}
                 onChange={e => setContent({ ...content, url: e.target.value })}
                 className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
@@ -593,8 +914,8 @@ export default function CreateQRPage() {
         );
       case "vcard":
         return (
-          <AccordionSection icon={<UserIcon className="h-4 w-4 text-gray-500" />} title="Contact Information" subtitle="Fill in your contact details." defaultOpen>
-            <div className="pt-4 space-y-3">
+          <AccordionSection icon={<UserIcon className="h-5 w-5 text-gray-500" />} title="Contact Information" subtitle="Fill in your contact details." defaultOpen>
+            <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <Input label="First Name" value={content.firstName || ""} onChange={e => setContent({ ...content, firstName: e.target.value })} />
                 <Input label="Last Name" value={content.lastName || ""} onChange={e => setContent({ ...content, lastName: e.target.value })} />
@@ -610,12 +931,12 @@ export default function CreateQRPage() {
         );
       case "wifi":
         return (
-          <AccordionSection icon={<WifiIcon className="h-4 w-4 text-gray-500" />} title="WiFi Information" subtitle="Enter your network details." defaultOpen>
-            <div className="pt-4 space-y-3">
+          <AccordionSection icon={<WifiIcon className="h-5 w-5 text-gray-500" />} title="WiFi Information" subtitle="Enter your network details." defaultOpen>
+            <div className="space-y-3">
               <Input label="Network Name (SSID)" value={content.ssid || ""} onChange={e => setContent({ ...content, ssid: e.target.value })} />
               <Input label="Password" value={content.password || ""} onChange={e => setContent({ ...content, password: e.target.value })} />
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Encryption</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Encryption</label>
                 <select value={content.encryption || "WPA"} onChange={e => setContent({ ...content, encryption: e.target.value })}
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
                   <option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option>
@@ -624,15 +945,42 @@ export default function CreateQRPage() {
             </div>
           </AccordionSection>
         );
+      case "email":
+        return (
+          <AccordionSection icon={<EnvelopeIcon className="h-5 w-5 text-gray-500" />} title="Email Information" subtitle="Pre-fill an email for your recipients." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Email Address" type="email" value={content.email || ""} onChange={e => setContent({ ...content, email: e.target.value })} placeholder="hello@company.com" />
+              <Input label="Subject" value={content.subject || ""} onChange={e => setContent({ ...content, subject: e.target.value })} placeholder="E.g. Inquiry about services" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Message</label>
+                <textarea value={content.message || ""} onChange={e => setContent({ ...content, message: e.target.value })}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={4} placeholder="Your pre-written message..." />
+              </div>
+            </div>
+          </AccordionSection>
+        );
+      case "sms":
+        return (
+          <AccordionSection icon={<ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-500" />} title="SMS Information" subtitle="Pre-fill an SMS message." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Phone Number" value={content.phone || ""} onChange={e => setContent({ ...content, phone: e.target.value })} placeholder="+1 555 123 4567" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Message</label>
+                <textarea value={content.message || ""} onChange={e => setContent({ ...content, message: e.target.value })}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="Your pre-written SMS..." />
+              </div>
+            </div>
+          </AccordionSection>
+        );
       default:
         return (
-          <AccordionSection icon={<GlobeAltIcon className="h-4 w-4 text-gray-500" />} title={`${QR_TYPES.find(t => t.id === qrType)?.name || "Content"} Information`} subtitle="Enter the content for your QR code." defaultOpen>
-            <div className="pt-4 space-y-3">
+          <AccordionSection icon={<GlobeAltIcon className="h-5 w-5 text-gray-500" />} title={`${QR_TYPES.find(t => t.id === qrType)?.name || "Content"} Information`} subtitle="Enter the content for your QR code." defaultOpen>
+            <div className="space-y-3">
               <Input label="URL or Content" placeholder="Enter URL or content" value={content.url || ""} onChange={e => setContent({ ...content, url: e.target.value })} />
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1.5 block">Description</label>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
                 <textarea value={content.description || ""} onChange={e => setContent({ ...content, description: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" rows={3} placeholder="Optional description" />
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="Optional description" />
               </div>
             </div>
           </AccordionSection>
@@ -643,47 +991,65 @@ export default function CreateQRPage() {
   // ─── Phone Preview Content ──────────────────────────────────────────────
   const renderPhoneContent = () => {
     if (step === 1) {
-      if (activePreview && PHONE_PREVIEWS[activePreview]) {
-        const Preview = PHONE_PREVIEWS[activePreview];
-        return <Preview />;
+      if (activePreview) {
+        return renderPreviewForType(activePreview);
       }
       return <DefaultPhonePreview />;
     }
     // Steps 2-3: Show preview or QR code based on tab
     if (previewTab === "qrcode" && qrDataUrl) {
       return (
-        <div className="h-full bg-white flex items-center justify-center p-4">
-          <img src={qrDataUrl} alt="QR" className="w-48 h-48" />
+        <div className="h-full bg-white flex items-center justify-center p-6">
+          <img src={qrDataUrl} alt="QR" className="w-48 h-48 rounded-lg" />
         </div>
       );
     }
-    // Preview tab: show type-specific preview
-    if (qrType && PHONE_PREVIEWS[qrType]) {
-      const Preview = PHONE_PREVIEWS[qrType];
-      return <Preview />;
+    // Preview tab: show type-specific preview with dynamic content
+    if (qrType) {
+      return renderPreviewForType(qrType, content);
     }
-    return (
-      <div className="h-full bg-white flex flex-col items-center justify-center p-4">
-        <div className="h-24 w-full bg-gray-100 rounded-lg mb-3" />
-        <div className="h-3 bg-gray-200 rounded-full w-3/4" />
-        <div className="h-3 bg-gray-100 rounded-full w-full mt-2" />
-        <div className="h-3 bg-gray-100 rounded-full w-5/6 mt-2" />
-      </div>
-    );
+    return <DefaultPhonePreview />;
+  };
+
+  // Render preview for a given type with optional dynamic content
+  const renderPreviewForType = (type: string, dynamicContent?: Record<string, any>) => {
+    switch (type) {
+      case "website": return <WebsitePreview content={dynamicContent || {}} />;
+      case "pdf": return <PdfPreview />;
+      case "links": return <LinksPreview />;
+      case "vcard": return <VcardPreview />;
+      case "business": return <BusinessPreview />;
+      case "video": return <VideoPreview />;
+      case "images": return <ImagesPreview />;
+      case "facebook": return <FacebookPreview />;
+      case "instagram": return <InstagramPreview />;
+      case "social": return <SocialPreview />;
+      case "whatsapp": return <WhatsappPreview />;
+      case "mp3": return <Mp3Preview />;
+      case "menu": return <MenuPreview />;
+      case "apps": return <AppsPreview />;
+      case "coupon": return <CouponPreview />;
+      case "wifi": return <WifiPreview />;
+      case "event": return <EventPreview />;
+      case "email": return <EmailPreview />;
+      case "sms": return <SmsPreview />;
+      case "review": return <ReviewPreview />;
+      case "bitcoin": return <BitcoinPreview />;
+      case "text": return <TextPreview />;
+      default: return <DefaultPhonePreview />;
+    }
   };
 
   return (
     <div>
-      {/* Top nav bar with steps */}
+      {/* Top bar with steps */}
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">
-            {step === 1 && "1. Select a type of QR code"}
-            {step === 2 && "2. Add content to your QR code"}
-            {step === 3 && "3. Design the QR"}
-          </h1>
-        </div>
-        {/* Step progress in header */}
+        <h1 className="text-xl font-bold text-gray-900">
+          {step === 1 && "1. Select a type of QR code"}
+          {step === 2 && "2. Add content to your QR code"}
+          {step === 3 && "3. Design the QR"}
+        </h1>
+        {/* Step progress */}
         <div className="hidden sm:flex items-center gap-2">
           {[
             { num: 1, label: "Type of QR code" },
@@ -742,17 +1108,17 @@ export default function CreateQRPage() {
             <div className="space-y-4">
               {renderContentForm()}
 
-              <AccordionSection icon={<QrCodeIcon className="h-4 w-4 text-gray-500" />} title="Name of the QR Code" subtitle="Give a name to your QR code." defaultOpen>
-                <div className="pt-4">
-                  <label className="text-xs font-medium text-gray-500 mb-1.5 block">Name</label>
+              <AccordionSection icon={<QrCodeIcon className="h-5 w-5 text-gray-500" />} title="Name of the QR Code" subtitle="Give a name to your QR code." defaultOpen>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">Name</label>
                   <input type="text" placeholder="E.g. My QR code" value={name}
                     onChange={e => setName(e.target.value)}
                     className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
                 </div>
               </AccordionSection>
 
-              <AccordionSection icon={<LockClosedIcon className="h-4 w-4 text-gray-500" />} title="Password" subtitle="Protect your QR code with a password.">
-                <div className="pt-4">
+              <AccordionSection icon={<LockClosedIcon className="h-5 w-5 text-gray-500" />} title="Password" subtitle="Protect your QR code with a password.">
+                <div>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
                     <span className="text-sm text-gray-600">Activate password to access the QR code.</span>
@@ -760,8 +1126,8 @@ export default function CreateQRPage() {
                 </div>
               </AccordionSection>
 
-              <AccordionSection icon={<FolderIcon className="h-4 w-4 text-gray-500" />} title="Folder" subtitle="Link this QR to an existing or a new folder.">
-                <div className="pt-4">
+              <AccordionSection icon={<FolderIcon className="h-5 w-5 text-gray-500" />} title="Folder" subtitle="Link this QR to an existing or a new folder.">
+                <div>
                   <div className="flex items-center gap-2 px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200">
                     <FolderIcon className="h-4 w-4 text-gray-400" />
                     <span className="text-sm text-gray-500">No Folder</span>
@@ -786,41 +1152,82 @@ export default function CreateQRPage() {
             <div className="space-y-4">
               {/* Frame */}
               <AccordionSection
-                icon={<svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>}
-                title="Frame" subtitle="Frames make your QR Code stand out from the crowd." defaultOpen>
-                <div className="pt-4 space-y-5">
+                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>}
+                title="Frame" subtitle="Frames make your QR Code stand out from the crowd, inspiring more scans." defaultOpen>
+                <div className="space-y-5">
                   <div>
-                    <label className="text-xs font-medium text-gray-500 mb-2 block">Frame style</label>
-                    <div className="flex flex-wrap gap-2">
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Frame style</label>
+                    <div className="grid grid-cols-6 sm:grid-cols-9 gap-2">
                       {FRAME_STYLES.map(f => (
                         <button key={f.id} onClick={() => setDesign({ ...design, frameStyle: f.id })}
-                          className={`px-3 py-2 text-xs rounded-lg border transition-all ${
-                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                          }`}>{f.label}</button>
+                          className={`aspect-square rounded-lg border-2 transition-all flex flex-col items-center justify-center p-1 ${
+                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}>
+                          {f.id === "none" ? (
+                            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center">
+                              <div className="w-5 h-5 border border-gray-300 rounded-sm mb-0.5">
+                                <div className="w-full h-full grid grid-cols-3 gap-[1px] p-[2px]">
+                                  <div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" />
+                                  <div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" />
+                                  <div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" />
+                                </div>
+                              </div>
+                              <span className="text-[5px] text-gray-400 mt-0.5 leading-none">Scan Me!</span>
+                            </div>
+                          )}
+                        </button>
                       ))}
                     </div>
                   </div>
                   {design.frameStyle !== "none" && (
                     <>
                       <div>
-                        <label className="text-xs font-medium text-gray-500 mb-1.5 block">Frame text</label>
+                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">Frame text</label>
                         <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
                           className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                       </div>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
-                        <InlineColorPicker label="Frame background" value={design.frameBgColor} onChange={v => setDesign({ ...design, frameBgColor: v })} />
-                      </div>
-                      <label className="flex items-center gap-3 cursor-pointer">
-                        <div className={`relative w-10 h-5 rounded-full transition-colors ${design.useGradientFrame ? "bg-violet-500" : "bg-gray-300"}`}
-                          onClick={() => setDesign({ ...design, useGradientFrame: !design.useGradientFrame })}>
-                          <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientFrame ? "translate-x-5" : "translate-x-0.5"}`} />
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-3 block">Frame color</label>
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                            <span className="text-sm text-gray-600">Use a gradient frame color</span>
+                            <div className="ml-auto">
+                              <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientFrame ? "bg-violet-500" : "bg-gray-300"}`}
+                                onClick={() => setDesign({ ...design, useGradientFrame: !design.useGradientFrame })}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientFrame ? "translate-x-5" : "translate-x-0.5"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
                         </div>
-                        <span className="text-sm text-gray-600">Use a gradient frame color</span>
-                      </label>
-                      {design.useGradientFrame && (
-                        <InlineColorPicker label="Frame color 2" value={design.frameColor2} onChange={v => setDesign({ ...design, frameColor2: v })} />
-                      )}
+                        {design.useGradientFrame && (
+                          <InlineColorPicker label="Frame color 2" value={design.frameColor2} onChange={v => setDesign({ ...design, frameColor2: v })} />
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-3 block">Frame background color</label>
+                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                          <input type="checkbox" checked={design.frameBgTransparent} onChange={e => setDesign({ ...design, frameBgTransparent: e.target.checked })}
+                            className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+                          <span className="text-sm text-gray-600">Transparent background</span>
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                            <span className="text-sm text-gray-600">Use a gradient background color</span>
+                            <div className="ml-auto">
+                              <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientFrameBg ? "bg-violet-500" : "bg-gray-300"}`}
+                                onClick={() => setDesign({ ...design, useGradientFrameBg: !design.useGradientFrameBg })}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientFrameBg ? "translate-x-5" : "translate-x-0.5"}`} />
+                              </div>
+                            </div>
+                          </div>
+                          <InlineColorPicker label="Background color" value={design.frameBgColor} onChange={v => setDesign({ ...design, frameBgColor: v })} />
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
@@ -828,73 +1235,144 @@ export default function CreateQRPage() {
 
               {/* QR Code Pattern */}
               <AccordionSection
-                icon={<QrCodeIcon className="h-4 w-4 text-gray-500" />}
+                icon={<QrCodeIcon className="h-5 w-5 text-gray-500" />}
                 title="QR Code Pattern" subtitle="Choose a pattern for your QR code and select colors.">
-                <div className="pt-4 space-y-5">
+                <div className="space-y-5">
                   <div>
-                    <label className="text-xs font-medium text-gray-500 mb-2 block">Pattern style</label>
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern style</label>
                     <div className="flex flex-wrap gap-2">
                       {PATTERN_STYLES.map(p => (
                         <button key={p.id} onClick={() => setDesign({ ...design, dotsType: p.id })}
-                          className={`px-3 py-2 text-xs rounded-lg border transition-all ${
-                            design.dotsType === p.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                          }`}>{p.label}</button>
+                          className={`w-12 h-12 rounded-lg border-2 transition-all flex items-center justify-center ${
+                            design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                          }`}>
+                          {/* Pattern icon thumbnails */}
+                          <div className="grid grid-cols-3 gap-[2px]">
+                            {[1,2,3,4,5,6,7,8,9].map(i => (
+                              <div key={i} className={`w-1.5 h-1.5 ${
+                                p.id === "dots" ? "rounded-full bg-gray-700" :
+                                p.id === "rounded" ? "rounded-[1px] bg-gray-700" :
+                                p.id === "extra-rounded" ? "rounded-full bg-gray-700" :
+                                p.id === "classy" ? "bg-gray-700" :
+                                p.id === "classy-rounded" ? "rounded-sm bg-gray-700" :
+                                p.id === "star" ? "bg-gray-700 rotate-45" :
+                                "bg-gray-700"
+                              }`} />
+                            ))}
+                          </div>
+                        </button>
                       ))}
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <InlineColorPicker label="Pattern color" value={design.dotsColor} onChange={v => setDesign({ ...design, dotsColor: v })} />
-                    <InlineColorPicker label="Background color" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
-                  </div>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={design.bgTransparent} onChange={e => setDesign({ ...design, bgTransparent: e.target.checked })}
-                      className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
-                    <span className="text-sm text-gray-600">Transparent background</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <div className={`relative w-10 h-5 rounded-full transition-colors ${design.patternGradient ? "bg-violet-500" : "bg-gray-300"}`}
-                      onClick={() => setDesign({ ...design, patternGradient: !design.patternGradient })}>
-                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.patternGradient ? "translate-x-5" : "translate-x-0.5"}`} />
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern color</label>
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                        <span className="text-sm text-gray-600">Use a gradient pattern color</span>
+                        <div className="ml-auto">
+                          <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.patternGradient ? "bg-violet-500" : "bg-gray-300"}`}
+                            onClick={() => setDesign({ ...design, patternGradient: !design.patternGradient })}>
+                            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.patternGradient ? "translate-x-5" : "translate-x-0.5"}`} />
+                          </div>
+                        </div>
+                      </div>
+                      <InlineColorPicker label="Pattern color" value={design.dotsColor} onChange={v => setDesign({ ...design, dotsColor: v })} />
                     </div>
-                    <span className="text-sm text-gray-600">Use a gradient pattern color</span>
-                  </label>
-                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                    <span className="text-amber-600 text-xs">Remember! For optimal QR code reading results, we recommend using high-contrast colors.</span>
+                    {design.patternGradient && (
+                      <InlineColorPicker label="Pattern color 2" value={design.patternColor2} onChange={v => setDesign({ ...design, patternColor2: v })} />
+                    )}
+                  </div>
+
+                  {/* Swap icon divider */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <ArrowPathIcon className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern background color</label>
+                    <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                      <input type="checkbox" checked={design.bgTransparent} onChange={e => setDesign({ ...design, bgTransparent: e.target.checked })}
+                        className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+                      <span className="text-sm text-gray-600">Transparent background</span>
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                        <span className="text-sm text-gray-600">Use a gradient background color</span>
+                        <div className="ml-auto">
+                          <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientBg ? "bg-violet-500" : "bg-gray-300"}`}
+                            onClick={() => setDesign({ ...design, useGradientBg: !design.useGradientBg })}>
+                            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientBg ? "translate-x-5" : "translate-x-0.5"}`} />
+                          </div>
+                        </div>
+                      </div>
+                      <InlineColorPicker label="Background color" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+                    <span className="text-amber-500 text-lg">⚠️</span>
+                    <span className="text-amber-700 text-sm">Remember! For optimal QR code reading results, we recommend using high-contrast colors.</span>
                   </div>
                 </div>
               </AccordionSection>
 
               {/* QR Code Corners */}
               <AccordionSection
-                icon={<svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 9V5a2 2 0 012-2h4"/><path d="M15 3h4a2 2 0 012 2v4"/><circle cx="12" cy="12" r="3"/></svg>}
+                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><path d="M3 9V5a2 2 0 012-2h4"/><path d="M15 3h4a2 2 0 012 2v4"/><circle cx="12" cy="12" r="3"/></svg>}
                 title="QR Code Corners" subtitle="Select your QR code's corner style.">
-                <div className="pt-4 space-y-5">
+                <div className="space-y-5">
+                  <p className="text-xs font-semibold text-gray-700">Corners</p>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="text-xs font-medium text-gray-500 mb-2 block">Frame around corner dots style</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Frame around corner dots style</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_FRAME_STYLES.map(c => (
                           <button key={c.id} onClick={() => setDesign({ ...design, cornersSquareType: c.id })}
-                            className={`px-3 py-2 text-xs rounded-lg border transition-all ${
-                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                            }`}>{c.label}</button>
+                            className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${
+                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                            }`}>
+                            {c.id === "none" ? (
+                              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+                            ) : c.id === "dot" ? (
+                              <div className="w-5 h-5 rounded-full border-2 border-gray-700" />
+                            ) : (
+                              <div className={`w-5 h-5 border-2 border-gray-700 ${c.id === "extra-rounded" ? "rounded-md" : "rounded-sm"}`} />
+                            )}
+                          </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-500 mb-2 block">Corner dots type</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dots type</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_DOT_STYLES.map(c => (
                           <button key={c.id} onClick={() => setDesign({ ...design, cornersDotType: c.id })}
-                            className={`px-3 py-2 text-xs rounded-lg border transition-all ${
-                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
-                            }`}>{c.label}</button>
+                            className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${
+                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                            }`}>
+                            {c.id === "none" ? (
+                              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
+                            ) : c.id === "dot" ? (
+                              <div className="w-4 h-4 rounded-full bg-gray-700" />
+                            ) : c.id === "diamond" ? (
+                              <div className="w-3 h-3 bg-gray-700 rotate-45" />
+                            ) : c.id === "star" ? (
+                              <StarIcon className="h-4 w-4 text-gray-700" />
+                            ) : (
+                              <div className={`w-4 h-4 bg-gray-700 ${c.id.includes("rounded") ? "rounded-sm" : ""}`} />
+                            )}
+                          </button>
                         ))}
                       </div>
                     </div>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <InlineColorPicker label="Corner frame color" value={design.cornersSquareColor} onChange={v => setDesign({ ...design, cornersSquareColor: v })} />
+                    <InlineColorPicker label="Frame around corner dots color" value={design.cornersSquareColor} onChange={v => setDesign({ ...design, cornersSquareColor: v })} />
                     <InlineColorPicker label="Corner dots color" value={design.cornersDotColor} onChange={v => setDesign({ ...design, cornersDotColor: v })} />
                   </div>
                 </div>
@@ -902,13 +1380,13 @@ export default function CreateQRPage() {
 
               {/* Add Logo */}
               <AccordionSection
-                icon={<PhotoSolidIcon className="h-4 w-4 text-gray-500" />}
+                icon={<PhotoSolidIcon className="h-5 w-5 text-gray-500" />}
                 title="Add Logo" subtitle="Make your QR code unique by adding your logo or an image.">
-                <div className="pt-4">
-                  <label className="text-xs font-medium text-gray-500 mb-2 block">Upload your logo (Maximum size: 1 MB)</label>
-                  <label className="flex flex-col items-center justify-center w-20 h-20 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-3 block">Upload your logo (Maximum size: 1 MB)</label>
+                  <label className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
                     <PhotoSolidIcon className="h-6 w-6 text-gray-400" />
-                    <span className="text-[10px] text-gray-400 mt-1">Upload</span>
+                    <span className="text-[9px] text-gray-400 mt-0.5">Upload</span>
                     <input type="file" accept="image/*" className="hidden"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
@@ -921,7 +1399,13 @@ export default function CreateQRPage() {
                         if (data.url) setDesign({ ...design, logo: data.url });
                       }} />
                   </label>
-                  {design.logo && <p className="text-xs text-green-600 mt-2">Logo uploaded successfully</p>}
+                  {design.logo && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                      <p className="text-xs text-green-600">Logo uploaded</p>
+                      <button onClick={() => setDesign({ ...design, logo: "" })} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
+                    </div>
+                  )}
                 </div>
               </AccordionSection>
 
@@ -930,22 +1414,10 @@ export default function CreateQRPage() {
                 <button onClick={() => setStep(2)} className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
                   <ArrowLeftIcon className="h-4 w-4" /> Back
                 </button>
-                <div className="flex gap-3">
-                  <div className="relative group">
-                    <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-                      Download
-                    </button>
-                    <div className="absolute right-0 bottom-full mb-1 hidden group-hover:block bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[120px] z-10">
-                      <button onClick={() => handleDownload("png")} className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">PNG</button>
-                      <button onClick={() => handleDownload("svg")} className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">SVG</button>
-                      <button onClick={() => handleDownload("jpeg")} className="w-full text-left px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50">JPG</button>
-                    </div>
-                  </div>
-                  <button onClick={handleSave} disabled={saving}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 rounded-lg text-sm text-white font-medium hover:bg-violet-700 transition-colors disabled:opacity-50">
-                    {saving ? "Creating..." : "Create"} <ArrowRightIcon className="h-4 w-4" />
-                  </button>
-                </div>
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 rounded-lg text-sm text-white font-medium hover:bg-violet-700 transition-colors disabled:opacity-50">
+                  {saving ? "Creating..." : "Create"} <ArrowRightIcon className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
