@@ -190,19 +190,17 @@ export function mapDesignToStyle(design: Record<string, any>) {
     dotColor: design.cornersDotColor || '#000000',
   };
 
-  // Frame — use numeric frameId directly
+  // Frame — QRFY always requires color/text/textColor/fontSize even when id=0
   const frameId = typeof design.frameId === 'number' ? design.frameId : 0;
+  style.frame = {
+    id: frameId,
+    color: design.frameColor || '#000000',
+    text: (design.frameText || 'Scan me!').slice(0, 30),
+    fontSize: design.frameFontSize || 42,
+    textColor: design.frameTextColor || '#FFFFFF',
+  };
   if (frameId > 0) {
-    style.frame = {
-      id: frameId,
-      color: design.frameColor || '#000000',
-      text: (design.frameText || 'Scan me!').slice(0, 30),
-      fontSize: design.frameFontSize || 42,
-      textColor: design.frameTextColor || '#FFFFFF',
-      backgroundColor: design.frameBackgroundColor || design.frameColor || '#000000',
-    };
-  } else {
-    style.frame = { id: 0 };
+    style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#000000';
   }
 
   // Error correction
@@ -402,16 +400,16 @@ export async function createQR(params: {
   const { type: qrfyType, data } = mapContentToData(params.type, params.content);
   const style = mapDesignToStyle(params.design);
 
-  const body = {
+  const qr = {
     type: qrfyType,
-    ...data,
+    data,
     style,
     name: params.name || 'QR Code',
   };
 
   const res = await qrfyFetch('/api/public/qrs', {
     method: 'POST',
-    body: JSON.stringify([body]), // Bulk endpoint expects array
+    body: JSON.stringify({ qrs: [qr] }),
   });
 
   if (!res.ok) {
@@ -420,7 +418,8 @@ export async function createQR(params: {
   }
 
   const result = await res.json();
-  // Bulk create returns array
+  // Bulk create returns { ids: [...] }
+  if (result?.ids) return { id: result.ids[0] };
   return Array.isArray(result) ? result[0] : result;
 }
 
@@ -438,7 +437,7 @@ export async function updateQR(
   if (params.type && params.content) {
     const { type: qrfyType, data } = mapContentToData(params.type, params.content);
     body.type = qrfyType;
-    Object.assign(body, data);
+    body.data = data;
   }
 
   if (params.design) {
@@ -511,10 +510,11 @@ export async function createStaticQRImage(
   };
 
   if (useType === qrfyType) {
-    Object.assign(body, data);
+    // Use the mapped data directly
+    body.data = data;
   } else {
     // Use a placeholder URL for preview of dynamic types
-    body.url = content.url || 'https://qrcraft.com/preview';
+    body.data = { url: content.url || 'https://qrcraft.com/preview' };
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {
