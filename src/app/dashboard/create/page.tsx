@@ -668,23 +668,40 @@ function DefaultPhonePreview() {
 // ─── Frame Styles — each maps 1:1 to a BorderPlugin config ──────────────────
 // BorderPlugin supports: round(0-1), size, color, dasharray, text(top/bottom/left/right)
 // Thumbnails show exactly what the plugin renders: a border rect + text labels
-const FRAME_STYLES: { id: string; label: string; round: number; dash?: string; textPos: ("bottom" | "top" | "left" | "right")[] }[] = [
-  { id: "none",             label: "None",              round: 0,   textPos: [] },
-  { id: "square-bottom",    label: "Square + Bottom",   round: 0,   textPos: ["bottom"] },
-  { id: "square-top",       label: "Square + Top",      round: 0,   textPos: ["top"] },
-  { id: "square-both",      label: "Square + Both",     round: 0,   textPos: ["top", "bottom"] },
-  { id: "rounded-bottom",   label: "Rounded + Bottom",  round: 0.2, textPos: ["bottom"] },
-  { id: "rounded-top",      label: "Rounded + Top",     round: 0.2, textPos: ["top"] },
-  { id: "rounded-both",     label: "Rounded + Both",    round: 0.2, textPos: ["top", "bottom"] },
-  { id: "pill-bottom",      label: "Pill + Bottom",     round: 0.5, textPos: ["bottom"] },
-  { id: "pill-both",        label: "Pill + Both",       round: 0.5, textPos: ["top", "bottom"] },
-  { id: "circle-bottom",    label: "Circle + Bottom",   round: 1,   textPos: ["bottom"] },
-  { id: "dash-bottom",      label: "Dashed + Bottom",   round: 0,   dash: "8 4", textPos: ["bottom"] },
-  { id: "dash-rounded",     label: "Dashed Rounded",    round: 0.2, dash: "8 4", textPos: ["bottom"] },
-  { id: "dotted-bottom",    label: "Dotted + Bottom",   round: 0,   dash: "3 3", textPos: ["bottom"] },
-  { id: "dotted-pill",      label: "Dotted Pill",       round: 0.5, dash: "3 3", textPos: ["bottom"] },
-  { id: "square-notext",    label: "Square Border",     round: 0,   textPos: [] },
-  { id: "rounded-notext",   label: "Rounded Border",    round: 0.2, textPos: [] },
+// Each frame can have multiple layers (BorderPlugin instances stacked)
+type FrameLayer = { round: number; size: number; dash?: string; textPos: ("bottom" | "top" | "left" | "right")[] };
+type FrameStyle = { id: string; label: string; layers: FrameLayer[] };
+
+const FRAME_STYLES: FrameStyle[] = [
+  // None
+  { id: "none", label: "None", layers: [] },
+  // ─── Single-layer frames ───
+  { id: "square-bottom",    label: "Square + Bottom",    layers: [{ round: 0,   size: 20, textPos: ["bottom"] }] },
+  { id: "square-top",       label: "Square + Top",       layers: [{ round: 0,   size: 20, textPos: ["top"] }] },
+  { id: "square-both",      label: "Square + Both",      layers: [{ round: 0,   size: 20, textPos: ["top", "bottom"] }] },
+  { id: "rounded-bottom",   label: "Rounded + Bottom",   layers: [{ round: 0.2, size: 20, textPos: ["bottom"] }] },
+  { id: "rounded-top",      label: "Rounded + Top",      layers: [{ round: 0.2, size: 20, textPos: ["top"] }] },
+  { id: "rounded-both",     label: "Rounded + Both",     layers: [{ round: 0.2, size: 20, textPos: ["top", "bottom"] }] },
+  { id: "pill-bottom",      label: "Pill + Bottom",      layers: [{ round: 0.5, size: 20, textPos: ["bottom"] }] },
+  { id: "pill-both",        label: "Pill + Both",        layers: [{ round: 0.5, size: 20, textPos: ["top", "bottom"] }] },
+  { id: "circle-bottom",    label: "Circle + Bottom",    layers: [{ round: 1,   size: 20, textPos: ["bottom"] }] },
+  { id: "dash-bottom",      label: "Dashed + Bottom",    layers: [{ round: 0,   size: 20, dash: "8 4", textPos: ["bottom"] }] },
+  { id: "dash-rounded",     label: "Dashed Rounded",     layers: [{ round: 0.2, size: 20, dash: "8 4", textPos: ["bottom"] }] },
+  { id: "dotted-bottom",    label: "Dotted + Bottom",    layers: [{ round: 0,   size: 20, dash: "3 3", textPos: ["bottom"] }] },
+  { id: "dotted-pill",      label: "Dotted Pill",        layers: [{ round: 0.5, size: 20, dash: "3 3", textPos: ["bottom"] }] },
+  { id: "square-notext",    label: "Square Border",      layers: [{ round: 0,   size: 20, textPos: [] }] },
+  { id: "rounded-notext",   label: "Rounded Border",     layers: [{ round: 0.2, size: 20, textPos: [] }] },
+  // ─── Multi-layer frames (stacked BorderPlugin instances) ───
+  { id: "double-square",    label: "Double Square",      layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 18, textPos: ["bottom"] }] },
+  { id: "double-rounded",   label: "Double Rounded",     layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 18, textPos: ["bottom"] }] },
+  { id: "double-pill",      label: "Double Pill",        layers: [{ round: 0.5, size: 2, textPos: [] }, { round: 0.5, size: 18, textPos: ["bottom"] }] },
+  { id: "double-circle",    label: "Double Circle",      layers: [{ round: 1, size: 2, textPos: [] }, { round: 1, size: 18, textPos: ["bottom"] }] },
+  { id: "thin-thick-sq",    label: "Thin + Thick",       layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 24, textPos: ["top", "bottom"] }] },
+  { id: "thin-thick-rd",    label: "Thin + Thick Round", layers: [{ round: 0.3, size: 2, textPos: [] }, { round: 0.3, size: 24, textPos: ["top", "bottom"] }] },
+  { id: "dash-solid",       label: "Dash + Solid",       layers: [{ round: 0, size: 2, dash: "4 3", textPos: [] }, { round: 0, size: 18, textPos: ["bottom"] }] },
+  { id: "solid-dash-rd",    label: "Solid + Dash Round", layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 18, dash: "6 3", textPos: ["bottom"] }] },
+  { id: "triple-square",    label: "Triple Square",      layers: [{ round: 0, size: 2, textPos: [] }, { round: 0, size: 4, textPos: [] }, { round: 0, size: 16, textPos: ["bottom"] }] },
+  { id: "triple-rounded",   label: "Triple Rounded",     layers: [{ round: 0.2, size: 2, textPos: [] }, { round: 0.2, size: 4, textPos: [] }, { round: 0.2, size: 16, textPos: ["bottom"] }] },
 ];
 
 // ─── Mini QR SVG (used in frame thumbs) ──────────────────────────────────────
@@ -694,32 +711,39 @@ function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
   return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
 }
 
-function FrameThumb({ id, round, dash, textPos }: { id: string; round: number; dash?: string; textPos: string[] }) {
-  if (id === "none") return (
+function FrameThumb({ frame }: { frame: FrameStyle }) {
+  if (frame.id === "none") return (
     <svg className="w-full h-full text-gray-400" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth={3}><circle cx="24" cy="24" r="18"/><line x1="10" y1="10" x2="38" y2="38"/></svg>
   );
-  // Thumbnail accurately represents BorderPlugin: border rect + text positions
-  const hasTop = textPos.includes("top");
-  const hasBottom = textPos.includes("bottom");
+  // Determine if any layer has top/bottom text
+  const hasTop = frame.layers.some(l => l.textPos.includes("top"));
+  const hasBottom = frame.layers.some(l => l.textPos.includes("bottom"));
   const qrY = hasTop ? 14 : 4;
-  const qrH = 30;
-  const totalH = qrH + (hasTop ? 12 : 0) + (hasBottom ? 12 : 0) + 8;
-  const borderRx = round * 10;
+  const totalH = 30 + (hasTop ? 12 : 0) + (hasBottom ? 12 : 0) + 8;
+  // Render each layer as a border rect (stacked outward)
+  let offset = 0;
+  const borders = frame.layers.map((layer, i) => {
+    const rx = layer.round * 10;
+    const sw = Math.max(1, layer.size / 10); // scale size for thumbnail
+    const el = (
+      <rect key={i} x={3 - offset} y={2 - offset} width={42 + offset * 2} height={totalH - 4 + offset * 2}
+        rx={rx} fill="none" stroke="currentColor" strokeWidth={sw}
+        strokeDasharray={layer.dash || "none"} />
+    );
+    offset += sw + 1;
+    return el;
+  });
   return (
-    <svg viewBox={`0 0 48 ${totalH}`} className="w-full h-full text-gray-800">
-      {/* Border */}
-      <rect x="3" y="2" width="42" height={totalH - 4} rx={borderRx} fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray={dash || "none"} />
-      {/* Top text */}
+    <svg viewBox={`${-offset} ${-offset} ${48 + offset * 2} ${totalH + offset * 2}`} className="w-full h-full text-gray-800">
+      {borders.reverse()}
       {hasTop && <text x="24" y="12" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
-      {/* Mini QR */}
       <MiniQRSvg x={10} y={qrY} s={28} />
-      {/* Bottom text */}
       {hasBottom && <text x="24" y={totalH - 6} textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>}
     </svg>
   );
 }
 
-// ─── Pattern styles with large visual thumbnails (matching reference) ─────────
+// ─── Pattern styles — all 21 DotType values ─────────────────────────────────
 const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dots" },
@@ -727,45 +751,90 @@ const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "extra-rounded", label: "Extra Round" },
   { id: "classy", label: "Classy" },
   { id: "classy-rounded", label: "Classy Round" },
+  { id: "diamond", label: "Diamond" },
+  { id: "small-square", label: "Small Square" },
+  { id: "tiny-square", label: "Tiny Square" },
+  { id: "vertical-line", label: "V-Line" },
+  { id: "horizontal-line", label: "H-Line" },
+  { id: "random-dot", label: "Random Dot" },
+  { id: "star", label: "Star" },
+  { id: "heart", label: "Heart" },
+  { id: "wave", label: "Wave" },
+  { id: "weave", label: "Weave" },
+  { id: "pentagon", label: "Pentagon" },
+  { id: "hexagon", label: "Hexagon" },
+  { id: "zebra-horizontal", label: "Zebra H" },
+  { id: "zebra-vertical", label: "Zebra V" },
+  { id: "blocks-horizontal", label: "Blocks H" },
+  { id: "blocks-vertical", label: "Blocks V" },
 ];
 
 function PatternThumb({ id }: { id: string }) {
-  // 4x4 grid, each cell is a distinct dot shape — large and clear like reference
   const rows = 4, cols = 4, gap = 14, pad = 5, sz = 5;
   const cells: React.ReactNode[] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const cx = pad + c * gap + gap / 2;
       const cy = pad + r * gap + gap / 2;
+      const k = `${r}-${c}`;
       switch (id) {
         case "square":
-          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} fill="currentColor" />);
-          break;
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} fill="currentColor"/>); break;
         case "dot":
-          cells.push(<circle key={`${r}-${c}`} cx={cx} cy={cy} r={sz} fill="currentColor" />);
-          break;
+          cells.push(<circle key={k} cx={cx} cy={cy} r={sz} fill="currentColor"/>); break;
         case "rounded":
-          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} rx={sz * 0.4} fill="currentColor" />);
-          break;
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} rx={sz*0.4} fill="currentColor"/>); break;
         case "extra-rounded":
-          cells.push(<circle key={`${r}-${c}`} cx={cx} cy={cy} r={sz * 0.85} fill="currentColor" />);
-          break;
+          cells.push(<circle key={k} cx={cx} cy={cy} r={sz*0.85} fill="currentColor"/>); break;
         case "classy":
-          // Square with one rounded corner
-          cells.push(<path key={`${r}-${c}`} d={`M${cx - sz} ${cy - sz}h${sz * 2}v${sz * 1.4}q0 ${sz * 0.6} -${sz * 0.6} ${sz * 0.6}h-${sz * 1.4}z`} fill="currentColor" />);
-          break;
+          cells.push(<path key={k} d={`M${cx-sz} ${cy-sz}h${sz*2}v${sz*1.4}q0 ${sz*0.6} -${sz*0.6} ${sz*0.6}h-${sz*1.4}z`} fill="currentColor"/>); break;
         case "classy-rounded":
-          cells.push(<rect key={`${r}-${c}`} x={cx - sz} y={cy - sz} width={sz * 2} height={sz * 2} rx={sz * 0.6} fill="currentColor" />);
-          break;
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} rx={sz*0.6} fill="currentColor"/>); break;
+        case "diamond":
+          cells.push(<polygon key={k} points={`${cx},${cy-sz} ${cx+sz},${cy} ${cx},${cy+sz} ${cx-sz},${cy}`} fill="currentColor"/>); break;
+        case "small-square":
+          cells.push(<rect key={k} x={cx-sz*0.6} y={cy-sz*0.6} width={sz*1.2} height={sz*1.2} fill="currentColor"/>); break;
+        case "tiny-square":
+          cells.push(<rect key={k} x={cx-sz*0.35} y={cy-sz*0.35} width={sz*0.7} height={sz*0.7} fill="currentColor"/>); break;
+        case "vertical-line":
+          cells.push(<rect key={k} x={cx-sz*0.3} y={cy-sz} width={sz*0.6} height={sz*2} fill="currentColor"/>); break;
+        case "horizontal-line":
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz*0.3} width={sz*2} height={sz*0.6} fill="currentColor"/>); break;
+        case "random-dot": {
+          const rr = sz * (0.4 + ((r*4+c)*37 % 10)/15);
+          cells.push(<circle key={k} cx={cx} cy={cy} r={rr} fill="currentColor"/>); break;
+        }
+        case "star":
+          cells.push(<polygon key={k} points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;const a2=a+Math.PI/5;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)} ${cx+sz*0.4*Math.cos(a2)},${cy+sz*0.4*Math.sin(a2)}`}).join(" ")} fill="currentColor"/>); break;
+        case "heart":
+          cells.push(<path key={k} d={`M${cx} ${cy+sz*0.8}C${cx} ${cy+sz*0.8} ${cx-sz} ${cy} ${cx-sz} ${cy-sz*0.3}C${cx-sz} ${cy-sz*0.8} ${cx-sz*0.5} ${cy-sz} ${cx} ${cy-sz*0.4}C${cx+sz*0.5} ${cy-sz} ${cx+sz} ${cy-sz*0.8} ${cx+sz} ${cy-sz*0.3}C${cx+sz} ${cy} ${cx} ${cy+sz*0.8} ${cx} ${cy+sz*0.8}Z`} fill="currentColor"/>); break;
+        case "wave":
+          cells.push(<ellipse key={k} cx={cx} cy={cy} rx={sz} ry={sz*0.5} fill="currentColor"/>); break;
+        case "weave":
+          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz*0.25} width={sz*2} height={sz*0.5} fill="currentColor"/><rect key={k+"b"} x={cx-sz*0.25} y={cy-sz} width={sz*0.5} height={sz*2} fill="currentColor"/></>); break;
+        case "pentagon":
+          cells.push(<polygon key={k} points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)}`}).join(" ")} fill="currentColor"/>); break;
+        case "hexagon":
+          cells.push(<polygon key={k} points={[0,1,2,3,4,5].map(i=>{const a=Math.PI*2*i/6-Math.PI/6;return`${cx+sz*Math.cos(a)},${cy+sz*Math.sin(a)}`}).join(" ")} fill="currentColor"/>); break;
+        case "zebra-horizontal":
+          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz} width={sz*2} height={sz*0.7} fill="currentColor"/><rect key={k+"b"} x={cx-sz} y={cy+sz*0.3} width={sz*2} height={sz*0.7} fill="currentColor"/></>); break;
+        case "zebra-vertical":
+          cells.push(<><rect key={k+"a"} x={cx-sz} y={cy-sz} width={sz*0.7} height={sz*2} fill="currentColor"/><rect key={k+"b"} x={cx+sz*0.3} y={cy-sz} width={sz*0.7} height={sz*2} fill="currentColor"/></>); break;
+        case "blocks-horizontal":
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz*0.6} width={sz*2} height={sz*1.2} rx={sz*0.15} fill="currentColor"/>); break;
+        case "blocks-vertical":
+          cells.push(<rect key={k} x={cx-sz*0.6} y={cy-sz} width={sz*1.2} height={sz*2} rx={sz*0.15} fill="currentColor"/>); break;
+        default:
+          cells.push(<rect key={k} x={cx-sz} y={cy-sz} width={sz*2} height={sz*2} fill="currentColor"/>);
       }
     }
   }
   return (
-    <svg viewBox={`0 0 ${pad * 2 + cols * gap} ${pad * 2 + rows * gap}`} className="w-full h-full text-gray-900">{cells}</svg>
+    <svg viewBox={`0 0 ${pad*2+cols*gap} ${pad*2+rows*gap}`} className="w-full h-full text-gray-900">{cells}</svg>
   );
 }
 
-// ─── Corner square styles with visual icons (matching reference) ─────────────
+// ─── Corner square styles — all 7 CornerSquareType values ────────────────────
 const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -773,6 +842,7 @@ const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
   { id: "classy", label: "Classy" },
   { id: "outpoint", label: "Outpoint" },
   { id: "inpoint", label: "Inpoint" },
+  { id: "center-circle", label: "Center Circle" },
 ];
 
 function CornerSquareThumb({ id }: { id: string }) {
@@ -781,14 +851,15 @@ function CornerSquareThumb({ id }: { id: string }) {
       {id === "dot" && <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
       {id === "square" && <rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
       {id === "extra-rounded" && <rect x="4" y="4" width="24" height="24" rx="8" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
-      {id === "classy" && <rect x="4" y="4" width="24" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="3.5"/>}
-      {id === "outpoint" && <><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="16" cy="16" r="4" fill="currentColor"/></>}
-      {id === "inpoint" && <><rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"/><rect x="11" y="11" width="10" height="10" rx="5" fill="currentColor"/></>}
+      {id === "classy" && <path d="M4 8a4 4 0 014-4h16a4 4 0 014 4v20H8a4 4 0 01-4-4V8z" fill="none" stroke="currentColor" strokeWidth="3"/>}
+      {id === "outpoint" && <><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" strokeWidth="3"/><polygon points="16,8 22,16 16,24 10,16" fill="currentColor"/></>}
+      {id === "inpoint" && <><rect x="4" y="4" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="3"/><polygon points="16,10 22,16 16,22 10,16" fill="currentColor"/></>}
+      {id === "center-circle" && <><rect x="4" y="4" width="24" height="24" rx="2" fill="none" stroke="currentColor" strokeWidth="3"/><circle cx="16" cy="16" r="6" fill="none" stroke="currentColor" strokeWidth="2.5"/></>}
     </svg>
   );
 }
 
-// ─── Corner dot styles with visual icons (matching reference) ────────────────
+// ─── Corner dot styles — all 11 CornerDotType values ─────────────────────────
 const CORNER_DOT_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
   { id: "dot", label: "Dot" },
@@ -797,6 +868,10 @@ const CORNER_DOT_STYLES: { id: string; label: string }[] = [
   { id: "heart", label: "Heart" },
   { id: "outpoint", label: "Outpoint" },
   { id: "inpoint", label: "Inpoint" },
+  { id: "star", label: "Star" },
+  { id: "pentagon", label: "Pentagon" },
+  { id: "hexagon", label: "Hexagon" },
+  { id: "diamond", label: "Diamond" },
 ];
 
 function CornerDotThumb({ id }: { id: string }) {
@@ -805,10 +880,14 @@ function CornerDotThumb({ id }: { id: string }) {
       {id === "dot" && <circle cx="14" cy="14" r="10" fill="currentColor"/>}
       {id === "square" && <rect x="4" y="4" width="20" height="20" fill="currentColor"/>}
       {id === "extra-rounded" && <rect x="4" y="4" width="20" height="20" rx="6" fill="currentColor"/>}
-      {id === "classy" && <rect x="4" y="4" width="20" height="20" rx="2" fill="currentColor"/>}
+      {id === "classy" && <path d="M4 8a4 4 0 014-4h16v20H8a4 4 0 01-4-4V8z" fill="currentColor"/>}
       {id === "heart" && <path d="M14 24C14 24 4 18 4 10.5C4 7.5 6.5 5 9 5C11 5 12.5 6 14 8C15.5 6 17 5 19 5C21.5 5 24 7.5 24 10.5C24 18 14 24 14 24Z" fill="currentColor"/>}
-      {id === "outpoint" && <><path d="M4 8a4 4 0 014-4h12a4 4 0 014 4v12a4 4 0 01-4 4H8a4 4 0 01-4-4z" fill="currentColor"/><circle cx="14" cy="14" r="4" fill="white"/></>}
-      {id === "inpoint" && <><circle cx="14" cy="14" r="11" fill="currentColor"/><rect x="10" y="10" width="8" height="8" fill="white"/></>}
+      {id === "outpoint" && <polygon points="14,3 25,14 14,25 3,14" fill="currentColor"/>}
+      {id === "inpoint" && <><rect x="4" y="4" width="20" height="20" fill="currentColor"/><polygon points="14,8 20,14 14,20 8,14" fill="white"/></>}
+      {id === "star" && <polygon points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;const a2=a+Math.PI/5;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)} ${14+5*Math.cos(a2)},${14+5*Math.sin(a2)}`}).join(" ")} fill="currentColor"/>}
+      {id === "pentagon" && <polygon points={[0,1,2,3,4].map(i=>{const a=Math.PI*2*i/5-Math.PI/2;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)}`}).join(" ")} fill="currentColor"/>}
+      {id === "hexagon" && <polygon points={[0,1,2,3,4,5].map(i=>{const a=Math.PI*2*i/6-Math.PI/6;return`${14+11*Math.cos(a)},${14+11*Math.sin(a)}`}).join(" ")} fill="currentColor"/>}
+      {id === "diamond" && <polygon points="14,3 25,14 14,25 3,14" fill="currentColor"/>}
     </svg>
   );
 }
@@ -983,28 +1062,30 @@ export default function CreateQRPage() {
     };
   }, [design, content.url]);
 
-  // Build BorderPlugin instances from FRAME_STYLES properties
+  // Build BorderPlugin instances — supports multi-layer frames
   const buildPlugins = useCallback(async () => {
     if (design.frameStyle === "none") return [];
     const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
     const frameDef = FRAME_STYLES.find(f => f.id === design.frameStyle);
-    if (!frameDef) return [];
+    if (!frameDef || frameDef.layers.length === 0) return [];
     const txt = design.frameText || "Scan me!";
     const topTxt = design.frameTopText || txt;
     const textStyle: any = { font: "Arial, sans-serif", color: design.frameTextColor, size: 14, fontWeight: "bold" as const };
-    const textConfig: any = {};
-    if (frameDef.textPos.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
-    if (frameDef.textPos.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
-    if (frameDef.textPos.includes("left")) textConfig.left = { ...textStyle, content: txt };
-    if (frameDef.textPos.includes("right")) textConfig.right = { ...textStyle, content: txt };
-    const cfg: any = {
-      size: 20,
-      color: design.frameColor,
-      round: frameDef.round,
-      text: { ...textStyle, ...textConfig },
-    };
-    if (frameDef.dash) cfg.dasharray = frameDef.dash;
-    return [new BorderPlugin(cfg)];
+    return frameDef.layers.map(layer => {
+      const textConfig: any = {};
+      if (layer.textPos.includes("top")) textConfig.top = { ...textStyle, content: topTxt };
+      if (layer.textPos.includes("bottom")) textConfig.bottom = { ...textStyle, content: txt };
+      if (layer.textPos.includes("left")) textConfig.left = { ...textStyle, content: txt };
+      if (layer.textPos.includes("right")) textConfig.right = { ...textStyle, content: txt };
+      const cfg: any = {
+        size: layer.size,
+        color: design.frameColor,
+        round: layer.round,
+        text: { ...textStyle, ...textConfig },
+      };
+      if (layer.dash) cfg.dasharray = layer.dash;
+      return new BorderPlugin(cfg);
+    });
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
   // Render QR into DOM container
@@ -1372,7 +1453,7 @@ export default function CreateQRPage() {
                             design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
                           }`}
                           title={f.label}>
-                          <FrameThumb id={f.id} round={f.round} dash={f.dash} textPos={f.textPos} />
+                          <FrameThumb frame={f} />
                         </button>
                       ))}
                     </div>
@@ -1384,7 +1465,7 @@ export default function CreateQRPage() {
                         <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
                           className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                       </div>
-                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.textPos.includes("top"); })() && (
+                      {(() => { const fd = FRAME_STYLES.find(f => f.id === design.frameStyle); return fd && fd.layers.some(l => l.textPos.includes("top")); })() && (
                         <div>
                           <label className="text-xs font-medium text-gray-600 mb-1.5 block">Top text</label>
                           <input type="text" value={design.frameTopText} onChange={e => setDesign({ ...design, frameTopText: e.target.value })}

@@ -9,8 +9,9 @@ import ColorPicker from "@/components/ui/ColorPicker";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 
-const DOT_STYLES = ["square", "dot", "rounded", "extra-rounded", "classy", "classy-rounded", "diamond", "small-square", "tiny-square", "vertical-line", "horizontal-line", "random-dot", "star", "heart"];
-const EYE_STYLES = ["square", "dot", "extra-rounded", "classy", "outpoint", "inpoint"];
+const DOT_STYLES = ["square", "dot", "rounded", "extra-rounded", "classy", "classy-rounded", "diamond", "small-square", "tiny-square", "vertical-line", "horizontal-line", "random-dot", "star", "heart", "wave", "weave", "pentagon", "hexagon", "zebra-horizontal", "zebra-vertical", "blocks-horizontal", "blocks-vertical"];
+const CORNER_SQUARE_STYLES = ["square", "dot", "extra-rounded", "classy", "outpoint", "inpoint", "center-circle"];
+const CORNER_DOT_STYLES = ["square", "dot", "extra-rounded", "classy", "heart", "outpoint", "inpoint", "star", "pentagon", "hexagon", "diamond"];
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -127,10 +128,20 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">Eye Style</label>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Square Style</label>
                 <div className="flex flex-wrap gap-2">
-                  {EYE_STYLES.map((s) => (
+                  {CORNER_SQUARE_STYLES.map((s) => (
                     <button key={s} onClick={() => setDesign({ ...design, cornersSquareType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersSquareType === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600")}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">Corner Dot Style</label>
+                <div className="flex flex-wrap gap-2">
+                  {CORNER_DOT_STYLES.map((s) => (
+                    <button key={s} onClick={() => setDesign({ ...design, cornersDotType: s })} className={"px-3 py-1.5 text-sm rounded-lg border " + (design.cornersDotType === s ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600")}>
                       {s}
                     </button>
                   ))}
