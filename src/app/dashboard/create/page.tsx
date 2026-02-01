@@ -720,72 +720,63 @@ function MiniQRSvg({ x, y, s }: { x: number; y: number; s: number }) {
   return <>{grid.map((v, i) => v ? <rect key={i} x={x + (i % 7) * d} y={y + Math.floor(i / 7) * d} width={d} height={d} fill="currentColor"/> : null)}</>;
 }
 
-// ─── SVG frame thumbnails for custom decorative frames ───────────────────────
+// ─── SVG frame thumbnails — clean, simple silhouettes ────────────────────────
 function SvgFrameThumbContent({ id }: { id: string }) {
-  // Each returns an SVG viewBox="0 0 60 72" with a decorative shape + mini QR + "Scan Me!" text
-  const qr = <MiniQRSvg x={14} y={18} s={32} />;
-  const txt = <text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text>;
+  const qr = <MiniQRSvg x={15} y={20} s={30} />;
+  const txt = <text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="6" fontWeight="bold">Scan Me!</text>;
   switch (id) {
     case "clipboard": return (<>
-      <rect x="6" y="10" width="48" height="56" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <rect x="18" y="6" width="24" height="8" rx="4" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="30" cy="10" r="2" fill="currentColor"/>
-      {qr}<text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+      <rect x="8" y="14" width="44" height="50" rx="4" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <rect x="19" y="9" width="22" height="9" rx="4.5" fill="none" stroke="currentColor" strokeWidth="2"/>
+      {qr}{txt}
     </>);
     case "coffee": return (<>
-      <path d="M10 20 Q10 14 16 14 H44 Q50 14 50 20 V50 Q50 58 42 58 H18 Q10 58 10 50 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M50 26 Q58 26 58 34 Q58 42 50 42" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M22 8 Q22 4 26 6 Q30 8 30 4" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M30 8 Q30 4 34 6 Q38 8 38 4" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+      <rect x="8" y="16" width="40" height="44" rx="4" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M48 28 Q56 28 56 36 Q56 44 48 44" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M24 10 Q24 6 28 8" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M32 10 Q32 6 36 8" fill="none" stroke="currentColor" strokeWidth="2"/>
       {qr}{txt}
     </>);
     case "cloud": return (<>
-      <path d="M12 28 Q4 28 4 20 Q4 12 12 12 Q14 4 24 4 Q34 4 36 12 Q44 10 48 16 Q54 18 54 26 Q54 32 48 32 H12 Q6 32 6 28 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <rect x="10" y="32" width="40" height="34" rx="2" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <MiniQRSvg x={14} y={34} s={32} />
-      <text x="30" y="62" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+      <path d="M14 30 Q6 30 6 22 Q6 14 14 14 Q16 6 26 6 Q36 6 38 14 Q44 12 50 18 Q56 20 54 28 Q54 32 48 32 H14 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <rect x="10" y="32" width="40" height="32" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <MiniQRSvg x={15} y={34} s={30}/><text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
     </>);
     case "gift": return (<>
-      <rect x="8" y="20" width="44" height="46" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="30" y1="20" x2="30" y2="66" stroke="currentColor" strokeWidth="1.5"/>
-      <rect x="6" y="14" width="48" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <path d="M30 14 Q24 6 18 10" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <path d="M30 14 Q36 6 42 10" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <rect x="10" y="22" width="40" height="42" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <rect x="8" y="16" width="44" height="10" rx="2" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <line x1="30" y1="16" x2="30" y2="64" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M30 16 Q24 8 18 12" fill="none" stroke="currentColor" strokeWidth="2"/><path d="M30 16 Q36 8 42 12" fill="none" stroke="currentColor" strokeWidth="2"/>
       {qr}{txt}
     </>);
     case "bag": return (<>
-      <rect x="8" y="18" width="44" height="48" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M20 18 V12 Q20 6 30 6 Q40 6 40 12 V18" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <rect x="10" y="20" width="40" height="44" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M21 20 V14 Q21 6 30 6 Q39 6 39 14 V20" fill="none" stroke="currentColor" strokeWidth="2"/>
       {qr}{txt}
     </>);
     case "envelope": return (<>
-      <rect x="4" y="14" width="52" height="52" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <path d="M4 14 L30 38 L56 14" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <MiniQRSvg x={14} y={26} s={32} />
-      <text x="30" y="60" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+      <rect x="6" y="16" width="48" height="48" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M6 16 L30 36 L54 16" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <MiniQRSvg x={15} y={28} s={30}/><text x="30" y="58" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
     </>);
     case "badge": return (<>
-      <circle cx="30" cy="30" r="24" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <polygon points="18,50 14,68 22,62 30,70 38,62 46,68 42,50" fill="none" stroke="currentColor" strokeWidth="2"/>
-      <MiniQRSvg x={16} y={14} s={28} />
-      <text x="30" y="46" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
+      <circle cx="30" cy="32" r="22" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <polygon points="20,50 16,66 24,61 30,68 36,61 44,66 40,50" fill="none" stroke="currentColor" strokeWidth="2"/>
+      <MiniQRSvg x={17} y={18} s={26}/><text x="30" y="46" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan!</text>
     </>);
     case "ticket": return (<>
-      <path d="M8 12 H52 V30 Q46 30 46 36 Q46 42 52 42 V60 H8 V42 Q14 42 14 36 Q14 30 8 30 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="14" y1="30" x2="46" y2="30" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2"/>
+      <path d="M8 14 H52 V32 Q47 32 47 37 Q47 42 52 42 V60 H8 V42 Q13 42 13 37 Q13 32 8 32 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="14" y1="42" x2="46" y2="42" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2"/>
       {qr}{txt}
     </>);
     case "banner": return (<>
-      <path d="M4 6 H56 V56 L30 48 L4 56 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <MiniQRSvg x={14} y={10} s={32} />
-      <text x="30" y="42" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
+      <path d="M6 8 H54 V54 L30 46 L6 54 Z" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <MiniQRSvg x={15} y={12} s={30}/><text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5.5" fontWeight="bold">Scan Me!</text>
     </>);
     case "monitor": return (<>
-      <rect x="6" y="6" width="48" height="40" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="30" y1="46" x2="30" y2="56" stroke="currentColor" strokeWidth="2.5"/>
-      <line x1="18" y1="56" x2="42" y2="56" stroke="currentColor" strokeWidth="2.5"/>
-      <MiniQRSvg x={14} y={10} s={32} />
-      <text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
+      <rect x="8" y="8" width="44" height="38" rx="3" fill="none" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="30" y1="46" x2="30" y2="54" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="20" y1="54" x2="40" y2="54" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <MiniQRSvg x={15} y={12} s={30}/><text x="30" y="40" textAnchor="middle" fill="currentColor" fontSize="5" fontWeight="bold">Scan Me!</text>
     </>);
     default: return <>{qr}{txt}</>;
   }
@@ -1151,9 +1142,9 @@ function SvgFrameWrapper({ id, color, text, children }: { id: string; color: str
   }
 }
 
-// ─── QR Live Preview ─────────────────────────────────────────────────────────
-function QRLivePreview({ qrContainerRef, design }: {
-  qrContainerRef: React.RefObject<HTMLDivElement | null>;
+// ─── QR Live Preview — uses SVG string from state, no ref ────────────────────
+function QRLivePreview({ qrSvg, design }: {
+  qrSvg: string;
   design: {
     frameStyle: string; frameColor: string; frameText: string;
     frameTopText: string; frameTextColor: string;
@@ -1166,8 +1157,10 @@ function QRLivePreview({ qrContainerRef, design }: {
   const txt = design.frameText || "Scan me!";
   const topTxt = design.frameTopText || txt;
 
-  // QR container — always at the same tree position
-  const qrDiv = <div ref={qrContainerRef} className="[&>svg]:w-full [&>svg]:h-auto" />;
+  // Single QR element — rendered from state string, never duplicated
+  const qrDiv = qrSvg
+    ? <div className="[&>svg]:w-full [&>svg]:h-auto" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+    : <div className="flex items-center justify-center h-32 text-gray-400 text-sm">Loading QR...</div>;
 
   if (isNone) {
     return (
@@ -1204,7 +1197,7 @@ function QRLivePreview({ qrContainerRef, design }: {
           padding: 16,
           background: "white",
         }}>
-          {frameDef.double && (
+          {frameDef.double ? (
             <div style={{
               border: `1.5px solid ${design.frameColor}`,
               borderRadius: Math.max(0, borderRadius - 4),
@@ -1214,8 +1207,7 @@ function QRLivePreview({ qrContainerRef, design }: {
               {qrDiv}
               {hasBottom && <div className="text-center font-bold text-base pt-3 truncate" style={{ color: textColor }}>{txt}</div>}
             </div>
-          )}
-          {!frameDef.double && (
+          ) : (
             <>
               {hasTop && <div className="text-center font-bold text-base pb-3 truncate" style={{ color: textColor }}>{topTxt}</div>}
               {qrDiv}
@@ -1268,7 +1260,7 @@ export default function CreateQRPage() {
     bgColor2: "#7C3AED",
   });
   const [saving, setSaving] = useState(false);
-  const qrContainerRef = useRef<HTMLDivElement>(null);
+  const [qrSvg, setQrSvg] = useState<string>("");
   const qrInstanceRef = useRef<any>(null);
 
   const activePreview = hoveredType || qrType || "";
@@ -1345,41 +1337,30 @@ export default function CreateQRPage() {
     return plugins;
   }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor]);
 
-  // Render QR preview — clean QR only (no plugins), CSS frame handles the border
+  // Render QR preview — stores SVG string in state (no DOM ref needed)
   const renderQR = useCallback(async () => {
     if (!qrType) return;
     try {
       const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
-      // Preview: no plugins — the CSS wrapper handles the frame visually
       const opts = buildQROptions(256);
       const qr = new QRCodeStyling(opts);
       qrInstanceRef.current = qr;
       const svgString = await qr.serialize();
-      if (svgString && qrContainerRef.current) {
-        qrContainerRef.current.innerHTML = svgString;
-        const svg = qrContainerRef.current.querySelector("svg");
-        if (svg) {
-          svg.removeAttribute("width");
-          svg.removeAttribute("height");
-        }
+      if (svgString) {
+        // Strip width/height attrs so CSS controls sizing
+        const cleaned = svgString.replace(/(<svg[^>]*?)\s+width="[^"]*"/g, "$1").replace(/(<svg[^>]*?)\s+height="[^"]*"/g, "$1");
+        setQrSvg(cleaned);
       }
     } catch (e) { console.error("QR preview error:", e); }
   }, [qrType, buildQROptions]);
 
-  // Re-render QR on any design/content change
+  // Re-render QR on design/content change
   useEffect(() => {
     if (step >= 2 && qrType) {
       const timer = setTimeout(() => renderQR(), 150);
       return () => clearTimeout(timer);
     }
   }, [step, design, qrType, content, renderQR]);
-
-  // Re-render QR when switching to QR tab (container may have been unmounted)
-  useEffect(() => {
-    if (previewTab === "qrcode" && qrContainerRef.current && !qrContainerRef.current.hasChildNodes()) {
-      renderQR();
-    }
-  }, [previewTab, renderQR]);
 
   // Logo upload via FileReader (client-side base64)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1533,7 +1514,7 @@ export default function CreateQRPage() {
     }
     // Steps 2-3: Show preview or QR code based on tab
     if (previewTab === "qrcode") {
-      return <QRLivePreview qrContainerRef={qrContainerRef} design={design} />;
+      return <QRLivePreview qrSvg={qrSvg} design={design} />;
     }
     // Preview tab: show type-specific preview with dynamic content
     if (qrType) {
