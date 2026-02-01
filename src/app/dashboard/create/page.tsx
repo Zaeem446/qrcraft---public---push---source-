@@ -665,41 +665,51 @@ function DefaultPhonePreview() {
   );
 }
 
-// ─── Frame Styles (visual frame wrappers around the QR code) ────────────────
+// ─── Frame Styles (BorderPlugin-based frames) ───────────────────────────────
 const FRAME_STYLES = [
   { id: "none", label: "None" },
-  { id: "bottom-frame", label: "Bottom" },
-  { id: "bottom-tooltip", label: "Tooltip" },
-  { id: "top-header", label: "Top" },
-  { id: "box", label: "Box" },
-  { id: "banner", label: "Banner" },
-  { id: "rounded", label: "Rounded" },
-  { id: "balloon", label: "Balloon" },
+  { id: "bottom-text", label: "Bottom" },
+  { id: "top-text", label: "Top" },
+  { id: "both-text", label: "Both" },
 ];
 
-// Dot pattern styles (qr-code-styling DotType values)
+// Dot pattern styles (@liquid-js/qr-code-styling DotType values)
 const PATTERN_STYLES: { id: string; label: string }[] = [
   { id: "square", label: "Square" },
-  { id: "dots", label: "Dots" },
+  { id: "dot", label: "Dots" },
   { id: "rounded", label: "Rounded" },
   { id: "extra-rounded", label: "Extra Round" },
   { id: "classy", label: "Classy" },
   { id: "classy-rounded", label: "Classy Round" },
+  { id: "diamond", label: "Diamond" },
+  { id: "small-square", label: "Small Sq" },
+  { id: "tiny-square", label: "Tiny Sq" },
+  { id: "vertical-line", label: "V-Line" },
+  { id: "horizontal-line", label: "H-Line" },
+  { id: "random-dot", label: "Random" },
+  { id: "star", label: "Star" },
+  { id: "heart", label: "Heart" },
 ];
 
-// Corner square styles (qr-code-styling CornerSquareType values)
+// Corner square styles (@liquid-js/qr-code-styling CornerSquareType values)
 const CORNER_SQUARE_STYLES: { id: string; label: string }[] = [
-  { id: "none", label: "Default" },
-  { id: "dot", label: "Dot" },
   { id: "square", label: "Square" },
+  { id: "dot", label: "Dot" },
   { id: "extra-rounded", label: "Rounded" },
+  { id: "classy", label: "Classy" },
+  { id: "outpoint", label: "Outpoint" },
+  { id: "inpoint", label: "Inpoint" },
 ];
 
-// Corner dot styles (qr-code-styling CornerDotType values)
+// Corner dot styles (@liquid-js/qr-code-styling CornerDotType values)
 const CORNER_DOT_STYLES: { id: string; label: string }[] = [
-  { id: "none", label: "Default" },
-  { id: "dot", label: "Dot" },
   { id: "square", label: "Square" },
+  { id: "dot", label: "Dot" },
+  { id: "extra-rounded", label: "Rounded" },
+  { id: "classy", label: "Classy" },
+  { id: "heart", label: "Heart" },
+  { id: "outpoint", label: "Outpoint" },
+  { id: "inpoint", label: "Inpoint" },
 ];
 
 // ─── Accordion Section Component ────────────────────────────────────────────
@@ -780,46 +790,11 @@ function PhoneMockup({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ─── QR Frame Wrapper (renders frame around QR image) ───────────────────────
-function QRFramePreview({ qrDataUrl, design }: { qrDataUrl: string | null; design: any }) {
-  const frameColor = design.useGradientFrame
-    ? `linear-gradient(135deg, ${design.frameColor}, ${design.frameColor2})`
-    : design.frameColor;
-  const frameBg = design.frameBgTransparent ? "transparent" : design.frameBgColor;
-
-  if (!qrDataUrl) {
-    return (
-      <div className="h-full bg-white flex items-center justify-center p-6">
-        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-          <QrCodeIcon className="h-10 w-10 text-gray-300" />
-        </div>
-      </div>
-    );
-  }
-
-  if (design.frameStyle === "none") {
-    return (
-      <div className="h-full bg-white flex items-center justify-center p-4">
-        <img src={qrDataUrl} alt="QR" className="w-44 h-44" />
-      </div>
-    );
-  }
-
-  // Frame styles that wrap around the QR code
+// ─── QR Live Preview (DOM-based via qrCode.append) ──────────────────────────
+function QRLivePreview({ qrContainerRef }: { qrContainerRef: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <div className="h-full bg-white flex flex-col items-center justify-center p-4">
-      <div className="relative" style={{ background: frameBg, borderRadius: design.frameStyle === "rounded" || design.frameStyle === "balloon" ? 16 : 8, padding: "12px 12px 8px", border: `3px solid`, borderImage: design.useGradientFrame ? `${frameColor} 1` : "none", borderColor: design.useGradientFrame ? "transparent" : design.frameColor }}>
-        {/* QR Image */}
-        <img src={qrDataUrl} alt="QR" className="w-36 h-36" />
-        {/* Frame text below */}
-        <div className="mt-2 text-center py-1.5 rounded-md" style={{ background: design.useGradientFrame ? frameColor : design.frameColor }}>
-          <span className="text-xs font-semibold" style={{ color: design.frameTextColor }}>{design.frameText}</span>
-        </div>
-        {/* Balloon pointer */}
-        {design.frameStyle === "balloon" && (
-          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rotate-45" style={{ background: design.useGradientFrame ? design.frameColor : design.frameColor }} />
-        )}
-      </div>
+    <div className="h-full bg-white flex items-center justify-center p-4">
+      <div ref={qrContainerRef} className="flex items-center justify-center [&>svg]:max-w-[200px] [&>svg]:max-h-[200px] [&>svg]:w-full [&>svg]:h-auto" />
     </div>
   );
 }
@@ -839,88 +814,133 @@ export default function CreateQRPage() {
     dotsColor: "#000000",
     dotsType: "square",
     cornersSquareColor: "#000000",
-    cornersSquareType: "none",
+    cornersSquareType: "square",
     cornersDotColor: "#000000",
-    cornersDotType: "none",
+    cornersDotType: "square",
     backgroundColor: "#FFFFFF",
     logo: "",
-    logoSize: 0.3,
-    logoMargin: 5,
+    logoSize: 0.4,
+    logoMargin: 0,
+    logoFillColor: "rgba(255,255,255,0.75)",
+    shape: "square" as "square" | "circle",
+    bgRound: 0,
+    bgMargin: 0,
     frameStyle: "none",
     frameColor: "#000000",
     frameText: "Scan me!",
+    frameTopText: "",
     frameTextColor: "#FFFFFF",
-    frameBgColor: "#FFFFFF",
-    useGradientFrame: false,
-    frameColor2: "#7C3AED",
+    frameRound: 0.1,
+    frameSize: 20,
     patternGradient: false,
     patternColor2: "#7C3AED",
     bgTransparent: false,
-    frameBgTransparent: false,
     useGradientBg: false,
     bgColor2: "#7C3AED",
-    useGradientFrameBg: false,
-    frameBgColor2: "#7C3AED",
   });
   const [saving, setSaving] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
-  const qrRef = useRef<HTMLDivElement>(null);
+  const qrContainerRef = useRef<HTMLDivElement>(null);
   const qrInstanceRef = useRef<any>(null);
 
   const activePreview = hoveredType || qrType || "";
 
   // Build QR options from current design state
-  const buildQROptions = useCallback((size: number) => {
+  const buildQROptions = useCallback((size: number, plugins?: any[]) => {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     const dotsOptions: any = { color: design.dotsColor, type: design.dotsType };
     if (design.patternGradient) {
       dotsOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.dotsColor }, { offset: 1, color: design.patternColor2 }] };
-      delete dotsOptions.color;
     }
-    const bgOptions: any = { color: design.bgTransparent ? "transparent" : design.backgroundColor };
-    if (design.useGradientBg && !design.bgTransparent) {
+    const bgOptions: any = design.bgTransparent
+      ? false
+      : {
+          color: design.backgroundColor,
+          round: design.bgRound,
+          margin: design.bgMargin,
+        };
+    if (bgOptions && design.useGradientBg && !design.bgTransparent) {
       bgOptions.gradient = { type: "linear", rotation: Math.PI / 4, colorStops: [{ offset: 0, color: design.backgroundColor }, { offset: 1, color: design.bgColor2 }] };
-      delete bgOptions.color;
     }
-    const cornersSquareOptions: any = { color: design.cornersSquareColor };
-    if (design.cornersSquareType !== "none") cornersSquareOptions.type = design.cornersSquareType;
-    const cornersDotOptions: any = { color: design.cornersDotColor };
-    if (design.cornersDotType !== "none") cornersDotOptions.type = design.cornersDotType;
 
     return {
       width: size, height: size,
       data: content.url || baseUrl + "/r/preview",
+      shape: design.shape,
       dotsOptions,
-      cornersSquareOptions,
-      cornersDotOptions,
+      cornersSquareOptions: { color: design.cornersSquareColor, type: design.cornersSquareType as any },
+      cornersDotOptions: { color: design.cornersDotColor, type: design.cornersDotType as any },
       backgroundOptions: bgOptions,
-      imageOptions: { crossOrigin: "anonymous", margin: design.logoMargin, imageSize: design.logoSize },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: design.logoMargin,
+        imageSize: design.logoSize,
+        mode: "center" as const,
+        fill: { color: design.logoFillColor },
+      },
       image: design.logo || undefined,
+      ...(plugins && plugins.length > 0 ? { plugins } : {}),
     };
   }, [design, content.url]);
 
-  // Generate QR preview as data URL
-  const generatePreview = useCallback(async () => {
+  // Build BorderPlugin instances
+  const buildPlugins = useCallback(async () => {
+    if (design.frameStyle === "none") return [];
+    const { default: BorderPlugin } = await import("@liquid-js/qr-code-styling/border-plugin");
+    const textConfig: any = {
+      font: "Arial, sans-serif",
+      color: design.frameTextColor,
+      size: 14,
+      fontWeight: "bold" as const,
+    };
+    const textPositions: any = {};
+    if (design.frameStyle === "bottom-text" || design.frameStyle === "both-text") {
+      textPositions.bottom = { ...textConfig, content: design.frameText || "Scan me!" };
+    }
+    if (design.frameStyle === "top-text" || design.frameStyle === "both-text") {
+      textPositions.top = { ...textConfig, content: design.frameTopText || design.frameText || "Scan me!" };
+    }
+    return [new BorderPlugin({
+      size: design.frameSize,
+      color: design.frameColor,
+      round: design.frameRound,
+      text: { ...textConfig, ...textPositions },
+    })];
+  }, [design.frameStyle, design.frameColor, design.frameText, design.frameTopText, design.frameTextColor, design.frameRound, design.frameSize]);
+
+  // Render QR into DOM container
+  const renderQR = useCallback(async () => {
     if (!qrType) return;
     try {
-      const QRCodeStyling = (await import("qr-code-styling")).default;
-      const qr = new QRCodeStyling(buildQROptions(256));
-      const blob = await qr.getRawData("png");
-      if (blob) {
-        const blobObj = blob instanceof Blob ? blob : new Blob([new Uint8Array(blob as any)], { type: "image/png" });
-        const url = URL.createObjectURL(blobObj);
-        setQrDataUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url; });
+      const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
+      const plugins = await buildPlugins();
+      const opts = buildQROptions(256, plugins);
+      if (qrInstanceRef.current) {
+        qrInstanceRef.current.update(opts);
+      } else {
+        const qr = new QRCodeStyling(opts);
+        qrInstanceRef.current = qr;
+        if (qrContainerRef.current) {
+          qrContainerRef.current.innerHTML = "";
+          qr.append(qrContainerRef.current);
+        }
       }
     } catch (e) { console.error("QR preview error:", e); }
-  }, [qrType, buildQROptions]);
+  }, [qrType, buildQROptions, buildPlugins]);
 
-  // Regenerate QR on any design/content change
+  // Re-render QR on any design/content change
   useEffect(() => {
     if (step >= 2 && qrType) {
-      const timer = setTimeout(() => generatePreview(), 150);
+      const timer = setTimeout(() => renderQR(), 150);
       return () => clearTimeout(timer);
     }
-  }, [step, design, qrType, content, generatePreview]);
+  }, [step, design, qrType, content, renderQR]);
+
+  // Re-append QR when container appears (tab switch)
+  useEffect(() => {
+    if (previewTab === "qrcode" && qrInstanceRef.current && qrContainerRef.current && !qrContainerRef.current.hasChildNodes()) {
+      qrInstanceRef.current.append(qrContainerRef.current);
+    }
+  }, [previewTab]);
 
   // Logo upload via FileReader (client-side base64)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -952,9 +972,12 @@ export default function CreateQRPage() {
 
   const handleDownload = async (format: "png" | "svg" | "jpeg") => {
     try {
-      const QRCodeStyling = (await import("qr-code-styling")).default;
-      const qr = new QRCodeStyling(buildQROptions(1024));
-      qr.download({ name: name || "qrcode", extension: format === "jpeg" ? "jpeg" : format });
+      const { QRCodeStyling, browserUtils } = await import("@liquid-js/qr-code-styling");
+      const plugins = await buildPlugins();
+      const qr = new QRCodeStyling(buildQROptions(1024, plugins));
+      if (browserUtils) {
+        await browserUtils.download(qr, { name: name || "qrcode", extension: format });
+      }
     } catch { toast.error("Download failed"); }
   };
 
@@ -1058,7 +1081,7 @@ export default function CreateQRPage() {
     }
     // Steps 2-3: Show preview or QR code based on tab
     if (previewTab === "qrcode") {
-      return <QRFramePreview qrDataUrl={qrDataUrl} design={design} />;
+      return <QRLivePreview qrContainerRef={qrContainerRef} />;
     }
     // Preview tab: show type-specific preview with dynamic content
     if (qrType) {
@@ -1206,33 +1229,36 @@ export default function CreateQRPage() {
           {/* ─── Step 3: QR Design ───────────────────────────────────── */}
           {step === 3 && (
             <div className="space-y-4">
+              {/* QR Shape */}
+              <AccordionSection
+                icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><circle cx="12" cy="12" r="9"/></svg>}
+                title="QR Shape" subtitle="Choose between square and circle QR code shapes." defaultOpen>
+                <div className="flex gap-2">
+                  {(["square", "circle"] as const).map(s => (
+                    <button key={s} onClick={() => { setDesign({ ...design, shape: s }); qrInstanceRef.current = null; }}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-lg border-2 transition-all ${
+                        design.shape === s ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      }`}>
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </AccordionSection>
+
               {/* Frame */}
               <AccordionSection
                 icon={<svg className="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg>}
-                title="Frame" subtitle="Frames make your QR Code stand out from the crowd, inspiring more scans." defaultOpen>
+                title="Frame" subtitle="Add a border frame with text around your QR code.">
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Frame style</label>
-                    <div className="grid grid-cols-6 sm:grid-cols-9 gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {FRAME_STYLES.map(f => (
-                        <button key={f.id} onClick={() => setDesign({ ...design, frameStyle: f.id })}
-                          className={`aspect-square rounded-lg border-2 transition-all flex flex-col items-center justify-center p-1 ${
-                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                        <button key={f.id} onClick={() => { setDesign({ ...design, frameStyle: f.id }); qrInstanceRef.current = null; }}
+                          className={`px-4 py-2 text-sm rounded-lg border-2 transition-all ${
+                            design.frameStyle === f.id ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-200 text-gray-600 hover:border-gray-300"
                           }`}>
-                          {f.id === "none" ? (
-                            <svg className="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
-                          ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center">
-                              <div className="w-5 h-5 border border-gray-300 rounded-sm mb-0.5">
-                                <div className="w-full h-full grid grid-cols-3 gap-[1px] p-[2px]">
-                                  <div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" />
-                                  <div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" />
-                                  <div className="bg-gray-400 rounded-[0.5px]" /><div className="bg-gray-300 rounded-[0.5px]" /><div className="bg-gray-400 rounded-[0.5px]" />
-                                </div>
-                              </div>
-                              <span className="text-[5px] text-gray-400 mt-0.5 leading-none">Scan Me!</span>
-                            </div>
-                          )}
+                          {f.label}
                         </button>
                       ))}
                     </div>
@@ -1240,49 +1266,32 @@ export default function CreateQRPage() {
                   {design.frameStyle !== "none" && (
                     <>
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">Frame text</label>
+                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">Bottom text</label>
                         <input type="text" value={design.frameText} onChange={e => setDesign({ ...design, frameText: e.target.value })}
                           className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                       </div>
-
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-3 block">Frame color</label>
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                            <span className="text-sm text-gray-600">Use a gradient frame color</span>
-                            <div className="ml-auto">
-                              <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientFrame ? "bg-violet-500" : "bg-gray-300"}`}
-                                onClick={() => setDesign({ ...design, useGradientFrame: !design.useGradientFrame })}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientFrame ? "translate-x-5" : "translate-x-0.5"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
+                      {(design.frameStyle === "top-text" || design.frameStyle === "both-text") && (
+                        <div>
+                          <label className="text-xs font-medium text-gray-600 mb-1.5 block">Top text</label>
+                          <input type="text" value={design.frameTopText} onChange={e => setDesign({ ...design, frameTopText: e.target.value })}
+                            className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900" />
                         </div>
-                        {design.useGradientFrame && (
-                          <InlineColorPicker label="Frame color 2" value={design.frameColor2} onChange={v => setDesign({ ...design, frameColor2: v })} />
-                        )}
+                      )}
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <InlineColorPicker label="Frame color" value={design.frameColor} onChange={v => setDesign({ ...design, frameColor: v })} />
+                        <InlineColorPicker label="Text color" value={design.frameTextColor} onChange={v => setDesign({ ...design, frameTextColor: v })} />
                       </div>
-
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-3 block">Frame background color</label>
-                        <label className="flex items-center gap-2 mb-3 cursor-pointer">
-                          <input type="checkbox" checked={design.frameBgTransparent} onChange={e => setDesign({ ...design, frameBgTransparent: e.target.checked })}
-                            className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
-                          <span className="text-sm text-gray-600">Transparent background</span>
-                        </label>
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                            <span className="text-sm text-gray-600">Use a gradient background color</span>
-                            <div className="ml-auto">
-                              <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientFrameBg ? "bg-violet-500" : "bg-gray-300"}`}
-                                onClick={() => setDesign({ ...design, useGradientFrameBg: !design.useGradientFrameBg })}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientFrameBg ? "translate-x-5" : "translate-x-0.5"}`} />
-                              </div>
-                            </div>
-                          </div>
-                          <InlineColorPicker label="Background color" value={design.frameBgColor} onChange={v => setDesign({ ...design, frameBgColor: v })} />
-                        </div>
+                        <label className="text-xs font-medium text-gray-600 mb-2 block">Frame roundness: {design.frameRound.toFixed(1)}</label>
+                        <input type="range" min="0" max="1" step="0.1" value={design.frameRound}
+                          onChange={e => { setDesign({ ...design, frameRound: parseFloat(e.target.value) }); qrInstanceRef.current = null; }}
+                          className="w-full accent-violet-500" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-2 block">Frame size: {design.frameSize}px</label>
+                        <input type="range" min="5" max="50" step="1" value={design.frameSize}
+                          onChange={e => { setDesign({ ...design, frameSize: parseInt(e.target.value) }); qrInstanceRef.current = null; }}
+                          className="w-full accent-violet-500" />
                       </div>
                     </>
                   )}
@@ -1298,24 +1307,11 @@ export default function CreateQRPage() {
                     <label className="text-xs font-medium text-gray-600 mb-3 block">Pattern style</label>
                     <div className="flex flex-wrap gap-2">
                       {PATTERN_STYLES.map(p => (
-                        <button key={p.id} onClick={() => setDesign({ ...design, dotsType: p.id })}
-                          className={`w-12 h-12 rounded-lg border-2 transition-all flex items-center justify-center ${
-                            design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                        <button key={p.id} onClick={() => { setDesign({ ...design, dotsType: p.id }); qrInstanceRef.current = null; }}
+                          className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
+                            design.dotsType === p.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
                           }`}>
-                          {/* Pattern icon thumbnails */}
-                          <div className="grid grid-cols-3 gap-[2px]">
-                            {[1,2,3,4,5,6,7,8,9].map(i => (
-                              <div key={i} className={`w-1.5 h-1.5 ${
-                                p.id === "dots" ? "rounded-full bg-gray-700" :
-                                p.id === "rounded" ? "rounded-[1px] bg-gray-700" :
-                                p.id === "extra-rounded" ? "rounded-full bg-gray-700" :
-                                p.id === "classy" ? "bg-gray-700" :
-                                p.id === "classy-rounded" ? "rounded-sm bg-gray-700" :
-                                p.id === "star" ? "bg-gray-700 rotate-45" :
-                                "bg-gray-700"
-                              }`} />
-                            ))}
-                          </div>
+                          {p.label}
                         </button>
                       ))}
                     </div>
@@ -1356,18 +1352,37 @@ export default function CreateQRPage() {
                         className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
                       <span className="text-sm text-gray-600">Transparent background</span>
                     </label>
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
-                        <span className="text-sm text-gray-600">Use a gradient background color</span>
-                        <div className="ml-auto">
-                          <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientBg ? "bg-violet-500" : "bg-gray-300"}`}
-                            onClick={() => setDesign({ ...design, useGradientBg: !design.useGradientBg })}>
-                            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientBg ? "translate-x-5" : "translate-x-0.5"}`} />
+                    {!design.bgTransparent && (
+                      <>
+                        <div className="flex items-center gap-4 mb-3">
+                          <div className="flex-1 flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                            <span className="text-sm text-gray-600">Use a gradient background color</span>
+                            <div className="ml-auto">
+                              <div className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer ${design.useGradientBg ? "bg-violet-500" : "bg-gray-300"}`}
+                                onClick={() => setDesign({ ...design, useGradientBg: !design.useGradientBg })}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${design.useGradientBg ? "translate-x-5" : "translate-x-0.5"}`} />
+                              </div>
+                            </div>
                           </div>
+                          <InlineColorPicker label="Background color" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
                         </div>
-                      </div>
-                      <InlineColorPicker label="Background color" value={design.backgroundColor} onChange={v => setDesign({ ...design, backgroundColor: v })} />
-                    </div>
+                        {design.useGradientBg && (
+                          <InlineColorPicker label="Background color 2" value={design.bgColor2} onChange={v => setDesign({ ...design, bgColor2: v })} />
+                        )}
+                        <div className="mt-3">
+                          <label className="text-xs font-medium text-gray-600 mb-2 block">Background roundness: {design.bgRound.toFixed(1)}</label>
+                          <input type="range" min="0" max="1" step="0.1" value={design.bgRound}
+                            onChange={e => setDesign({ ...design, bgRound: parseFloat(e.target.value) })}
+                            className="w-full accent-violet-500" />
+                        </div>
+                        <div className="mt-3">
+                          <label className="text-xs font-medium text-gray-600 mb-2 block">Background margin: {design.bgMargin}</label>
+                          <input type="range" min="0" max="10" step="1" value={design.bgMargin}
+                            onChange={e => setDesign({ ...design, bgMargin: parseInt(e.target.value) })}
+                            className="w-full accent-violet-500" />
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
@@ -1385,39 +1400,27 @@ export default function CreateQRPage() {
                   <p className="text-xs font-semibold text-gray-700">Corners</p>
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Frame around corner dots style</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner square style</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_SQUARE_STYLES.map(c => (
-                          <button key={c.id} onClick={() => setDesign({ ...design, cornersSquareType: c.id })}
-                            className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${
-                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                          <button key={c.id} onClick={() => { setDesign({ ...design, cornersSquareType: c.id }); qrInstanceRef.current = null; }}
+                            className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
+                              design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
                             }`}>
-                            {c.id === "none" ? (
-                              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
-                            ) : c.id === "dot" ? (
-                              <div className="w-5 h-5 rounded-full border-2 border-gray-700" />
-                            ) : (
-                              <div className={`w-5 h-5 border-2 border-gray-700 ${c.id === "extra-rounded" ? "rounded-md" : "rounded-sm"}`} />
-                            )}
+                            {c.label}
                           </button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dots type</label>
+                      <label className="text-xs font-medium text-gray-600 mb-2 block">Corner dot style</label>
                       <div className="flex flex-wrap gap-2">
                         {CORNER_DOT_STYLES.map(c => (
-                          <button key={c.id} onClick={() => setDesign({ ...design, cornersDotType: c.id })}
-                            className={`w-10 h-10 rounded-lg border-2 transition-all flex items-center justify-center ${
-                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300 bg-white"
+                          <button key={c.id} onClick={() => { setDesign({ ...design, cornersDotType: c.id }); qrInstanceRef.current = null; }}
+                            className={`px-3 py-2 text-xs rounded-lg border-2 transition-all ${
+                              design.cornersDotType === c.id ? "border-violet-500 bg-violet-50 text-violet-700 font-medium" : "border-gray-200 hover:border-gray-300 bg-white text-gray-600"
                             }`}>
-                            {c.id === "none" ? (
-                              <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><line x1="4" y1="4" x2="20" y2="20"/></svg>
-                            ) : c.id === "dot" ? (
-                              <div className="w-4 h-4 rounded-full bg-gray-700" />
-                            ) : (
-                              <div className="w-4 h-4 bg-gray-700" />
-                            )}
+                            {c.label}
                           </button>
                         ))}
                       </div>
@@ -1442,10 +1445,19 @@ export default function CreateQRPage() {
                     <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
                   </label>
                   {design.logo && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
-                      <p className="text-xs text-green-600">Logo uploaded</p>
-                      <button onClick={() => setDesign({ ...design, logo: "" })} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
+                    <div className="space-y-3 mt-3">
+                      <div className="flex items-center gap-2">
+                        <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
+                        <p className="text-xs text-green-600">Logo uploaded</p>
+                        <button onClick={() => setDesign({ ...design, logo: "" })} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
+                      </div>
+                      <InlineColorPicker label="Logo background fill" value={design.logoFillColor} onChange={v => setDesign({ ...design, logoFillColor: v })} />
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 mb-2 block">Logo size: {design.logoSize.toFixed(1)}</label>
+                        <input type="range" min="0.1" max="0.5" step="0.05" value={design.logoSize}
+                          onChange={e => setDesign({ ...design, logoSize: parseFloat(e.target.value) })}
+                          className="w-full accent-violet-500" />
+                      </div>
                     </div>
                   )}
                 </div>

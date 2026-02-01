@@ -14,6 +14,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@liquid-js/qr-code-styling": "^5.0.3",
     "@prisma/client": "^6.19.2",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.3",
@@ -24,7 +25,6 @@
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",
     "prisma": "^6.19.2",
-    "qr-code-styling": "^1.9.2",
     "qrcode": "^1.5.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",

@@ -9,8 +9,8 @@ import ColorPicker from "@/components/ui/ColorPicker";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
 
-const DOT_STYLES = ["square", "dots", "rounded", "extra-rounded", "classy", "classy-rounded"];
-const EYE_STYLES = ["square", "dot", "extra-rounded"];
+const DOT_STYLES = ["square", "dot", "rounded", "extra-rounded", "classy", "classy-rounded", "diamond", "small-square", "tiny-square", "vertical-line", "horizontal-line", "random-dot", "star", "heart"];
+const EYE_STYLES = ["square", "dot", "extra-rounded", "classy", "outpoint", "inpoint"];
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -38,21 +38,22 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
 
   const generatePreview = useCallback(async () => {
     try {
-      const QRCodeStyling = (await import("qr-code-styling")).default;
+      const { QRCodeStyling } = await import("@liquid-js/qr-code-styling");
       const qr = new QRCodeStyling({
         width: 256,
         height: 256,
         data: window.location.origin + "/r/preview",
+        shape: (design.shape as "square" | "circle") || "square",
         dotsOptions: { color: design.dotsColor || "#000000", type: (design.dotsType || "square") as any },
         cornersSquareOptions: { color: design.cornersSquareColor || "#000000", type: (design.cornersSquareType || "square") as any },
         cornersDotOptions: { color: design.cornersDotColor || "#000000", type: (design.cornersDotType || "square") as any },
         backgroundOptions: { color: design.backgroundColor || "#FFFFFF" },
         image: design.logo || undefined,
       });
-      const blob = await qr.getRawData("png");
-      if (blob) {
-        const blobObj = blob instanceof Blob ? blob : new Blob([new Uint8Array(blob as any)], { type: "image/png" });
-        setQrDataUrl(URL.createObjectURL(blobObj));
+      const svgStr = await qr.serialize();
+      if (svgStr) {
+        const blob = new Blob([svgStr], { type: "image/svg+xml" });
+        setQrDataUrl(URL.createObjectURL(blob));
       }
     } catch {}
   }, [design]);
