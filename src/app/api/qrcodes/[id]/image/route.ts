@@ -11,14 +11,12 @@ const CONTENT_TYPES: Record<string, string> = {
   jpeg: 'image/jpeg',
 };
 
-// Convert content object to a QR-encodable string
+// Static types embed data directly in the QR code
+const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar'];
+
+// Convert content object to a QR-encodable string for static types
 function contentToString(type: string, content: Record<string, any>): string {
   switch (type) {
-    case 'website':
-    case 'instagram':
-    case 'facebook':
-    case 'video':
-      return content.url || 'https://example.com';
     case 'bitcoin':
       return content.address ? `bitcoin:${content.address}` : content.url || 'bitcoin:';
     case 'text':
@@ -38,11 +36,50 @@ function contentToString(type: string, content: Record<string, any>): string {
       return `mailto:${content.email || ''}?subject=${encodeURIComponent(content.subject || '')}&body=${encodeURIComponent(content.message || '')}`;
     case 'sms':
       return `sms:${content.phone || ''}${content.message ? `?body=${encodeURIComponent(content.message)}` : ''}`;
-    case 'whatsapp':
-      return `https://wa.me/${(content.phone || '').replace(/\D/g, '')}${content.message ? `?text=${encodeURIComponent(content.message)}` : ''}`;
+    case 'phone':
+      return `tel:${content.phone || ''}`;
+    case 'calendar': {
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT'];
+      if (content.title) lines.push(`SUMMARY:${content.title}`);
+      if (content.startDate) lines.push(`DTSTART:${content.startDate.replace(/[-:]/g, '').replace('.000', '')}`);
+      if (content.endDate) lines.push(`DTEND:${content.endDate.replace(/[-:]/g, '').replace('.000', '')}`);
+      if (content.location) lines.push(`LOCATION:${content.location}`);
+      if (content.description) lines.push(`DESCRIPTION:${content.description}`);
+      lines.push('END:VEVENT', 'END:VCALENDAR');
+      return lines.join('\n');
+    }
     default:
       return content.url || content.text || 'https://example.com';
   }
+}
+
+// Get the URL to encode in the QR for a given QR code record
+function getQRDataString(qrcode: { type: string; slug: string | null; content: any }): string {
+  const content = qrcode.content as Record<string, any>;
+  const type = qrcode.type;
+
+  // Static types: embed data directly
+  if (STATIC_TYPES.includes(type)) {
+    return contentToString(type, content);
+  }
+
+  // Dynamic types: encode the redirect URL so scanning goes through our app
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+
+  if (qrcode.slug) {
+    return `${baseUrl}/r/${qrcode.slug}`;
+  }
+
+  // Fallback if slug somehow missing: use direct content URL
+  if (type === 'website' && content.url) return content.url;
+  if (type === 'video' && content.url) return content.url;
+  if (type === 'instagram' && content.url) return content.url;
+  if (type === 'facebook' && content.url) return content.url;
+  if (type === 'whatsapp') {
+    return `https://wa.me/${(content.phone || '').replace(/\D/g, '')}${content.message ? `?text=${encodeURIComponent(content.message)}` : ''}`;
+  }
+
+  return contentToString(type, content);
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -68,16 +105,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
     }
 
-    let imageBuffer: Buffer;
+    let imageBuffer: Buffer | null = null;
 
+    // Try QRFY API first if this QR has a qrfyId
     if (qrcode.qrfyId) {
-      // Use QRFY API
-      imageBuffer = await getQRImage(qrcode.qrfyId, format);
-    } else {
-      // Fallback: generate locally
-      const content = qrcode.content as Record<string, any>;
+      try {
+        imageBuffer = await getQRImage(qrcode.qrfyId, format);
+      } catch (err) {
+        console.error('QRFY image fetch failed, falling back to local:', err);
+      }
+    }
+
+    // Fallback: generate locally
+    if (!imageBuffer) {
       const design = (qrcode.design as Record<string, any>) || {};
-      const text = contentToString(qrcode.type, content);
+      const text = getQRDataString(qrcode);
       const errorLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
 
       imageBuffer = await QRCode.toBuffer(text, {
@@ -96,7 +138,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       status: 200,
       headers: {
         'Content-Type': CONTENT_TYPES[format],
-        'Content-Disposition': `attachment; filename="${qrcode.name || 'qrcode'}.${format}"`,
+        'Content-Disposition': `inline; filename="${qrcode.name || 'qrcode'}.${format}"`,
         'Cache-Control': 'public, max-age=300, s-maxage=600',
       },
     });
