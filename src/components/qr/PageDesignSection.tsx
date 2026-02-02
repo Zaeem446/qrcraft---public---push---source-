@@ -66,14 +66,12 @@ export default function PageDesignSection({ content, setContent, mode }: PageDes
   return (
     <SectionAccordion title="Landing Page Design" subtitle="Customize the look and feel of your QR landing page.">
       <div className="space-y-4">
-        {/* Template selector for PDF */}
-        {mode === "pdf" && (
-          <TemplateSelector
-            value={content.template ?? 0}
-            onChange={(v) => setContent({ ...content, template: v })}
-            primaryColor={primary}
-          />
-        )}
+        {/* Template selector for all dynamic types */}
+        <TemplateSelector
+          value={content.template ?? 0}
+          onChange={(v) => setContent({ ...content, template: v })}
+          primaryColor={primary}
+        />
 
         {/* Color presets */}
         <ColorPresetPalette

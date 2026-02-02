@@ -8,6 +8,26 @@ import {
   HomeIcon, MagnifyingGlassIcon, PlusCircleIcon,
 } from "@heroicons/react/24/outline";
 
+// ─── Template layouts ────────────────────────────────────────────────────────
+// id 0 = Default (header + body + button)
+// id 1 = Split   (header + two-col body + button)
+// id 2 = Minimal (no header, body + button)
+// id 3 = Compact (header + two-col body, no button)
+// id 4 = Clean   (header + body, no button)
+
+const TEMPLATES = [
+  { header: true, body: true, button: true, split: false },
+  { header: true, body: true, button: true, split: true },
+  { header: false, body: true, button: true, split: false },
+  { header: true, body: true, button: false, split: true },
+  { header: true, body: true, button: false, split: false },
+];
+
+function getLayout(content: Record<string, any>) {
+  const idx = content?.template ?? 0;
+  return TEMPLATES[idx] || TEMPLATES[0];
+}
+
 // ─── Phone Preview Components ────────────────────────────────────────────────
 
 export function WebsitePreview({ content }: { content: Record<string, any> }) {
@@ -41,27 +61,55 @@ export function PdfPreview({ content }: { content: Record<string, any> }) {
   const title = content?.title || "Company Report";
   const description = content?.description || "PDF Document";
   const buttonText = content?.buttonText || "Download PDF";
+  const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      <div className="px-4 py-4 text-center" style={{ backgroundColor: primary }}>
-        <div className="w-14 h-14 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
-          <DocumentIcon className="h-8 w-8 text-white" />
+      {tpl.header && (
+        <div className="px-4 py-4 text-center" style={{ backgroundColor: primary }}>
+          <div className="w-14 h-14 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
+            <DocumentIcon className="h-8 w-8 text-white" />
+          </div>
+          <p className="text-white text-sm font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[10px] mt-0.5 truncate">{description}</p>
         </div>
-        <p className="text-white text-sm font-bold truncate">{title}</p>
-        <p className="text-white/70 text-[10px] mt-0.5 truncate">{description}</p>
-      </div>
-      <div className="flex-1 p-4 space-y-2">
-        <div className="h-3 bg-gray-200 rounded-full w-full" />
-        <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-        <div className="h-3 bg-gray-100 rounded-full w-4/5" />
-        <div className="h-3 bg-gray-200 rounded-full w-full" />
-        <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-      </div>
-      <div className="p-3">
-        <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">{buttonText}</span>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-4">
+          <p className="text-sm font-bold text-gray-900 truncate">{title}</p>
+          <p className="text-xs text-gray-500 truncate">{description}</p>
         </div>
+      )}
+      <div className="flex-1 p-4">
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2 h-full">
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded-full w-full" />
+              <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+              <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded-full w-full" />
+              <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+              <div className="h-3 bg-gray-200 rounded-full w-full" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded-full w-full" />
+            <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+            <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+            <div className="h-3 bg-gray-200 rounded-full w-full" />
+            <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+          </div>
+        )}
       </div>
+      {tpl.button && (
+        <div className="p-3">
+          <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">{buttonText}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -70,7 +118,6 @@ export function LinksPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || "#7C3AED";
   const secondary = pd.secondary || "#4338CA";
-  const tertiary = pd.tertiary || "#F3F4F6";
   const title = content?.title || "Sarah Johnson";
   const description = content?.description || "Digital Creator & Designer";
   const logo = content?.logo;
@@ -78,22 +125,41 @@ export function LinksPreview({ content }: { content: Record<string, any> }) {
   const linkLabels = links && links.length > 0
     ? links.map((l: any) => l.text || l.label || "Untitled Link")
     : ["Portfolio Website", "Latest Blog Post", "Twitter Profile", "YouTube Channel"];
+  const tpl = getLayout(content);
   return (
     <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
-      <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden" style={{ backgroundColor: tertiary + "33" }}>
-        {logo ? (
-          <img src={logo} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <UserIcon className="h-8 w-8 text-white/70" />
-        )}
-      </div>
-      <p className="text-white text-sm font-bold mb-0.5 truncate">{title}</p>
-      <p className="text-white/60 text-[10px] mb-4 truncate">{description}</p>
-      {linkLabels.slice(0, 4).map((l: string, i: number) => (
-        <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center">
-          <span className="text-white text-xs font-medium truncate block">{l}</span>
+      {tpl.header && (
+        <>
+          <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden bg-white/20">
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-8 w-8 text-white/70" />}
+          </div>
+          <p className="text-white text-sm font-bold mb-0.5 truncate">{title}</p>
+          <p className="text-white/60 text-[10px] mb-4 truncate">{description}</p>
+        </>
+      )}
+      {!tpl.header && (
+        <div className="flex items-center gap-3 mb-4 text-left">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/20 flex-shrink-0">
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-5 w-5 text-white/70" />}
+          </div>
+          <div className="min-w-0"><p className="text-white text-sm font-bold truncate">{title}</p><p className="text-white/60 text-[10px] truncate">{description}</p></div>
         </div>
-      ))}
+      )}
+      {tpl.split ? (
+        <div className="grid grid-cols-2 gap-2">
+          {linkLabels.slice(0, 4).map((l: string, i: number) => (
+            <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-3 py-3 text-center">
+              <span className="text-white text-[11px] font-medium truncate block">{l}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        linkLabels.slice(0, 4).map((l: string, i: number) => (
+          <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center">
+            <span className="text-white text-xs font-medium truncate block">{l}</span>
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -108,29 +174,54 @@ export function VcardPreview({ content }: { content: Record<string, any> }) {
   const phone = content?.phone || "+1 (555) 123-4567";
   const email = content?.email || "john@techco.com";
   const website = content?.website || "www.johnsmith.dev";
+  const tpl = getLayout(content);
+  const fields = [{ label: "Phone", value: phone }, { label: "Email", value: email }, { label: "Website", value: website }];
   return (
     <div className="h-full" style={{ backgroundColor: secondary }}>
-      <div className="px-4 pt-8 pb-10 text-center" style={{ backgroundColor: primary }}>
-        <div className="w-16 h-16 bg-white/30 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden">
-          {photo ? (
-            <img src={photo} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <UserIcon className="h-8 w-8 text-white/80" />
-          )}
-        </div>
-        <p className="text-white text-base font-bold truncate">{name}</p>
-        <p className="text-white/80 text-xs truncate">{jobLine}</p>
-      </div>
-      <div className="px-4 py-3 space-y-2 -mt-5">
-        {[{ label: "Phone", value: phone }, { label: "Email", value: email }, { label: "Website", value: website }].map((f) => (
-          <div key={f.label} className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-            <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
-            <p className="text-xs text-gray-700 mt-0.5 truncate">{f.value}</p>
+      {tpl.header && (
+        <div className="px-4 pt-8 pb-10 text-center" style={{ backgroundColor: primary }}>
+          <div className="w-16 h-16 bg-white/30 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden">
+            {photo ? (
+              <img src={photo} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <UserIcon className="h-8 w-8 text-white/80" />
+            )}
           </div>
-        ))}
-        <div className="rounded-xl py-2.5 text-center mt-2" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">Save Contact</span>
+          <p className="text-white text-base font-bold truncate">{name}</p>
+          <p className="text-white/80 text-xs truncate">{jobLine}</p>
         </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0" style={{ backgroundColor: primary }}>
+            {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-6 w-6 text-white/80" />}
+          </div>
+          <div><p className="text-sm font-bold text-gray-900 truncate">{name}</p><p className="text-xs text-gray-500 truncate">{jobLine}</p></div>
+        </div>
+      )}
+      <div className={`px-4 py-3 space-y-2 ${tpl.header ? "-mt-5" : "mt-2"}`}>
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            {fields.map((f) => (
+              <div key={f.label} className="bg-white rounded-xl shadow-sm border border-gray-100 px-3 py-2.5">
+                <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+                <p className="text-[11px] text-gray-700 mt-0.5 truncate">{f.value}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          fields.map((f) => (
+            <div key={f.label} className="bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+              <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+              <p className="text-xs text-gray-700 mt-0.5 truncate">{f.value}</p>
+            </div>
+          ))
+        )}
+        {tpl.button && (
+          <div className="rounded-xl py-2.5 text-center mt-2" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">Save Contact</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -143,29 +234,51 @@ export function BusinessPreview({ content }: { content: Record<string, any> }) {
   const companyName = content?.companyName || "Green Valley Co.";
   const headline = content?.title || content?.description || "Organic & Sustainable Products";
   const cover = content?.cover;
+  const tpl = getLayout(content);
+  const sections = ["About Us", "Our Products", "Locations", "Contact"];
   return (
     <div className="h-full" style={{ backgroundColor: secondary }}>
-      <div className="px-4 pt-6 pb-8 text-center relative" style={{ backgroundColor: primary }}>
-        {cover && (
-          <div className="absolute inset-0 overflow-hidden">
-            <img src={cover} alt="" className="w-full h-full object-cover opacity-30" />
+      {tpl.header && (
+        <div className="px-4 pt-6 pb-8 text-center relative" style={{ backgroundColor: primary }}>
+          {cover && (
+            <div className="absolute inset-0 overflow-hidden">
+              <img src={cover} alt="" className="w-full h-full object-cover opacity-30" />
+            </div>
+          )}
+          <div className="relative z-10">
+            <div className="w-14 h-14 bg-white/20 rounded-2xl mx-auto mb-2 flex items-center justify-center">
+              <BuildingOfficeIcon className="h-7 w-7 text-white/80" />
+            </div>
+            <p className="text-white text-base font-bold truncate">{companyName}</p>
+            <p className="text-white/70 text-xs truncate">{headline}</p>
           </div>
-        )}
-        <div className="relative z-10">
-          <div className="w-14 h-14 bg-white/20 rounded-2xl mx-auto mb-2 flex items-center justify-center">
-            <BuildingOfficeIcon className="h-7 w-7 text-white/80" />
-          </div>
-          <p className="text-white text-base font-bold truncate">{companyName}</p>
-          <p className="text-white/70 text-xs truncate">{headline}</p>
         </div>
-      </div>
-      <div className="px-4 py-3 space-y-0.5 -mt-3">
-        {["About Us", "Our Products", "Locations", "Contact"].map((s) => (
-          <div key={s} className="bg-white flex items-center justify-between py-3 px-1 border-b border-gray-100">
-            <span className="text-sm text-gray-700">{s}</span>
-            <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 pb-3 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
+            <BuildingOfficeIcon className="h-6 w-6 text-white/80" />
           </div>
-        ))}
+          <div><p className="text-sm font-bold text-gray-900 truncate">{companyName}</p><p className="text-xs text-gray-500 truncate">{headline}</p></div>
+        </div>
+      )}
+      <div className={`px-4 py-3 space-y-0.5 ${tpl.header ? "-mt-3" : ""}`}>
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            {sections.map((s) => (
+              <div key={s} className="bg-white rounded-lg flex items-center justify-center py-3 border border-gray-100">
+                <span className="text-xs text-gray-700">{s}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          sections.map((s) => (
+            <div key={s} className="bg-white flex items-center justify-between py-3 px-1 border-b border-gray-100">
+              <span className="text-sm text-gray-700">{s}</span>
+              <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -176,8 +289,14 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || pd.color || "#DC2626";
   const title = content?.title || "Product Launch Video";
   const description = content?.description || "1,234 views";
+  const tpl = getLayout(content);
   return (
     <div className="h-full bg-gray-950 flex flex-col">
+      {tpl.header && (
+        <div className="px-4 py-3" style={{ backgroundColor: primary }}>
+          <p className="text-white text-xs font-bold truncate">{title}</p>
+        </div>
+      )}
       <div className="flex-1 flex items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
         <div className="w-14 h-14 rounded-full flex items-center justify-center z-10 shadow-lg" style={{ backgroundColor: primary }}>
@@ -186,7 +305,7 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
       </div>
       <div className="p-4">
         <div className="h-1 bg-gray-700 rounded-full mb-3"><div className="h-1 rounded-full w-1/3" style={{ backgroundColor: primary }} /></div>
-        <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>
+        {!tpl.header && <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>}
         <p className="text-gray-500 text-[10px] truncate">{description}</p>
       </div>
     </div>
@@ -198,25 +317,43 @@ export function ImagesPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || pd.color || "#8B5E3C";
   const title = content?.title || "Nature\u2019s Canvas";
   const description = content?.description || "Browse our gallery of nature photos";
-  // Support both new `images` array and legacy `fileUrl` string
   const images: { file: string; name: string }[] = content?.images || [];
   const firstImage = images.length > 0 ? images[0].file : content?.fileUrl;
   const imageCount = images.length || (content?.fileUrl ? 1 : 0);
+  const tpl = getLayout(content);
   return (
     <div className="h-full bg-amber-50 flex flex-col">
-      <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
-        <p className="text-white text-lg font-bold italic truncate">{title}</p>
-        <p className="text-white/80 text-xs mt-1 truncate">{description}</p>
-      </div>
-      <div className="px-4 py-3">
-        <div className="bg-white rounded-xl py-2.5 text-center mb-3 shadow-sm border border-amber-100">
-          <span className="text-sm text-gray-700 font-medium">
-            {imageCount > 0 ? `View All (${imageCount})` : "View All"}
-          </span>
+      {tpl.header && (
+        <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
+          <p className="text-white text-lg font-bold italic truncate">{title}</p>
+          <p className="text-white/80 text-xs mt-1 truncate">{description}</p>
         </div>
-      </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 pb-2">
+          <p className="text-lg font-bold italic text-gray-900 truncate">{title}</p>
+          <p className="text-xs text-gray-500 truncate">{description}</p>
+        </div>
+      )}
+      {tpl.button && (
+        <div className="px-4 py-2">
+          <div className="bg-white rounded-xl py-2.5 text-center shadow-sm border border-amber-100">
+            <span className="text-sm text-gray-700 font-medium">
+              {imageCount > 0 ? `View All (${imageCount})` : "View All"}
+            </span>
+          </div>
+        </div>
+      )}
       <div className="flex-1 px-4 pb-4">
-        {firstImage ? (
+        {tpl.split && images.length > 1 ? (
+          <div className="grid grid-cols-2 gap-2 h-full">
+            {images.slice(0, 4).map((img, i) => (
+              <div key={i} className="rounded-lg overflow-hidden">
+                <img src={img.file} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        ) : firstImage ? (
           <div className="h-full rounded-xl overflow-hidden relative">
             <img src={firstImage} alt="" className="w-full h-full object-cover" />
           </div>
@@ -318,22 +455,41 @@ export function SocialPreview({ content }: { content: Record<string, any> }) {
         { name: "LinkedIn", color: "from-blue-600 to-blue-700" },
         { name: "YouTube", color: "from-red-500 to-red-600" },
       ];
+  const tpl = getLayout(content);
   return (
     <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
-      <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden">
-        {logo ? (
-          <img src={logo} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <UserIcon className="h-8 w-8 text-white/70" />
-        )}
-      </div>
-      <p className="text-white text-sm font-bold mb-0.5 truncate">{title}</p>
-      <p className="text-white/60 text-[10px] mb-4 truncate">{description}</p>
-      {platformItems.map((s: any, i: number) => (
-        <div key={i} className={`bg-gradient-to-r ${s.color} rounded-xl px-4 py-2.5 mb-2 shadow-sm`}>
-          <span className="text-white text-xs font-medium capitalize">{s.name}</span>
+      {tpl.header && (
+        <>
+          <div className="w-16 h-16 bg-white/20 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden">
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-8 w-8 text-white/70" />}
+          </div>
+          <p className="text-white text-sm font-bold mb-0.5 truncate">{title}</p>
+          <p className="text-white/60 text-[10px] mb-4 truncate">{description}</p>
+        </>
+      )}
+      {!tpl.header && (
+        <div className="flex items-center gap-3 mb-4 text-left">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-5 w-5 text-white/70" />}
+          </div>
+          <div className="min-w-0"><p className="text-white text-sm font-bold truncate">{title}</p><p className="text-white/60 text-[10px] truncate">{description}</p></div>
         </div>
-      ))}
+      )}
+      {tpl.split ? (
+        <div className="grid grid-cols-2 gap-2">
+          {platformItems.map((s: any, i: number) => (
+            <div key={i} className={`bg-gradient-to-r ${s.color} rounded-xl px-3 py-2.5 shadow-sm`}>
+              <span className="text-white text-[11px] font-medium capitalize">{s.name}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        platformItems.map((s: any, i: number) => (
+          <div key={i} className={`bg-gradient-to-r ${s.color} rounded-xl px-4 py-2.5 mb-2 shadow-sm`}>
+            <span className="text-white text-xs font-medium capitalize">{s.name}</span>
+          </div>
+        ))
+      )}
     </div>
   );
 }
@@ -379,16 +535,38 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
   const secondary = pd.secondary || "#1A1A2E";
   const title = content?.title || "Summer Vibes";
   const description = content?.description || "The Audio Band";
+  const tpl = getLayout(content);
   return (
-    <div className="h-full flex flex-col items-center justify-center p-5" style={{ background: `linear-gradient(to bottom, ${secondary}, #111827)` }}>
-      <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
-        <MusicalNoteIcon className="h-12 w-12 text-white" />
-      </div>
-      <p className="text-white text-sm font-bold mb-0.5 truncate max-w-full">{title}</p>
-      <p className="text-gray-400 text-[10px] mb-5 truncate max-w-full">{description}</p>
-      <div className="w-full space-y-2">
-        <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} /></div>
-        <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
+    <div className="h-full flex flex-col p-5" style={{ background: `linear-gradient(to bottom, ${secondary}, #111827)` }}>
+      {tpl.header && (
+        <div className="rounded-xl py-2 mb-3 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-bold">Now Playing</span>
+        </div>
+      )}
+      <div className={`flex-1 flex flex-col items-center ${tpl.header ? "" : "justify-center"}`}>
+        {tpl.split ? (
+          <div className="flex items-center gap-4 w-full mb-5">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0" style={{ backgroundColor: primary }}>
+              <MusicalNoteIcon className="h-10 w-10 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-white text-sm font-bold truncate">{title}</p>
+              <p className="text-gray-400 text-[10px] truncate">{description}</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
+              <MusicalNoteIcon className="h-12 w-12 text-white" />
+            </div>
+            <p className="text-white text-sm font-bold mb-0.5 truncate max-w-full">{title}</p>
+            <p className="text-gray-400 text-[10px] mb-5 truncate max-w-full">{description}</p>
+          </>
+        )}
+        <div className="w-full space-y-2">
+          <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} /></div>
+          <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
+        </div>
       </div>
     </div>
   );
@@ -399,23 +577,40 @@ export function MenuPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || "#14B8A6";
   const secondary = pd.secondary || "#FFFFFF";
   const restaurantName = content?.restaurantName || "The Cuisine";
-  const sections = content?.sections;
-  const categories = sections && sections.length > 0
-    ? sections.map((s: any) => s.name || "Unnamed").slice(0, 4)
+  const secs = content?.sections;
+  const categories = secs && secs.length > 0
+    ? secs.map((s: any) => s.name || "Unnamed").slice(0, 4)
     : ["Appetizers", "Beverages", "Main Dishes", "Dessert"];
+  const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary + "1A" }}>
-        <p className="text-base font-bold text-gray-900 truncate">{restaurantName}</p>
-        <p className="text-xs mt-0.5" style={{ color: primary }}>Menu</p>
-      </div>
+      {tpl.header ? (
+        <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary + "1A" }}>
+          <p className="text-base font-bold text-gray-900 truncate">{restaurantName}</p>
+          <p className="text-xs mt-0.5" style={{ color: primary }}>Menu</p>
+        </div>
+      ) : (
+        <div className="px-4 pt-5 pb-3">
+          <p className="text-base font-bold text-gray-900 truncate">{restaurantName}</p>
+        </div>
+      )}
       <div className="flex-1 px-4">
-        {categories.map((cat: string, i: number) => (
-          <div key={i} className="flex items-center justify-between py-3.5 border-b border-gray-100">
-            <span className="text-sm text-gray-700 truncate">{cat}</span>
-            <ArrowRightIcon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: primary }} />
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2 py-2">
+            {categories.map((cat: string, i: number) => (
+              <div key={i} className="rounded-lg py-3 text-center border border-gray-100" style={{ backgroundColor: primary + "0D" }}>
+                <span className="text-xs font-medium" style={{ color: primary }}>{cat}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        ) : (
+          categories.map((cat: string, i: number) => (
+            <div key={i} className="flex items-center justify-between py-3.5 border-b border-gray-100">
+              <span className="text-sm text-gray-700 truncate">{cat}</span>
+              <ArrowRightIcon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: primary }} />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
@@ -427,21 +622,38 @@ export function AppsPreview({ content }: { content: Record<string, any> }) {
   const secondary = pd.secondary || "#BE185D";
   const appName = content?.appName || "Get Our App";
   const description = content?.description || "Download now for free";
+  const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col items-center justify-center p-5" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
-      <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
-        <DevicePhoneMobileIcon className="h-10 w-10" style={{ color: primary }} />
-      </div>
-      <p className="text-white text-base font-bold mb-1 truncate max-w-full">{appName}</p>
-      <p className="text-white/70 text-xs mb-6 truncate max-w-full">{description}</p>
-      <div className="w-full space-y-3">
-        <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
-          <div><p className="text-[9px] text-gray-400">Download on the</p><p className="text-white text-xs font-semibold">App Store</p></div>
+      {tpl.split ? (
+        <div className="flex items-center gap-4 w-full mb-6">
+          <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center flex-shrink-0">
+            <DevicePhoneMobileIcon className="h-8 w-8" style={{ color: primary }} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-white text-base font-bold truncate">{appName}</p>
+            <p className="text-white/70 text-xs truncate">{description}</p>
+          </div>
         </div>
-        <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
-          <div><p className="text-[9px] text-gray-400">GET IT ON</p><p className="text-white text-xs font-semibold">Google Play</p></div>
+      ) : (
+        <>
+          <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
+            <DevicePhoneMobileIcon className="h-10 w-10" style={{ color: primary }} />
+          </div>
+          <p className="text-white text-base font-bold mb-1 truncate max-w-full">{appName}</p>
+          <p className="text-white/70 text-xs mb-6 truncate max-w-full">{description}</p>
+        </>
+      )}
+      {tpl.button && (
+        <div className="w-full space-y-3">
+          <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
+            <div><p className="text-[9px] text-gray-400">Download on the</p><p className="text-white text-xs font-semibold">App Store</p></div>
+          </div>
+          <div className="bg-black rounded-xl px-4 py-3 flex items-center gap-3">
+            <div><p className="text-[9px] text-gray-400">GET IT ON</p><p className="text-white text-xs font-semibold">Google Play</p></div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -454,16 +666,30 @@ export function CouponPreview({ content }: { content: Record<string, any> }) {
   const badge = content?.badge || content?.discount || "20% OFF";
   const description = content?.description || "Your next purchase";
   const buttonText = content?.buttonText || "Redeem Now";
+  const code = content?.code || "SAVE20";
+  const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col items-center justify-center p-5" style={{ backgroundColor: secondary }}>
+      {tpl.header && (
+        <div className="w-full rounded-xl py-2 mb-3 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-bold truncate">{title}</span>
+        </div>
+      )}
       <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed relative" style={{ borderColor: primary + "80" }}>
-        <p className="text-center text-xs font-semibold text-gray-500 mb-1 truncate">{title}</p>
+        {!tpl.header && <p className="text-center text-xs font-semibold text-gray-500 mb-1 truncate">{title}</p>}
         <p className="text-center text-3xl font-black" style={{ color: primary }}>{badge}</p>
         <p className="text-center text-xs text-gray-500 mt-2 truncate">{description}</p>
+        {tpl.split && (
+          <div className="mt-3 bg-gray-100 rounded-lg px-4 py-2 text-center">
+            <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+          </div>
+        )}
       </div>
-      <div className="rounded-xl py-2.5 text-center w-full mt-4" style={{ backgroundColor: primary }}>
-        <span className="text-white text-xs font-semibold">{buttonText}</span>
-      </div>
+      {tpl.button && (
+        <div className="rounded-xl py-2.5 text-center w-full mt-4" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-semibold">{buttonText}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -489,30 +715,55 @@ export function EventPreview({ content }: { content: Record<string, any> }) {
   const title = content?.title || "Tech Conference 2026";
   const description = content?.description || "The Future of Innovation";
   const buttonText = content?.buttonText || "Add to Calendar";
+  const tpl = getLayout(content);
   const startDate = content?.startDate
     ? new Date(content.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
     : "March 15, 2026";
+  const fields = [
+    { label: "Date", value: startDate },
+    { label: "Location", value: content?.location || "Convention Center" },
+    { label: "Organizer", value: content?.organizer || "Events Inc." },
+  ];
   return (
     <div className="h-full" style={{ backgroundColor: secondary }}>
-      <div className="px-4 py-5 text-center" style={{ backgroundColor: primary }}>
-        <CalendarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
-        <p className="text-white text-sm font-bold truncate">{title}</p>
-        <p className="text-white/80 text-xs truncate">{description}</p>
-      </div>
-      <div className="p-4 space-y-3">
-        {[
-          { label: "Date", value: startDate },
-          { label: "Location", value: "Convention Center" },
-          { label: "Organizer", value: "Events Inc." },
-        ].map(f => (
-          <div key={f.label} className="bg-gray-50 rounded-xl p-3">
-            <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
-            <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
-          </div>
-        ))}
-        <div className="rounded-xl py-3 text-center mt-3" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">{buttonText}</span>
+      {tpl.header && (
+        <div className="px-4 py-5 text-center" style={{ backgroundColor: primary }}>
+          <CalendarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
+          <p className="text-white text-sm font-bold truncate">{title}</p>
+          <p className="text-white/80 text-xs truncate">{description}</p>
         </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
+            <CalendarIcon className="h-6 w-6 text-white/80" />
+          </div>
+          <div><p className="text-sm font-bold text-gray-900 truncate">{title}</p><p className="text-xs text-gray-500 truncate">{description}</p></div>
+        </div>
+      )}
+      <div className="p-4 space-y-3">
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            {fields.map(f => (
+              <div key={f.label} className="bg-gray-50 rounded-xl p-3">
+                <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+                <p className="text-[11px] text-gray-700 mt-0.5 truncate">{f.value}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          fields.map(f => (
+            <div key={f.label} className="bg-gray-50 rounded-xl p-3">
+              <p className="text-[10px] text-gray-400 font-medium uppercase">{f.label}</p>
+              <p className="text-xs text-gray-700 mt-0.5">{f.value}</p>
+            </div>
+          ))
+        )}
+        {tpl.button && (
+          <div className="rounded-xl py-3 text-center mt-3" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">{buttonText}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -566,18 +817,26 @@ export function ReviewPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || pd.color || "#F59E0B";
   const name = content?.name || content?.title || "Rate Us!";
   const description = content?.description || "We value your honest feedback";
+  const tpl = getLayout(content);
   return (
     <div className="h-full bg-gradient-to-b from-amber-50 to-orange-50 flex flex-col items-center justify-center p-5">
+      {tpl.header && (
+        <div className="w-full rounded-xl py-2 mb-4 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-sm font-bold">{name}</span>
+        </div>
+      )}
       <div className="flex gap-1.5 mb-3">
         {[1,2,3,4,5].map(i => (
           <svg key={i} className="h-8 w-8" style={{ color: primary }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
         ))}
       </div>
-      <p className="text-lg font-bold text-gray-900 truncate max-w-full">{name}</p>
+      {!tpl.header && <p className="text-lg font-bold text-gray-900 truncate max-w-full">{name}</p>}
       <p className="text-xs text-gray-500 mt-1 mb-4 truncate max-w-full">{description}</p>
-      <div className="rounded-xl py-2.5 text-center w-full mt-3" style={{ backgroundColor: primary }}>
-        <span className="text-white text-xs font-semibold">Submit Review</span>
-      </div>
+      {tpl.button && (
+        <div className="rounded-xl py-2.5 text-center w-full mt-3" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-semibold">Submit Review</span>
+        </div>
+      )}
     </div>
   );
 }
