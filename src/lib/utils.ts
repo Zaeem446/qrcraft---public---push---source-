@@ -41,6 +41,9 @@ export const DYNAMIC_QR_TYPES = [
   { id: 'event', name: 'Event', icon: 'CalendarIcon', description: 'Event details and RSVP', qrfyType: 'event' },
   { id: 'instagram', name: 'Instagram', icon: 'CameraIcon', description: 'Link to Instagram profile', qrfyType: 'url' },
   { id: 'facebook', name: 'Facebook', icon: 'HandThumbUpIcon', description: 'Link to Facebook page', qrfyType: 'url' },
+  { id: 'playlist', name: 'Playlist', icon: 'MusicalNoteIcon', description: 'Share music playlists', qrfyType: 'link-list' },
+  { id: 'product', name: 'Product', icon: 'ShoppingBagIcon', description: 'Product landing page', qrfyType: 'business' },
+  { id: 'feedback', name: 'Feedback', icon: 'ClipboardDocumentCheckIcon', description: 'Collect feedback & surveys', qrfyType: 'feedback' },
 ] as const;
 
 // ─── Static QR Types (data embedded directly, not trackable) ────────────────
@@ -50,6 +53,8 @@ export const STATIC_QR_TYPES = [
   { id: 'email', name: 'Email', icon: 'EnvelopeIcon', description: 'Pre-composed email', qrfyType: 'email' },
   { id: 'sms', name: 'SMS', icon: 'ChatBubbleBottomCenterTextIcon', description: 'Pre-composed text message', qrfyType: 'sms' },
   { id: 'bitcoin', name: 'Bitcoin', icon: 'CurrencyDollarIcon', description: 'Cryptocurrency payment', qrfyType: 'url-static' },
+  { id: 'phone', name: 'Phone Call', icon: 'PhoneIcon', description: 'Initiate a phone call', qrfyType: 'url-static' },
+  { id: 'calendar', name: 'Calendar Event', icon: 'CalendarDaysIcon', description: 'Add event to calendar', qrfyType: 'url-static' },
 ] as const;
 
 // Combined for backward compatibility

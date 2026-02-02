@@ -41,6 +41,11 @@ const TYPE_MAP: Record<string, string> = {
   instagram: 'url',
   facebook: 'url',
   bitcoin: 'url-static',
+  phone: 'url-static',
+  calendar: 'url-static',
+  playlist: 'link-list',
+  product: 'business',
+  feedback: 'feedback',
 };
 
 export function mapTypeToQrfy(ourType: string): string {
@@ -216,7 +221,7 @@ function toAbsoluteUrl(path: string): string {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   // Relative paths like /uploads/xxx.pdf → full URL
-  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft.com';
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
   return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
@@ -257,6 +262,33 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         data: { url: content.address ? `bitcoin:${content.address}` : content.url || '' },
       };
 
+    case 'phone':
+      return {
+        type: 'url-static',
+        data: { url: `tel:${(content.phone || '').replace(/\s/g, '')}` },
+      };
+
+    case 'calendar': {
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT'];
+      if (content.eventTitle) lines.push(`SUMMARY:${content.eventTitle}`);
+      if (content.description) lines.push(`DESCRIPTION:${content.description}`);
+      if (content.location) lines.push(`LOCATION:${content.location}`);
+      if (content.startDate) lines.push(`DTSTART:${content.startDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      if (content.endDate) lines.push(`DTEND:${content.endDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      if (content.allDay) { lines.push(`X-MICROSOFT-CDO-ALLDAYEVENT:TRUE`); }
+      if (content.organizerName && content.organizerEmail) {
+        lines.push(`ORGANIZER;CN=${content.organizerName}:mailto:${content.organizerEmail}`);
+      }
+      if (content.reminder && content.reminder !== 'none') {
+        lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Reminder');
+        const durMap: Record<string, string> = { '5m': '-PT5M', '15m': '-PT15M', '30m': '-PT30M', '1h': '-PT1H', '1d': '-P1D' };
+        lines.push(`TRIGGER:${durMap[content.reminder] || '-PT15M'}`);
+        lines.push('END:VALARM');
+      }
+      lines.push('END:VEVENT', 'END:VCALENDAR');
+      return { type: 'url-static', data: { url: `data:text/calendar;charset=utf-8,${encodeURIComponent(lines.join('\r\n'))}` } };
+    }
+
     case 'text':
       return { type: 'text', data: { text: content.text || content.url || '' } };
 
@@ -283,6 +315,9 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           ...(content.workPhone ? { workPhone: content.workPhone } : {}),
           ...(content.fax ? { fax: content.fax } : {}),
           ...(content.pageDesign ? { design: { primary: content.pageDesign.primary || '#7C3AED', secondary: content.pageDesign.secondary || '#FFFFFF' } } : {}),
+          ...(Array.isArray(content.socials) && content.socials.length ? {
+            socials: content.socials.filter((s: any) => s.platform && s.url).map((s: any) => ({ id: s.platform, value: s.url })),
+          } : {}),
         },
       };
 
@@ -518,6 +553,8 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           description: content.description || '',
           validUntil: validUntil || (Date.now() + 30 * 24 * 60 * 60 * 1000),
           badge: content.badge || content.discount || '',
+          ...(content.code ? { code: content.code } : {}),
+          ...(content.terms ? { terms: content.terms } : {}),
           ...(content.buttonUrl ? { button: { text: content.buttonText || 'Redeem', url: content.buttonUrl } } : {}),
         },
       };
@@ -535,6 +572,9 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           description: content.description || '',
           email: '',
           ...(content.website ? { website: content.website } : {}),
+          ...(Array.isArray(content.reviewLinks) && content.reviewLinks.length ? {
+            reviewLinks: content.reviewLinks.filter((l: any) => l.platform && l.url).map((l: any) => ({ platform: l.platform, url: l.url })),
+          } : {}),
         },
       };
 
@@ -572,7 +612,68 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
             from: from || Date.now(),
             to: to || (Date.now() + 3600000),
           },
+          ...(content.location ? { location: content.location } : {}),
+          ...(content.organizer ? { organizer: content.organizer } : {}),
           ...(content.buttonUrl ? { button: { text: content.buttonText || 'RSVP', url: content.buttonUrl } } : {}),
+        },
+      };
+    }
+
+    // ── Playlist ────────────────────────────────────────────────────────
+    case 'playlist': {
+      const platformLinks = Array.isArray(content.platformLinks)
+        ? content.platformLinks
+            .filter((l: any) => l.platform && l.url)
+            .map((l: any) => ({ url: l.url || '', text: l.platform || '' }))
+        : [];
+      return {
+        type: 'link-list',
+        data: {
+          design: { primary: design3.primary, secondary: design3.secondary, tertiary: design3.tertiary || '#F3F4F6' },
+          links: platformLinks,
+          title: content.title || '',
+          description: content.description || '',
+          ...(content.logo ? { logo: toAbsoluteUrl(content.logo) } : {}),
+        },
+      };
+    }
+
+    // ── Product ─────────────────────────────────────────────────────────
+    case 'product': {
+      const productImages = Array.isArray(content.images)
+        ? content.images.filter((img: any) => img.file || img.url).map((img: any) => toAbsoluteUrl(img.file || img.url || ''))
+        : [];
+      return {
+        type: 'business',
+        data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          title: content.productName || '',
+          company: content.productName || '',
+          description: content.description || '',
+          ...(productImages.length ? { cover: productImages[0] } : {}),
+          ...(content.buyUrl ? { button: { text: content.buyButtonText || 'Buy Now', url: content.buyUrl } } : {}),
+        },
+      };
+    }
+
+    // ── Feedback / Survey ───────────────────────────────────────────────
+    case 'feedback': {
+      const categories = Array.isArray(content.questions)
+        ? content.questions.map((q: any) => ({
+            name: q.text || '',
+            type: q.type || 'rating',
+            ...(q.choices ? { choices: q.choices } : {}),
+          }))
+        : [];
+      return {
+        type: 'feedback',
+        data: {
+          design: { color: designC.color || designC.primary || '#7C3AED' },
+          name: content.title || 'Feedback',
+          title: content.title || '',
+          description: content.description || '',
+          categories,
+          email: '',
         },
       };
     }
@@ -708,7 +809,7 @@ export async function createStaticQRImage(
     body.data = data;
   } else {
     // Use a placeholder URL for preview of dynamic types
-    body.data = { url: content.url || 'https://qrcraft.com/preview' };
+    body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {

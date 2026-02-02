@@ -8,6 +8,7 @@ import {
   Bars3Icon, MusicalNoteIcon, TicketIcon, ChatBubbleLeftIcon, CameraIcon,
   HandThumbUpIcon, ShareIcon, StarIcon, CalendarIcon, EnvelopeIcon,
   ChatBubbleBottomCenterTextIcon, CurrencyDollarIcon, DocumentTextIcon,
+  PhoneIcon, CalendarDaysIcon, ShoppingBagIcon, ClipboardDocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -16,6 +17,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Bars3Icon, MusicalNoteIcon, TicketIcon, ChatBubbleLeftIcon, CameraIcon,
   HandThumbUpIcon, ShareIcon, StarIcon, CalendarIcon, EnvelopeIcon,
   ChatBubbleBottomCenterTextIcon, CurrencyDollarIcon, DocumentTextIcon,
+  PhoneIcon, CalendarDaysIcon, ShoppingBagIcon, ClipboardDocumentCheckIcon,
 };
 
 interface TypeSelectorProps {

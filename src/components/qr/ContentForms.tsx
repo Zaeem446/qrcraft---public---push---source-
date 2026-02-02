@@ -248,7 +248,19 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
                 <textarea value={content.note || ""} onChange={e => set("note", e.target.value)}
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Optional note..." />
               </div>
+              <FileUploadField label="Company Logo" accept="image/*" value={content.companyLogo || ""} onChange={v => set("companyLogo", v)} />
             </div>
+          </AccordionSection>
+          <AccordionSection icon={<ShareIcon className="h-5 w-5 text-gray-500" />} title="Social Media" subtitle="Add social media profiles to your contact card.">
+            <DynamicListField
+              label="Social Profiles"
+              fields={[
+                { key: "platform", label: "Platform", type: "select", options: SOCIAL_PLATFORMS },
+                { key: "url", label: "URL", placeholder: "https://..." },
+              ]}
+              value={content.socials || []}
+              onChange={v => set("socials", v)}
+            />
           </AccordionSection>
           <PageDesignSection content={content} setContent={setContent} mode="2color" />
         </>
@@ -454,6 +466,25 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <FileUploadField label="Logo" accept="image/*" value={content.logo || ""} onChange={v => set("logo", v)} />
               <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="My Links" />
               <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Button Style</label>
+                <div className="flex gap-2">
+                  {[
+                    { value: "rounded", label: "Rounded" },
+                    { value: "square", label: "Square" },
+                    { value: "outline", label: "Outline" },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => set("buttonStyle", opt.value)}
+                      className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                        (content.buttonStyle || "rounded") === opt.value
+                          ? "bg-violet-100 border-violet-300 text-violet-700"
+                          : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                      }`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
                 <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Short description..." />
@@ -587,7 +618,13 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
                   className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Coupon details..." />
               </div>
               <Input label="Badge / Discount" value={content.badge || content.discount || ""} onChange={e => set("badge", e.target.value)} placeholder="20% OFF" />
+              <Input label="Coupon Code" value={content.code || ""} onChange={e => set("code", e.target.value)} placeholder="SAVE20" />
               <Input label="Expiry Date *" type="date" value={content.expiryDate || ""} onChange={e => set("expiryDate", e.target.value)} />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Terms & Conditions</label>
+                <textarea value={content.terms || ""} onChange={e => set("terms", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Coupon terms and conditions..." />
+              </div>
               <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="Redeem Now" />
               <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://yourstore.com/redeem" />
             </div>
@@ -596,7 +633,14 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         </>
       );
 
-    case "review":
+    case "review": {
+      const REVIEW_PLATFORMS = [
+        { value: "google", label: "Google" },
+        { value: "yelp", label: "Yelp" },
+        { value: "tripadvisor", label: "TripAdvisor" },
+        { value: "facebook", label: "Facebook" },
+        { value: "trustpilot", label: "Trustpilot" },
+      ];
       return (
         <>
           <AccordionSection icon={<StarIcon className="h-5 w-5 text-gray-500" />} title="Feedback" subtitle="Collect feedback and reviews." defaultOpen>
@@ -611,9 +655,21 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
               <Input label="Website" value={content.website || ""} onChange={e => set("website", e.target.value)} placeholder="https://yourbusiness.com" />
             </div>
           </AccordionSection>
+          <AccordionSection icon={<StarIcon className="h-5 w-5 text-gray-500" />} title="Review Platform Links" subtitle="Add links to your review profiles.">
+            <DynamicListField
+              label="Review Links"
+              fields={[
+                { key: "platform", label: "Platform", type: "select", options: REVIEW_PLATFORMS },
+                { key: "url", label: "URL", placeholder: "https://..." },
+              ]}
+              value={content.reviewLinks || []}
+              onChange={v => set("reviewLinks", v)}
+            />
+          </AccordionSection>
           <PageDesignSection content={content} setContent={setContent} mode="1color" />
         </>
       );
+    }
 
     // ── Social (enhanced with logo, PageDesignSection) ────────────────────
     case "social":
@@ -658,6 +714,9 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
                 <Input label="Start Date *" type="datetime-local" value={content.startDate || ""} onChange={e => set("startDate", e.target.value)} />
                 <Input label="End Date *" type="datetime-local" value={content.endDate || ""} onChange={e => set("endDate", e.target.value)} />
               </div>
+              <Input label="Location" value={content.location || ""} onChange={e => set("location", e.target.value)} placeholder="Convention Center, 123 Main St" />
+              <Input label="Organizer" value={content.organizer || ""} onChange={e => set("organizer", e.target.value)} placeholder="Events Inc." />
+              <Input label="RSVP URL" value={content.rsvpUrl || ""} onChange={e => set("rsvpUrl", e.target.value)} placeholder="https://event.com/rsvp" />
               <Input label="Button Text" value={content.buttonText || ""} onChange={e => set("buttonText", e.target.value)} placeholder="RSVP" />
               <Input label="Button URL" value={content.buttonUrl || ""} onChange={e => set("buttonUrl", e.target.value)} placeholder="https://event.com/register" />
             </div>
@@ -672,6 +731,205 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
           <Input label="Bitcoin Address" value={content.address || ""} onChange={e => set("address", e.target.value)} placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" />
         </AccordionSection>
       );
+
+    case "phone":
+      return (
+        <AccordionSection icon={<ChatBubbleLeftIcon className="h-5 w-5 text-gray-500" />} title="Phone Call" subtitle="Enter the phone number to call." defaultOpen>
+          <div className="space-y-3">
+            <Input label="Name" value={content.name || ""} onChange={e => set("name", e.target.value)} placeholder="Contact name" />
+            <Input label="Phone Number *" value={content.phone || ""} onChange={e => set("phone", e.target.value)} placeholder="+1 555 123 4567" />
+          </div>
+        </AccordionSection>
+      );
+
+    case "calendar":
+      return (
+        <AccordionSection icon={<CalendarIcon className="h-5 w-5 text-gray-500" />} title="Calendar Event" subtitle="Create a calendar event." defaultOpen>
+          <div className="space-y-3">
+            <Input label="Event Title *" value={content.eventTitle || ""} onChange={e => set("eventTitle", e.target.value)} placeholder="Team Meeting" />
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+              <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Event details..." />
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={content.allDay || false} onChange={e => set("allDay", e.target.checked)}
+                className="rounded border-gray-300 text-violet-600 focus:ring-violet-500" />
+              <span className="text-sm text-gray-600">All-day event</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Start *" type="datetime-local" value={content.startDate || ""} onChange={e => set("startDate", e.target.value)} />
+              <Input label="End *" type="datetime-local" value={content.endDate || ""} onChange={e => set("endDate", e.target.value)} />
+            </div>
+            <Input label="Location" value={content.location || ""} onChange={e => set("location", e.target.value)} placeholder="123 Main St" />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Organizer Name" value={content.organizerName || ""} onChange={e => set("organizerName", e.target.value)} />
+              <Input label="Organizer Email" type="email" value={content.organizerEmail || ""} onChange={e => set("organizerEmail", e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Reminder</label>
+              <select value={content.reminder || "none"} onChange={e => set("reminder", e.target.value)}
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
+                <option value="none">None</option>
+                <option value="5m">5 minutes before</option>
+                <option value="15m">15 minutes before</option>
+                <option value="30m">30 minutes before</option>
+                <option value="1h">1 hour before</option>
+                <option value="1d">1 day before</option>
+              </select>
+            </div>
+          </div>
+        </AccordionSection>
+      );
+
+    case "playlist": {
+      const MUSIC_PLATFORMS = [
+        { value: "Spotify", label: "Spotify" },
+        { value: "Apple Music", label: "Apple Music" },
+        { value: "YouTube Music", label: "YouTube Music" },
+        { value: "SoundCloud", label: "SoundCloud" },
+        { value: "Deezer", label: "Deezer" },
+        { value: "Tidal", label: "Tidal" },
+        { value: "Amazon Music", label: "Amazon Music" },
+      ];
+      return (
+        <>
+          <AccordionSection icon={<MusicalNoteIcon className="h-5 w-5 text-gray-500" />} title="Playlist" subtitle="Share your playlist across platforms." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Title *" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="My Awesome Playlist" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Playlist description..." />
+              </div>
+              <FileUploadField label="Cover Art / Logo" accept="image/*" value={content.logo || ""} onChange={v => set("logo", v)} />
+              <DynamicListField
+                label="Platform Links"
+                fields={[
+                  { key: "platform", label: "Platform", type: "select", options: MUSIC_PLATFORMS },
+                  { key: "url", label: "URL", placeholder: "https://..." },
+                ]}
+                value={content.platformLinks || []}
+                onChange={v => set("platformLinks", v)}
+              />
+            </div>
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
+        </>
+      );
+    }
+
+    case "product":
+      return (
+        <>
+          <AccordionSection icon={<BuildingOfficeIcon className="h-5 w-5 text-gray-500" />} title="Product" subtitle="Create a product landing page." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Product Name *" value={content.productName || ""} onChange={e => set("productName", e.target.value)} placeholder="Amazing Product" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={3} placeholder="Product description..." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Price" type="number" value={content.price || ""} onChange={e => set("price", e.target.value)} placeholder="29.99" />
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">Currency</label>
+                  <select value={content.currency || "USD"} onChange={e => set("currency", e.target.value)}
+                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                  </select>
+                </div>
+              </div>
+              <MultiFileUpload
+                label="Product Images"
+                accept="image/*"
+                value={content.images || []}
+                onChange={v => set("images", v)}
+              />
+              <Input label="Buy Button Text" value={content.buyButtonText || ""} onChange={e => set("buyButtonText", e.target.value)} placeholder="Buy Now" />
+              <Input label="Buy URL" value={content.buyUrl || ""} onChange={e => set("buyUrl", e.target.value)} placeholder="https://store.com/product" />
+            </div>
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="2color" />
+        </>
+      );
+
+    case "feedback": {
+      const questions: { text: string; type: string; choices?: string[] }[] = content.questions || [];
+      const addQuestion = () => set("questions", [...questions, { text: "", type: "rating" }]);
+      const removeQuestion = (idx: number) => set("questions", questions.filter((_, i) => i !== idx));
+      const updateQuestion = (idx: number, key: string, val: any) =>
+        set("questions", questions.map((q, i) => (i === idx ? { ...q, [key]: val } : q)));
+      const addChoice = (qIdx: number) => {
+        const q = questions[qIdx];
+        updateQuestion(qIdx, "choices", [...(q.choices || []), ""]);
+      };
+      const updateChoice = (qIdx: number, cIdx: number, val: string) => {
+        const q = questions[qIdx];
+        const choices = (q.choices || []).map((c: string, i: number) => (i === cIdx ? val : c));
+        updateQuestion(qIdx, "choices", choices);
+      };
+      const removeChoice = (qIdx: number, cIdx: number) => {
+        const q = questions[qIdx];
+        updateQuestion(qIdx, "choices", (q.choices || []).filter((_: string, i: number) => i !== cIdx));
+      };
+      return (
+        <>
+          <AccordionSection icon={<StarIcon className="h-5 w-5 text-gray-500" />} title="Feedback / Survey" subtitle="Create a feedback form." defaultOpen>
+            <div className="space-y-3">
+              <Input label="Title *" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Customer Feedback" />
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>
+                <textarea value={content.description || ""} onChange={e => set("description", e.target.value)}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" rows={2} placeholder="Help us improve..." />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-2 block">Questions</label>
+                <div className="space-y-3">
+                  {questions.map((q, qIdx) => (
+                    <div key={qIdx} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input type="text" placeholder="Question text" value={q.text || ""}
+                          onChange={e => updateQuestion(qIdx, "text", e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                        <button onClick={() => removeQuestion(qIdx)} className="text-xs text-red-500 hover:underline">Remove</button>
+                      </div>
+                      <select value={q.type || "rating"} onChange={e => updateQuestion(qIdx, "type", e.target.value)}
+                        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white">
+                        <option value="rating">Star Rating</option>
+                        <option value="text">Text Response</option>
+                        <option value="choice">Multiple Choice</option>
+                      </select>
+                      {q.type === "choice" && (
+                        <div className="ml-3 space-y-1">
+                          {(q.choices || []).map((c: string, cIdx: number) => (
+                            <div key={cIdx} className="flex items-center gap-2">
+                              <input type="text" placeholder={`Choice ${cIdx + 1}`} value={c}
+                                onChange={e => updateChoice(qIdx, cIdx, e.target.value)}
+                                className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                              <button onClick={() => removeChoice(qIdx, cIdx)} className="text-xs text-red-400 hover:text-red-600">x</button>
+                            </div>
+                          ))}
+                          <button onClick={() => addChoice(qIdx)} className="text-xs text-violet-600 font-medium hover:underline">+ Add choice</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={addQuestion} className="mt-2 flex items-center gap-1.5 text-xs text-violet-600 font-medium hover:text-violet-700">
+                  <PlusIcon className="h-3.5 w-3.5" /> Add question
+                </button>
+              </div>
+            </div>
+          </AccordionSection>
+          <PageDesignSection content={content} setContent={setContent} mode="1color" />
+        </>
+      );
+    }
 
     default: {
       const typeMeta = QR_TYPES.find(t => t.id === qrType);
@@ -699,19 +957,27 @@ function MenuSections({ sections, onChange }: { sections: any[]; onChange: (v: a
     onChange(sections.map((s, i) => (i === idx ? { ...s, [key]: val } : s)));
 
   const addItem = (sIdx: number) => {
-    const items = [...(sections[sIdx].items || []), { name: "", price: "" }];
+    const items = [...(sections[sIdx].items || []), { name: "", price: "", dietary: [] }];
     updateSection(sIdx, "items", items);
   };
   const removeItem = (sIdx: number, iIdx: number) => {
     const items = sections[sIdx].items.filter((_: any, i: number) => i !== iIdx);
     updateSection(sIdx, "items", items);
   };
-  const updateItem = (sIdx: number, iIdx: number, key: string, val: string) => {
+  const updateItem = (sIdx: number, iIdx: number, key: string, val: any) => {
     const items = sections[sIdx].items.map((item: any, i: number) =>
       i === iIdx ? { ...item, [key]: val } : item
     );
     updateSection(sIdx, "items", items);
   };
+  const toggleDietary = (sIdx: number, iIdx: number, tag: string) => {
+    const item = sections[sIdx].items[iIdx];
+    const current: string[] = item.dietary || [];
+    const next = current.includes(tag) ? current.filter((d: string) => d !== tag) : [...current, tag];
+    updateItem(sIdx, iIdx, "dietary", next);
+  };
+
+  const DIETARY_TAGS = ["vegetarian", "vegan", "gluten-free", "spicy", "halal"];
 
   return (
     <div className="space-y-4">
@@ -725,14 +991,28 @@ function MenuSections({ sections, onChange }: { sections: any[]; onChange: (v: a
             <button onClick={() => removeSection(sIdx)} className="text-xs text-red-500 hover:underline">Remove</button>
           </div>
           {(section.items || []).map((item: any, iIdx: number) => (
-            <div key={iIdx} className="flex items-center gap-2 ml-4">
-              <input type="text" placeholder="Item name" value={item.name || ""}
-                onChange={e => updateItem(sIdx, iIdx, "name", e.target.value)}
-                className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
-              <input type="text" placeholder="Price" value={item.price || ""}
-                onChange={e => updateItem(sIdx, iIdx, "price", e.target.value)}
-                className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
-              <button onClick={() => removeItem(sIdx, iIdx)} className="text-xs text-red-400 hover:text-red-600">x</button>
+            <div key={iIdx} className="ml-4 border border-gray-100 rounded-lg p-2 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <input type="text" placeholder="Item name" value={item.name || ""}
+                  onChange={e => updateItem(sIdx, iIdx, "name", e.target.value)}
+                  className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" />
+                <input type="number" placeholder="Price" value={item.price || ""}
+                  onChange={e => updateItem(sIdx, iIdx, "price", e.target.value)}
+                  className="w-20 px-2 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-900 placeholder-gray-400" step="0.01" />
+                <button onClick={() => removeItem(sIdx, iIdx)} className="text-xs text-red-400 hover:text-red-600">x</button>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {DIETARY_TAGS.map(tag => (
+                  <button key={tag} type="button" onClick={() => toggleDietary(sIdx, iIdx, tag)}
+                    className={`px-2 py-0.5 text-[10px] rounded-full border transition-colors ${
+                      (item.dietary || []).includes(tag)
+                        ? "bg-violet-100 border-violet-300 text-violet-700"
+                        : "bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100"
+                    }`}>
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
           ))}
           <button onClick={() => addItem(sIdx)} className="text-xs text-violet-600 font-medium ml-4 hover:underline">+ Add item</button>

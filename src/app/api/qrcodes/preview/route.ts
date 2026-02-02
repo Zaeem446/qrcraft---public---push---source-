@@ -114,6 +114,36 @@ function contentToString(type: string, content: Record<string, any>): string {
     case 'images':
       return content.fileUrl || content.url || 'https://example.com';
 
+    case 'phone':
+      return `tel:${(content.phone || '').replace(/\s/g, '')}`;
+
+    case 'playlist': {
+      const parts = [content.title || 'Playlist'];
+      if (Array.isArray(content.platformLinks)) {
+        for (const link of content.platformLinks) {
+          if (link.url) parts.push(`${link.platform || ''}: ${link.url}`);
+        }
+      }
+      return parts.join('\n') || 'https://example.com';
+    }
+
+    case 'product':
+      return content.buyUrl || content.productName || 'https://example.com';
+
+    case 'feedback':
+      return content.title || 'Feedback Form';
+
+    case 'calendar': {
+      const calLines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT'];
+      if (content.eventTitle) calLines.push(`SUMMARY:${content.eventTitle}`);
+      if (content.description) calLines.push(`DESCRIPTION:${content.description}`);
+      if (content.location) calLines.push(`LOCATION:${content.location}`);
+      if (content.startDate) calLines.push(`DTSTART:${content.startDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      if (content.endDate) calLines.push(`DTEND:${content.endDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      calLines.push('END:VEVENT', 'END:VCALENDAR');
+      return calLines.join('\n');
+    }
+
     default:
       return content.url || content.text || 'https://example.com';
   }

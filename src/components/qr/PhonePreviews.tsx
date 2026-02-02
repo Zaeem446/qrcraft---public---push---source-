@@ -132,6 +132,9 @@ export function LinksPreview({ content }: { content: Record<string, any> }) {
     ? links.map((l: any) => l.text || l.label || "Untitled Link")
     : ["Portfolio Website", "Latest Blog Post", "Twitter Profile", "YouTube Channel"];
   const tpl = getLayout(content);
+  const btnStyle = content?.buttonStyle || "rounded";
+  const btnRadius = btnStyle === "square" ? "rounded-md" : btnStyle === "outline" ? "rounded-xl" : "rounded-xl";
+  const btnBorder = btnStyle === "outline" ? "border border-white/40 bg-transparent" : "bg-white/15 backdrop-blur-sm";
   return (
     <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
       {tpl.header && (
@@ -154,20 +157,20 @@ export function LinksPreview({ content }: { content: Record<string, any> }) {
       {tpl.split ? (
         <div className="grid grid-cols-2 gap-2">
           {linkLabels.slice(0, 4).map((l: string, i: number) => (
-            <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-3 py-3 text-center">
+            <div key={i} className={`${btnBorder} ${btnRadius} px-3 py-3 text-center`}>
               <span className="text-white text-[11px] font-medium truncate block">{l}</span>
             </div>
           ))}
         </div>
       ) : (
         linkLabels.slice(0, 4).map((l: string, i: number) => (
-          <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-4 py-3 mb-2.5 text-center">
+          <div key={i} className={`${btnBorder} ${btnRadius} px-4 py-3 mb-2.5 text-center`}>
             <span className="text-white text-xs font-medium truncate block">{l}</span>
           </div>
         ))
       )}
       {tpl.button && (
-        <div className="mt-3 rounded-xl py-2.5 text-center bg-white/20">
+        <div className={`mt-3 ${btnRadius} py-2.5 text-center ${btnStyle === "outline" ? "border border-white/40" : "bg-white/20"}`}>
           <span className="text-white text-xs font-semibold">View All Links</span>
         </div>
       )}
@@ -185,6 +188,7 @@ export function VcardPreview({ content }: { content: Record<string, any> }) {
   const phone = content?.phone || "+1 (555) 123-4567";
   const email = content?.email || "john@techco.com";
   const website = content?.website || "www.johnsmith.dev";
+  const socials: { platform: string; url: string }[] = content?.socials || [];
   const tpl = getLayout(content);
   const fields = [{ label: "Phone", value: phone }, { label: "Email", value: email }, { label: "Website", value: website }];
   return (
@@ -228,6 +232,15 @@ export function VcardPreview({ content }: { content: Record<string, any> }) {
             </div>
           ))
         )}
+        {socials.length > 0 && (
+          <div className="flex justify-center gap-2 pt-1">
+            {socials.slice(0, 5).map((s, i) => (
+              <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: primary + "15" }}>
+                <span className="text-[9px] font-bold uppercase" style={{ color: primary }}>{(s.platform || "").slice(0, 2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
         {tpl.button && (
           <div className="rounded-xl py-2.5 text-center mt-2" style={{ backgroundColor: primary }}>
             <span className="text-white text-xs font-semibold">Save Contact</span>
@@ -245,6 +258,7 @@ export function BusinessPreview({ content }: { content: Record<string, any> }) {
   const companyName = content?.companyName || "Green Valley Co.";
   const headline = content?.title || content?.description || "Organic & Sustainable Products";
   const cover = content?.cover;
+  const schedule: { day: string; open: string; close: string }[] = Array.isArray(content?.schedule) ? content.schedule : [];
   const tpl = getLayout(content);
   const sections = ["About Us", "Our Products", "Locations", "Contact"];
   return (
@@ -290,6 +304,18 @@ export function BusinessPreview({ content }: { content: Record<string, any> }) {
             </div>
           ))
         )}
+        {schedule.length > 0 && (
+          <div className="mt-2 rounded-xl p-3" style={{ backgroundColor: primary + "08" }}>
+            <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: primary }}>Hours</p>
+            {schedule.slice(0, 3).map((s, i) => (
+              <div key={i} className="flex justify-between text-[10px] text-gray-600 py-0.5">
+                <span className="capitalize">{s.day}</span>
+                <span>{s.open} – {s.close}</span>
+              </div>
+            ))}
+            {schedule.length > 3 && <p className="text-[9px] text-gray-400 mt-1">+{schedule.length - 3} more days</p>}
+          </div>
+        )}
       </div>
       {tpl.button && (
         <div className="px-4 pb-3">
@@ -320,6 +346,7 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
       <div className="flex-1 flex items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
         {tpl.split ? (
+          /* Templates 1, 3 — side-by-side play button + info */
           <div className="z-10 flex items-center gap-4 px-4">
             <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg flex-shrink-0" style={{ backgroundColor: primary }}>
               <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
@@ -329,7 +356,24 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
               <p className="text-gray-400 text-[10px] truncate">{description}</p>
             </div>
           </div>
+        ) : !tpl.header ? (
+          /* Template 2 Minimal — compact layout with info row */
+          <div className="z-10 flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: primary }}>
+              <div className="w-0 h-0 border-l-[10px] border-l-white border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-0.5" />
+            </div>
+            <p className="text-white text-xs font-semibold truncate max-w-[80%]">{title}</p>
+            <p className="text-gray-400 text-[10px] truncate max-w-[80%]">{description}</p>
+          </div>
+        ) : !tpl.button ? (
+          /* Template 4 Clean — large centered play button with bottom overlay */
+          <div className="z-10 flex flex-col items-center">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: primary }}>
+              <div className="w-0 h-0 border-l-[14px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
+            </div>
+          </div>
         ) : (
+          /* Template 0 Classic — standard centered play button */
           <div className="w-14 h-14 rounded-full flex items-center justify-center z-10 shadow-lg" style={{ backgroundColor: primary }}>
             <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
           </div>
@@ -339,8 +383,8 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
         <div className="h-1 rounded-full mb-3" style={{ backgroundColor: secondary === "#0F172A" ? "#374151" : primary + "30" }}>
           <div className="h-1 rounded-full w-1/3" style={{ backgroundColor: primary }} />
         </div>
-        {!tpl.header && !tpl.split && <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>}
-        {!tpl.header && !tpl.split && <p className="text-gray-500 text-[10px] truncate">{description}</p>}
+        {!tpl.button && tpl.header && <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>}
+        {!tpl.button && tpl.header && <p className="text-gray-500 text-[10px] truncate">{description}</p>}
       </div>
       {tpl.button && (
         <div className="px-4 pb-4">
@@ -383,23 +427,57 @@ export function ImagesPreview({ content }: { content: Record<string, any> }) {
         </div>
       )}
       <div className="flex-1 px-4 pb-4">
-        {tpl.split && images.length > 1 ? (
+        {tpl.split ? (
+          /* Templates 1, 3 — 2x2 image grid */
           <div className="grid grid-cols-2 gap-2 h-full">
-            {images.slice(0, 4).map((img, i) => (
+            {images.length > 1 ? images.slice(0, 4).map((img, i) => (
               <div key={i} className="rounded-lg overflow-hidden">
                 <img src={img.file} alt="" className="w-full h-full object-cover" />
               </div>
+            )) : [0,1,2,3].map(i => (
+              <div key={i} className="rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}40, ${primary}20)` }}>
+                <PhotoIcon className="h-6 w-6 text-white/40" />
+              </div>
             ))}
           </div>
-        ) : firstImage ? (
+        ) : !tpl.header ? (
+          /* Template 2 Minimal — compact side-by-side */
+          <div className="flex gap-3 h-full items-center">
+            <div className="w-2/5 h-full rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0" style={{ background: firstImage ? undefined : `linear-gradient(135deg, ${primary}60, ${primary}30)` }}>
+              {firstImage ? <img src={firstImage} alt="" className="w-full h-full object-cover" /> : <PhotoIcon className="h-10 w-10 text-white/50" />}
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="h-3 bg-gray-200 rounded-full w-full" />
+              <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+              <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+              <p className="text-[10px] text-gray-400 mt-1">{imageCount > 0 ? `${imageCount} photos` : "Gallery"}</p>
+            </div>
+          </div>
+        ) : !tpl.button ? (
+          /* Template 4 Clean — large image with caption overlay */
           <div className="h-full rounded-xl overflow-hidden relative">
-            <img src={firstImage} alt="" className="w-full h-full object-cover" />
+            {firstImage ? <img src={firstImage} alt="" className="w-full h-full object-cover" /> : (
+              <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}60, ${primary}30)` }}>
+                <PhotoIcon className="h-12 w-12 text-white/50" />
+              </div>
+            )}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+              <p className="text-white text-xs font-semibold truncate">{title}</p>
+              <p className="text-white/70 text-[10px] truncate">{imageCount > 0 ? `${imageCount} photos` : description}</p>
+            </div>
           </div>
         ) : (
-          <div className="h-full rounded-xl overflow-hidden relative flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}60, ${primary}30)` }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            <PhotoIcon className="h-12 w-12 text-white/50 z-10" />
-          </div>
+          /* Template 0 Classic — standard single hero image */
+          firstImage ? (
+            <div className="h-full rounded-xl overflow-hidden relative">
+              <img src={firstImage} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="h-full rounded-xl overflow-hidden relative flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}60, ${primary}30)` }}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <PhotoIcon className="h-12 w-12 text-white/50 z-10" />
+            </div>
+          )
         )}
       </div>
       {tpl.button && (
@@ -597,6 +675,7 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
       )}
       <div className={`flex-1 flex flex-col items-center ${tpl.header ? "" : "justify-center"}`}>
         {tpl.split ? (
+          /* Templates 1, 3 — side-by-side album art + info */
           <div className="flex items-center gap-4 w-full mb-5">
             <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0" style={{ backgroundColor: primary }}>
               <MusicalNoteIcon className="h-10 w-10 text-white" />
@@ -606,7 +685,28 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
               <p className="text-gray-400 text-[10px] truncate">{description}</p>
             </div>
           </div>
+        ) : !tpl.header ? (
+          /* Template 2 Minimal — compact inline */
+          <div className="flex items-center gap-3 w-full mb-5">
+            <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style={{ backgroundColor: primary }}>
+              <MusicalNoteIcon className="h-7 w-7 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-white text-sm font-bold truncate">{title}</p>
+              <p className="text-gray-400 text-[10px] truncate">{description}</p>
+            </div>
+          </div>
+        ) : !tpl.button ? (
+          /* Template 4 Clean — large art with text below */
+          <>
+            <div className="w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
+              <MusicalNoteIcon className="h-14 w-14 text-white" />
+            </div>
+            <p className="text-white text-base font-bold mb-0.5 truncate max-w-full">{title}</p>
+            <p className="text-gray-400 text-xs mb-5 truncate max-w-full">{description}</p>
+          </>
         ) : (
+          /* Template 0 Classic — standard centered album art */
           <>
             <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
               <MusicalNoteIcon className="h-12 w-12 text-white" />
@@ -629,6 +729,10 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
   );
 }
 
+const DIETARY_COLORS: Record<string, string> = {
+  vegetarian: "#22C55E", vegan: "#16A34A", "gluten-free": "#EAB308", spicy: "#EF4444", halal: "#3B82F6",
+};
+
 export function MenuPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || "#14B8A6";
@@ -638,6 +742,10 @@ export function MenuPreview({ content }: { content: Record<string, any> }) {
   const categories = secs && secs.length > 0
     ? secs.map((s: any) => s.name || "Unnamed").slice(0, 4)
     : ["Appetizers", "Beverages", "Main Dishes", "Dessert"];
+  // Get first few items for preview
+  const firstItems = secs && secs.length > 0
+    ? secs.flatMap((s: any) => (s.items || []).slice(0, 2)).slice(0, 3)
+    : [];
   const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
@@ -667,12 +775,29 @@ export function MenuPreview({ content }: { content: Record<string, any> }) {
             ))}
           </div>
         ) : (
-          categories.map((cat: string, i: number) => (
-            <div key={i} className="flex items-center justify-between py-3.5 border-b" style={{ borderColor: primary + "20" }}>
-              <span className="text-sm text-gray-700 truncate">{cat}</span>
-              <ArrowRightIcon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: primary }} />
-            </div>
-          ))
+          <>
+            {categories.map((cat: string, i: number) => (
+              <div key={i} className="flex items-center justify-between py-3.5 border-b" style={{ borderColor: primary + "20" }}>
+                <span className="text-sm text-gray-700 truncate">{cat}</span>
+                <ArrowRightIcon className="h-3.5 w-3.5 flex-shrink-0" style={{ color: primary }} />
+              </div>
+            ))}
+            {firstItems.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {firstItems.map((item: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between py-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[11px] text-gray-600 truncate">{item.name}</span>
+                      {(item.dietary || []).map((d: string) => (
+                        <span key={d} className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: DIETARY_COLORS[d] || "#9CA3AF" }} />
+                      ))}
+                    </div>
+                    {item.price && <span className="text-[11px] font-semibold flex-shrink-0 ml-2" style={{ color: primary }}>${item.price}</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
       {tpl.button && (
@@ -701,6 +826,7 @@ export function AppsPreview({ content }: { content: Record<string, any> }) {
         </div>
       )}
       {tpl.split ? (
+        /* Templates 1, 3 — side-by-side icon + info */
         <div className="flex items-center gap-4 w-full mb-6">
           <div className="w-16 h-16 bg-white rounded-2xl shadow-2xl flex items-center justify-center flex-shrink-0">
             <DevicePhoneMobileIcon className="h-8 w-8" style={{ color: primary }} />
@@ -710,7 +836,36 @@ export function AppsPreview({ content }: { content: Record<string, any> }) {
             <p className="text-white/70 text-xs truncate">{description}</p>
           </div>
         </div>
+      ) : !tpl.header ? (
+        /* Template 2 Minimal — compact inline */
+        <div className="flex items-center gap-3 w-full mb-6">
+          <div className="w-12 h-12 bg-white rounded-xl shadow-xl flex items-center justify-center flex-shrink-0">
+            <DevicePhoneMobileIcon className="h-6 w-6" style={{ color: primary }} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-white text-sm font-bold truncate">{appName}</p>
+            <p className="text-white/60 text-xs truncate">{description}</p>
+          </div>
+        </div>
+      ) : !tpl.button ? (
+        /* Template 4 Clean — large icon with overlay text */
+        <>
+          <div className="w-24 h-24 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
+            <DevicePhoneMobileIcon className="h-12 w-12" style={{ color: primary }} />
+          </div>
+          <p className="text-white text-lg font-bold mb-1 truncate max-w-full">{appName}</p>
+          <p className="text-white/60 text-sm mb-4 truncate max-w-full">{description}</p>
+          <div className="w-full space-y-2">
+            <div className="bg-black/30 rounded-xl px-4 py-2.5 flex items-center gap-3">
+              <div><p className="text-[9px] text-gray-400">Download on the</p><p className="text-white text-xs font-semibold">App Store</p></div>
+            </div>
+            <div className="bg-black/30 rounded-xl px-4 py-2.5 flex items-center gap-3">
+              <div><p className="text-[9px] text-gray-400">GET IT ON</p><p className="text-white text-xs font-semibold">Google Play</p></div>
+            </div>
+          </div>
+        </>
       ) : (
+        /* Template 0 Classic — standard centered icon */
         <>
           <div className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center mb-4">
             <DevicePhoneMobileIcon className="h-10 w-10" style={{ color: primary }} />
@@ -752,12 +907,47 @@ export function CouponPreview({ content }: { content: Record<string, any> }) {
       )}
       <div className="bg-white rounded-2xl shadow-lg p-6 w-full border-2 border-dashed relative" style={{ borderColor: primary + "80" }}>
         {!tpl.header && <p className="text-center text-xs font-semibold text-gray-500 mb-1 truncate">{title}</p>}
-        <p className="text-center text-3xl font-black" style={{ color: primary }}>{badge}</p>
-        <p className="text-center text-xs text-gray-500 mt-2 truncate">{description}</p>
-        {tpl.split && (
-          <div className="mt-3 rounded-lg px-4 py-2 text-center" style={{ backgroundColor: secondary }}>
-            <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+        {tpl.split ? (
+          /* Templates 1, 3 — badge + code side by side */
+          <div className="flex items-center gap-3">
+            <p className="text-2xl font-black flex-shrink-0" style={{ color: primary }}>{badge}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-gray-500 truncate">{description}</p>
+              <div className="mt-2 rounded-lg px-3 py-1.5 text-center" style={{ backgroundColor: secondary }}>
+                <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+              </div>
+            </div>
           </div>
+        ) : !tpl.header ? (
+          /* Template 2 Minimal — compact badge with code */
+          <>
+            <p className="text-center text-2xl font-black" style={{ color: primary }}>{badge}</p>
+            <div className="mt-2 rounded-lg px-4 py-1.5 text-center" style={{ backgroundColor: secondary }}>
+              <span className="text-xs font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+            </div>
+            <p className="text-center text-[10px] text-gray-400 mt-2 truncate">{description}</p>
+          </>
+        ) : !tpl.button ? (
+          /* Template 4 Clean — large badge with expiry */
+          <>
+            <p className="text-center text-4xl font-black" style={{ color: primary }}>{badge}</p>
+            <p className="text-center text-xs text-gray-500 mt-2 truncate">{description}</p>
+            <div className="mt-3 rounded-lg px-4 py-2 text-center" style={{ backgroundColor: secondary }}>
+              <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+            </div>
+            {content?.expiryDate && (
+              <p className="text-center text-[10px] text-gray-400 mt-2">Expires: {content.expiryDate}</p>
+            )}
+          </>
+        ) : (
+          /* Template 0 Classic — standard centered badge */
+          <>
+            <p className="text-center text-3xl font-black" style={{ color: primary }}>{badge}</p>
+            <p className="text-center text-xs text-gray-500 mt-2 truncate">{description}</p>
+            <div className="mt-3 rounded-lg px-4 py-2 text-center" style={{ backgroundColor: secondary }}>
+              <span className="text-sm font-mono font-bold text-gray-700 tracking-wider">{code}</span>
+            </div>
+          </>
         )}
       </div>
       {tpl.button && (
@@ -791,11 +981,13 @@ export function EventPreview({ content }: { content: Record<string, any> }) {
   const description = content?.description || "The Future of Innovation";
   const buttonText = content?.buttonText || "Add to Calendar";
   const tpl = getLayout(content);
-  const startDate = content?.startDate
-    ? new Date(content.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
-    : "March 15, 2026";
+  const startDateObj = content?.startDate ? new Date(content.startDate) : null;
+  const month = startDateObj ? startDateObj.toLocaleDateString(undefined, { month: "short" }).toUpperCase() : "MAR";
+  const day = startDateObj ? startDateObj.getDate() : 15;
+  const time = startDateObj
+    ? startDateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+    : "10:00 AM";
   const fields = [
-    { label: "Date", value: startDate },
     { label: "Location", value: content?.location || "Convention Center" },
     { label: "Organizer", value: content?.organizer || "Events Inc." },
   ];
@@ -803,17 +995,22 @@ export function EventPreview({ content }: { content: Record<string, any> }) {
     <div className="h-full" style={{ backgroundColor: secondary }}>
       {tpl.header && (
         <div className="px-4 py-5 text-center" style={{ backgroundColor: primary }}>
-          <CalendarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
+          {/* Countdown-style date block */}
+          <div className="w-16 h-16 bg-white/20 rounded-xl mx-auto mb-2 flex flex-col items-center justify-center">
+            <span className="text-white text-[10px] font-bold uppercase">{month}</span>
+            <span className="text-white text-2xl font-black leading-none">{day}</span>
+          </div>
           <p className="text-white text-sm font-bold truncate">{title}</p>
-          <p className="text-white/80 text-xs truncate">{description}</p>
+          <p className="text-white/80 text-xs truncate">{time}</p>
         </div>
       )}
       {!tpl.header && (
         <div className="px-4 pt-5 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
-            <CalendarIcon className="h-6 w-6 text-white/80" />
+          <div className="w-14 h-14 rounded-xl flex flex-col items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
+            <span className="text-white text-[9px] font-bold uppercase">{month}</span>
+            <span className="text-white text-lg font-black leading-none">{day}</span>
           </div>
-          <div><p className="text-sm font-bold text-gray-900 truncate">{title}</p><p className="text-xs text-gray-500 truncate">{description}</p></div>
+          <div><p className="text-sm font-bold text-gray-900 truncate">{title}</p><p className="text-xs text-gray-500 truncate">{time} · {description}</p></div>
         </div>
       )}
       <div className="p-4 space-y-3">
@@ -887,12 +1084,17 @@ export function SmsPreview() {
   );
 }
 
+const REVIEW_PLATFORM_COLORS: Record<string, string> = {
+  google: "#4285F4", yelp: "#FF1A1A", tripadvisor: "#34E0A1", facebook: "#1877F2", trustpilot: "#00B67A",
+};
+
 export function ReviewPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || pd.color || "#F59E0B";
   const secondary = pd.secondary || "#FFFBEB";
   const name = content?.name || content?.title || "Rate Us!";
   const description = content?.description || "We value your honest feedback";
+  const reviewLinks: { platform: string; url: string }[] = content?.reviewLinks || [];
   const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col items-center justify-center p-5" style={{ backgroundColor: secondary }}>
@@ -921,8 +1123,18 @@ export function ReviewPreview({ content }: { content: Record<string, any> }) {
             ))}
           </div>
           {!tpl.header && <p className="text-lg font-bold text-gray-900 truncate max-w-full">{name}</p>}
-          <p className="text-xs text-gray-500 mt-1 mb-4 truncate max-w-full">{description}</p>
+          <p className="text-xs text-gray-500 mt-1 mb-2 truncate max-w-full">{description}</p>
         </>
+      )}
+      {reviewLinks.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-1.5 mb-3 w-full">
+          {reviewLinks.slice(0, 5).map((rl, i) => (
+            <span key={i} className="px-2 py-1 rounded-full text-[9px] font-bold text-white capitalize"
+              style={{ backgroundColor: REVIEW_PLATFORM_COLORS[rl.platform] || primary }}>
+              {rl.platform}
+            </span>
+          ))}
+        </div>
       )}
       {tpl.button && (
         <div className="rounded-xl py-2.5 text-center w-full mt-3" style={{ backgroundColor: primary }}>
@@ -962,6 +1174,314 @@ export function TextPreview() {
   );
 }
 
+export function PhoneCallPreview({ content }: { content: Record<string, any> }) {
+  const name = content?.name || "John Doe";
+  const phone = content?.phone || "+1 (555) 123-4567";
+  return (
+    <div className="h-full bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col items-center justify-center px-6">
+      <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center mb-4">
+        <UserIcon className="h-10 w-10 text-gray-400" />
+      </div>
+      <p className="text-white text-lg font-semibold mb-1">{name}</p>
+      <p className="text-gray-400 text-sm mb-8">{phone}</p>
+      <div className="flex items-center gap-10">
+        <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-lg">
+          <svg className="h-6 w-6 text-white rotate-[135deg]" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+        </div>
+        <div className="w-14 h-14 rounded-full bg-green-500 flex items-center justify-center shadow-lg">
+          <svg className="h-6 w-6 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CalendarEventPreview({ content }: { content: Record<string, any> }) {
+  const eventTitle = content?.eventTitle || "Team Meeting";
+  const location = content?.location || "Conference Room A";
+  const startDate = content?.startDate ? new Date(content.startDate) : new Date();
+  const month = startDate.toLocaleDateString(undefined, { month: "short" }).toUpperCase();
+  const day = startDate.getDate();
+  const time = content?.startDate
+    ? startDate.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+    : "10:00 AM";
+  const endTime = content?.endDate
+    ? new Date(content.endDate).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+    : "11:00 AM";
+  return (
+    <div className="h-full bg-white flex flex-col items-center justify-center p-5">
+      <div className="bg-violet-50 rounded-2xl p-4 w-full mb-4 flex items-center gap-4">
+        <div className="w-16 h-16 bg-violet-600 rounded-xl flex flex-col items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-white text-[10px] font-bold uppercase">{month}</span>
+          <span className="text-white text-2xl font-black leading-none">{day}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-gray-900 truncate">{eventTitle}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{time} – {endTime}</p>
+          <p className="text-xs text-gray-400 truncate mt-0.5">{location}</p>
+        </div>
+      </div>
+      {content?.description && (
+        <p className="text-xs text-gray-500 mb-4 text-center line-clamp-2">{content.description}</p>
+      )}
+      <div className="w-full rounded-xl py-2.5 text-center bg-violet-600">
+        <span className="text-white text-xs font-semibold">Add to Calendar</span>
+      </div>
+    </div>
+  );
+}
+
+const PLATFORM_COLORS: Record<string, string> = {
+  Spotify: "#1DB954", "Apple Music": "#FC3C44", "YouTube Music": "#FF0000",
+  SoundCloud: "#FF5500", Deezer: "#A238FF", Tidal: "#000000", "Amazon Music": "#00A8E1",
+};
+
+export function PlaylistPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#1DB954";
+  const secondary = pd.secondary || "#191414";
+  const title = content?.title || "Summer Hits 2026";
+  const description = content?.description || "The best tracks of the season";
+  const logo = content?.logo;
+  const platforms = content?.platformLinks;
+  const platformItems = platforms && platforms.length > 0
+    ? platforms.slice(0, 4).map((p: any) => ({ name: p.platform || "Link", url: p.url || "" }))
+    : [{ name: "Spotify" }, { name: "Apple Music" }, { name: "YouTube Music" }];
+  const tpl = getLayout(content);
+  return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
+      {tpl.header && (
+        <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
+          <div className="w-16 h-16 rounded-xl mx-auto mb-2 bg-white/20 flex items-center justify-center overflow-hidden shadow-lg">
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <MusicalNoteIcon className="h-8 w-8 text-white/80" />}
+          </div>
+          <p className="text-white text-sm font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[10px] truncate">{description}</p>
+        </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 pb-3 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0" style={{ backgroundColor: primary }}>
+            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <MusicalNoteIcon className="h-6 w-6 text-white/80" />}
+          </div>
+          <div className="min-w-0"><p className="text-white text-sm font-bold truncate">{title}</p><p className="text-gray-400 text-[10px] truncate">{description}</p></div>
+        </div>
+      )}
+      <div className="flex-1 px-4 py-3">
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            {platformItems.map((p: any, i: number) => (
+              <div key={i} className="rounded-xl py-3 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
+                <span className="text-white text-[11px] font-semibold">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        ) : !tpl.header ? (
+          <div className="space-y-2">
+            {platformItems.map((p: any, i: number) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ backgroundColor: (PLATFORM_COLORS[p.name] || primary) + "20" }}>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }} />
+                <span className="text-white text-xs font-medium">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        ) : !tpl.button ? (
+          <div className="space-y-2.5">
+            {platformItems.map((p: any, i: number) => (
+              <div key={i} className="rounded-xl py-3.5 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
+                <span className="text-white text-xs font-bold">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {platformItems.map((p: any, i: number) => (
+              <div key={i} className="rounded-xl py-2.5 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
+                <span className="text-white text-xs font-semibold">{p.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      {tpl.button && (
+        <div className="px-4 pb-4">
+          <div className="rounded-xl py-2.5 text-center border border-white/20">
+            <span className="text-white text-xs font-semibold">Share Playlist</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ProductPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#7C3AED";
+  const secondary = pd.secondary || "#FFFFFF";
+  const productName = content?.productName || "Premium Product";
+  const description = content?.description || "High quality, beautifully crafted";
+  const price = content?.price ? `${content.currency === "EUR" ? "€" : content.currency === "GBP" ? "£" : "$"}${content.price}` : "$29.99";
+  const buyText = content?.buyButtonText || "Buy Now";
+  const images: any[] = content?.images || [];
+  const heroImage = images.length > 0 ? images[0].file : null;
+  const tpl = getLayout(content);
+  return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
+      {tpl.header && (
+        <div className="relative" style={{ backgroundColor: primary }}>
+          {heroImage ? (
+            <div className="h-36 overflow-hidden">
+              <img src={heroImage} alt="" className="w-full h-full object-cover opacity-80" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            </div>
+          ) : (
+            <div className="h-28 flex items-center justify-center">
+              <PhotoIcon className="h-12 w-12 text-white/30" />
+            </div>
+          )}
+          <div className="absolute bottom-2 right-2 rounded-full px-3 py-1 text-xs font-bold text-white shadow-lg" style={{ backgroundColor: primary }}>
+            {price}
+          </div>
+        </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 pb-3 flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary + "15" }}>
+            {heroImage ? <img src={heroImage} alt="" className="w-full h-full object-cover" /> : <PhotoIcon className="h-6 w-6" style={{ color: primary }} />}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-gray-900 truncate">{productName}</p>
+            <p className="text-sm font-bold" style={{ color: primary }}>{price}</p>
+          </div>
+        </div>
+      )}
+      <div className="flex-1 px-4 py-3">
+        {tpl.header && <p className="text-base font-bold text-gray-900 mb-1 truncate">{productName}</p>}
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            {images.length > 1 ? images.slice(0, 4).map((img: any, i: number) => (
+              <div key={i} className="rounded-lg overflow-hidden h-16">
+                <img src={img.file} alt="" className="w-full h-full object-cover" />
+              </div>
+            )) : (
+              <>
+                <div className="rounded-lg p-3 space-y-2" style={{ backgroundColor: primary + "08" }}>
+                  <div className="h-3 bg-gray-200 rounded-full w-full" />
+                  <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+                </div>
+                <div className="rounded-lg p-3 flex items-center justify-center" style={{ backgroundColor: primary + "08" }}>
+                  <p className="text-lg font-black" style={{ color: primary }}>{price}</p>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-500 line-clamp-3">{description}</p>
+        )}
+      </div>
+      {tpl.button && (
+        <div className="px-4 pb-4">
+          <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">{buyText}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function FeedbackPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || pd.color || "#7C3AED";
+  const secondary = pd.secondary || "#FAFAFA";
+  const title = content?.title || "Share Your Feedback";
+  const description = content?.description || "We value your opinion";
+  const tpl = getLayout(content);
+  return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
+      {tpl.header && (
+        <div className="px-4 py-5 text-center" style={{ backgroundColor: primary }}>
+          <StarIcon className="h-8 w-8 text-white/80 mx-auto mb-2" />
+          <p className="text-white text-sm font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[10px] truncate">{description}</p>
+        </div>
+      )}
+      {!tpl.header && (
+        <div className="px-4 pt-5 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
+            <StarIcon className="h-6 w-6 text-white/80" />
+          </div>
+          <div><p className="text-sm font-bold text-gray-900 truncate">{title}</p><p className="text-xs text-gray-500 truncate">{description}</p></div>
+        </div>
+      )}
+      <div className="flex-1 px-4 py-4 space-y-3">
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl p-3 text-center" style={{ backgroundColor: primary + "10" }}>
+              <div className="flex justify-center gap-0.5 mb-1">
+                {[1,2,3,4,5].map(i => (
+                  <svg key={i} className="h-4 w-4" style={{ color: i <= 4 ? primary : "#D1D5DB" }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                ))}
+              </div>
+              <p className="text-[10px]" style={{ color: primary }}>Rating</p>
+            </div>
+            <div className="rounded-xl p-3" style={{ backgroundColor: primary + "10" }}>
+              <div className="h-3 bg-gray-200 rounded-full w-full mb-1.5" />
+              <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+              <p className="text-[10px] mt-1" style={{ color: primary }}>Comment</p>
+            </div>
+          </div>
+        ) : !tpl.header ? (
+          <>
+            <div className="flex justify-center gap-1">
+              {[1,2,3,4,5].map(i => (
+                <svg key={i} className="h-7 w-7" style={{ color: i <= 4 ? primary : "#D1D5DB" }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              ))}
+            </div>
+            <div className="rounded-xl p-3 border border-gray-200 bg-white">
+              <div className="h-3 bg-gray-100 rounded-full w-full mb-1.5" />
+              <div className="h-3 bg-gray-100 rounded-full w-2/3" />
+            </div>
+          </>
+        ) : !tpl.button ? (
+          <>
+            <div className="flex justify-center gap-1.5 mb-2">
+              {[1,2,3,4,5].map(i => (
+                <svg key={i} className="h-8 w-8" style={{ color: i <= 4 ? primary : "#D1D5DB" }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              ))}
+            </div>
+            <div className="rounded-xl p-3 border border-gray-200 bg-white">
+              <p className="text-[10px] text-gray-400 mb-2">Tell us more...</p>
+              <div className="h-3 bg-gray-100 rounded-full w-full mb-1.5" />
+              <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+              <div className="h-3 bg-gray-100 rounded-full w-2/3 mt-1.5" />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-center gap-1">
+              {[1,2,3,4,5].map(i => (
+                <svg key={i} className="h-7 w-7" style={{ color: i <= 4 ? primary : "#D1D5DB" }} viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              ))}
+            </div>
+            <div className="rounded-xl p-3 border border-gray-200 bg-white">
+              <div className="h-3 bg-gray-100 rounded-full w-full mb-1.5" />
+              <div className="h-3 bg-gray-100 rounded-full w-2/3" />
+            </div>
+          </>
+        )}
+      </div>
+      {tpl.button && (
+        <div className="px-4 pb-4">
+          <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">Submit Feedback</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function DefaultPhonePreview() {
   return (
     <div className="h-full bg-white flex flex-col items-center justify-center p-5">
@@ -995,6 +1515,9 @@ const MemoAppsPreview = React.memo(AppsPreview);
 const MemoCouponPreview = React.memo(CouponPreview);
 const MemoEventPreview = React.memo(EventPreview);
 const MemoReviewPreview = React.memo(ReviewPreview);
+const MemoPlaylistPreview = React.memo(PlaylistPreview);
+const MemoProductPreview = React.memo(ProductPreview);
+const MemoFeedbackPreview = React.memo(FeedbackPreview);
 
 // ─── Preview Router ──────────────────────────────────────────────────────────
 
@@ -1022,6 +1545,11 @@ export function renderPreviewForType(type: string, dynamicContent?: Record<strin
     case "review": return <MemoReviewPreview content={dynamicContent || {}} />;
     case "bitcoin": return <BitcoinPreview />;
     case "text": return <TextPreview />;
+    case "phone": return <PhoneCallPreview content={dynamicContent || {}} />;
+    case "calendar": return <CalendarEventPreview content={dynamicContent || {}} />;
+    case "playlist": return <MemoPlaylistPreview content={dynamicContent || {}} />;
+    case "product": return <MemoProductPreview content={dynamicContent || {}} />;
+    case "feedback": return <MemoFeedbackPreview content={dynamicContent || {}} />;
     default: return <DefaultPhonePreview />;
   }
 }
