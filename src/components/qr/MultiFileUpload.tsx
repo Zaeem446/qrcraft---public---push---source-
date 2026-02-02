@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import toast from "react-hot-toast";
 import Spinner from "@/components/ui/Spinner";
 import {
   ArrowUpTrayIcon,
@@ -35,9 +36,13 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
       if (res.ok) {
         const data = await res.json();
         onChange([...files, { file: data.url, name: file.name }]);
+        toast.success(`Uploaded ${file.name}`);
+      } else {
+        const data = await res.json().catch(() => ({ error: "Upload failed" }));
+        toast.error(data.error || `Failed to upload ${file.name}`);
       }
     } catch {
-      // silent fail
+      toast.error("Network error — could not upload file");
     }
     setUploading(false);
   };
@@ -74,9 +79,13 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
         <div className="space-y-2 mb-3">
           {files.map((entry, idx) => (
             <div key={idx} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
-                <ArrowUpTrayIcon className="h-4 w-4 text-violet-600" />
-              </div>
+              {accept.startsWith("image") || entry.file.match(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i) ? (
+                <img src={entry.file} alt="" className="w-8 h-8 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                  <ArrowUpTrayIcon className="h-4 w-4 text-violet-600" />
+                </div>
+              )}
               <span className="text-xs text-gray-600 truncate flex-1">{entry.name || entry.file.split("/").pop()}</span>
               <div className="flex items-center gap-0.5 flex-shrink-0">
                 <button
@@ -113,12 +122,13 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
         disabled={uploading}
         className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-500 hover:border-violet-400 hover:bg-violet-50 hover:text-violet-600 transition-colors cursor-pointer"
       >
-        {uploading ? <Spinner /> : <><ArrowUpTrayIcon className="h-4 w-4" /> Add another file</>}
+        {uploading ? <Spinner /> : <><ArrowUpTrayIcon className="h-4 w-4" /> {files.length > 0 ? "Add another file" : "Click to upload"}</>}
       </button>
       <input
         ref={inputRef}
         type="file"
         accept={accept}
+        multiple
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />

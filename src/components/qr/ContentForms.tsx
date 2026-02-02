@@ -427,7 +427,12 @@ export default function ContentForms({ qrType, content, setContent }: ContentFor
         <>
           <AccordionSection icon={<PhotoIcon className="h-5 w-5 text-gray-500" />} title="Image Gallery" subtitle="Upload images to share." defaultOpen>
             <div className="space-y-3">
-              <FileUploadField label="Upload Images *" accept="image/*" value={content.fileUrl || ""} onChange={v => set("fileUrl", v)} multiple />
+              <MultiFileUpload
+                label="Upload Images *"
+                accept="image/*"
+                value={content.images || (content.fileUrl ? [{ file: content.fileUrl, name: "image" }] : [])}
+                onChange={v => set("images", v)}
+              />
               <Input label="Title" value={content.title || ""} onChange={e => set("title", e.target.value)} placeholder="Gallery title" />
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description</label>

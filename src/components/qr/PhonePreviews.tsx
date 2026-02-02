@@ -198,7 +198,10 @@ export function ImagesPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || pd.color || "#8B5E3C";
   const title = content?.title || "Nature\u2019s Canvas";
   const description = content?.description || "Browse our gallery of nature photos";
-  const fileUrl = content?.fileUrl;
+  // Support both new `images` array and legacy `fileUrl` string
+  const images: { file: string; name: string }[] = content?.images || [];
+  const firstImage = images.length > 0 ? images[0].file : content?.fileUrl;
+  const imageCount = images.length || (content?.fileUrl ? 1 : 0);
   return (
     <div className="h-full bg-amber-50 flex flex-col">
       <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
@@ -207,17 +210,20 @@ export function ImagesPreview({ content }: { content: Record<string, any> }) {
       </div>
       <div className="px-4 py-3">
         <div className="bg-white rounded-xl py-2.5 text-center mb-3 shadow-sm border border-amber-100">
-          <span className="text-sm text-gray-700 font-medium">View All</span>
+          <span className="text-sm text-gray-700 font-medium">
+            {imageCount > 0 ? `View All (${imageCount})` : "View All"}
+          </span>
         </div>
       </div>
       <div className="flex-1 px-4 pb-4">
-        {fileUrl ? (
+        {firstImage ? (
           <div className="h-full rounded-xl overflow-hidden relative">
-            <img src={fileUrl} alt="" className="w-full h-full object-cover" />
+            <img src={firstImage} alt="" className="w-full h-full object-cover" />
           </div>
         ) : (
-          <div className="h-full rounded-xl overflow-hidden bg-gradient-to-br from-orange-300 via-red-300 to-amber-400 relative">
+          <div className="h-full rounded-xl overflow-hidden bg-gradient-to-br from-orange-300 via-red-300 to-amber-400 relative flex items-center justify-center">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <PhotoIcon className="h-12 w-12 text-white/50 z-10" />
           </div>
         )}
       </div>

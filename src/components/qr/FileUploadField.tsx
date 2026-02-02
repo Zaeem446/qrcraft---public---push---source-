@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import toast from "react-hot-toast";
 import Spinner from "@/components/ui/Spinner";
 import { ArrowUpTrayIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
@@ -15,10 +16,12 @@ interface FileUploadFieldProps {
 export default function FileUploadField({ label, accept, value, onChange, multiple }: FileUploadFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const upload = async (file: File) => {
     setUploading(true);
+    setError("");
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -26,9 +29,17 @@ export default function FileUploadField({ label, accept, value, onChange, multip
       if (res.ok) {
         const data = await res.json();
         onChange(data.url);
+        toast.success("File uploaded successfully");
+      } else {
+        const data = await res.json().catch(() => ({ error: "Upload failed" }));
+        const msg = data.error || `Upload failed (${res.status})`;
+        setError(msg);
+        toast.error(msg);
       }
-    } catch {
-      // silent fail
+    } catch (err) {
+      const msg = "Network error — could not upload file";
+      setError(msg);
+      toast.error(msg);
     }
     setUploading(false);
   };
@@ -68,19 +79,26 @@ export default function FileUploadField({ label, accept, value, onChange, multip
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           className={`flex flex-col items-center justify-center py-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
-            dragOver ? "border-violet-400 bg-violet-50" : "border-gray-300 hover:border-violet-400 hover:bg-violet-50"
+            dragOver ? "border-violet-400 bg-violet-50"
+            : error ? "border-red-300 hover:border-red-400 bg-red-50/50"
+            : "border-gray-300 hover:border-violet-400 hover:bg-violet-50"
           }`}
         >
           {uploading ? (
             <Spinner />
           ) : (
             <>
-              <ArrowUpTrayIcon className="h-8 w-8 text-gray-400 mb-2" />
-              <p className="text-xs text-gray-500">Drag & drop or click to upload</p>
+              <ArrowUpTrayIcon className={`h-8 w-8 mb-2 ${error ? "text-red-400" : "text-gray-400"}`} />
+              <p className={`text-xs ${error ? "text-red-500" : "text-gray-500"}`}>
+                {error || "Drag & drop or click to upload"}
+              </p>
+              {error && (
+                <p className="text-[10px] text-gray-400 mt-1">Click to try again</p>
+              )}
             </>
           )}
           <input ref={inputRef} type="file" accept={accept} multiple={multiple} className="hidden"
-            onChange={(e) => handleFiles(e.target.files)} />
+            onChange={(e) => { setError(""); handleFiles(e.target.files); }} />
         </div>
       )}
     </div>
