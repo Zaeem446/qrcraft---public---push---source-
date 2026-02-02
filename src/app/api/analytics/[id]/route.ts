@@ -38,10 +38,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         return NextResponse.json({
           qrcode,
           totalScans: qrfyData.totalScans,
+          uniqueScans: qrfyData.uniqueScans,
           scansOverTime: qrfyData.scansOverTime,
+          uniqueScansOverTime: qrfyData.uniqueScansOverTime,
           deviceBreakdown: qrfyData.deviceBreakdown,
           browserBreakdown: qrfyData.browserBreakdown,
+          osBreakdown: qrfyData.osBreakdown,
           locationBreakdown: qrfyData.locationBreakdown,
+          cityBreakdown: qrfyData.cityBreakdown,
         });
       } catch (err) {
         console.error('QRFY report failed, using legacy:', err);
@@ -49,10 +53,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     // Legacy scan-based analytics (fallback)
-    const [totalScans, scansRaw, devicesRaw, browsersRaw, locationsRaw] = await Promise.all([
+    const [totalScans, uniqueScansCount, scansRaw, uniqueScansRaw, devicesRaw, browsersRaw, osRaw, locationsRaw, citiesRaw] = await Promise.all([
       prisma.scan.count({ where: { qrCodeId: qrcode.id, createdAt: { gte: startDate } } }),
       prisma.$queryRaw`
+        SELECT COUNT(DISTINCT s.ip)::int as count
+        FROM scans s
+        WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
+      ` as Promise<{ count: number }[]>,
+      prisma.$queryRaw`
         SELECT DATE(s."createdAt") as date, COUNT(*)::int as count
+        FROM scans s
+        WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
+        GROUP BY DATE(s."createdAt")
+        ORDER BY date ASC
+      ` as Promise<{ date: Date; count: number }[]>,
+      prisma.$queryRaw`
+        SELECT DATE(s."createdAt") as date, COUNT(DISTINCT s.ip)::int as count
         FROM scans s
         WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
         GROUP BY DATE(s."createdAt")
@@ -73,10 +89,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         LIMIT 10
       ` as Promise<{ name: string; value: number }[]>,
       prisma.$queryRaw`
+        SELECT s.os as name, COUNT(*)::int as value
+        FROM scans s
+        WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
+        GROUP BY s.os
+        ORDER BY value DESC
+        LIMIT 10
+      ` as Promise<{ name: string; value: number }[]>,
+      prisma.$queryRaw`
         SELECT s.country as name, COUNT(*)::int as value
         FROM scans s
         WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.country
+        ORDER BY value DESC
+        LIMIT 10
+      ` as Promise<{ name: string; value: number }[]>,
+      prisma.$queryRaw`
+        SELECT s.city as name, COUNT(*)::int as value
+        FROM scans s
+        WHERE s."qrCodeId" = ${qrcode.id} AND s."createdAt" >= ${startDate}
+        GROUP BY s.city
         ORDER BY value DESC
         LIMIT 10
       ` as Promise<{ name: string; value: number }[]>,
@@ -85,10 +117,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({
       qrcode,
       totalScans,
+      uniqueScans: uniqueScansCount[0]?.count || 0,
       scansOverTime: scansRaw.map((s) => ({ date: s.date.toISOString().split('T')[0], count: s.count })),
+      uniqueScansOverTime: uniqueScansRaw.map((s) => ({ date: s.date.toISOString().split('T')[0], count: s.count })),
       deviceBreakdown: devicesRaw.map((d) => ({ name: d.name || 'Unknown', value: d.value })),
       browserBreakdown: browsersRaw.map((b) => ({ name: b.name || 'Unknown', value: b.value })),
+      osBreakdown: osRaw.map((o) => ({ name: o.name || 'Unknown', value: o.value })),
       locationBreakdown: locationsRaw.map((l) => ({ name: l.name || 'Unknown', value: l.value })),
+      cityBreakdown: citiesRaw.map((c) => ({ name: c.name || 'Unknown', value: c.value })),
     });
   } catch (error) {
     console.error('QR analytics error:', error);

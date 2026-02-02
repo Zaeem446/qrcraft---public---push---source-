@@ -857,18 +857,32 @@ export async function getReport(params: {
 export function transformQrfyReport(report: any) {
   // Transform QRFY report response into our frontend analytics format
   const scansOverTime: { date: string; count: number }[] = [];
+  const uniqueScansOverTime: { date: string; count: number }[] = [];
   const deviceBreakdown: { name: string; value: number }[] = [];
   const browserBreakdown: { name: string; value: number }[] = [];
+  const osBreakdown: { name: string; value: number }[] = [];
   const locationBreakdown: { name: string; value: number }[] = [];
+  const cityBreakdown: { name: string; value: number }[] = [];
   let totalScans = 0;
+  let uniqueScans = 0;
 
   if (report?.scans) {
     totalScans = typeof report.scans === 'number' ? report.scans : 0;
   }
 
+  if (report?.uniqueScans) {
+    uniqueScans = typeof report.uniqueScans === 'number' ? report.uniqueScans : 0;
+  }
+
   if (report?.scansByDate && typeof report.scansByDate === 'object') {
     for (const [date, count] of Object.entries(report.scansByDate)) {
       scansOverTime.push({ date, count: Number(count) });
+    }
+  }
+
+  if (report?.uniqueScansByDate && typeof report.uniqueScansByDate === 'object') {
+    for (const [date, count] of Object.entries(report.uniqueScansByDate)) {
+      uniqueScansOverTime.push({ date, count: Number(count) });
     }
   }
 
@@ -884,13 +898,28 @@ export function transformQrfyReport(report: any) {
     }
   }
 
+  if (Array.isArray(report?.os)) {
+    for (const o of report.os) {
+      osBreakdown.push({ name: o.name || o.os || 'Unknown', value: Number(o.count || o.value || 0) });
+    }
+  }
+
   if (Array.isArray(report?.countries)) {
     for (const l of report.countries) {
       locationBreakdown.push({ name: l.name || l.country || 'Unknown', value: Number(l.count || l.value || 0) });
     }
   }
 
-  return { totalScans, scansOverTime, deviceBreakdown, browserBreakdown, locationBreakdown };
+  if (Array.isArray(report?.cities)) {
+    for (const c of report.cities) {
+      cityBreakdown.push({ name: c.name || c.city || 'Unknown', value: Number(c.count || c.value || 0) });
+    }
+  }
+
+  return {
+    totalScans, uniqueScans, scansOverTime, uniqueScansOverTime,
+    deviceBreakdown, browserBreakdown, osBreakdown, locationBreakdown, cityBreakdown,
+  };
 }
 
 // ─── QRFY Shape/Corner/Frame options for UI ──────────────────────────────────
