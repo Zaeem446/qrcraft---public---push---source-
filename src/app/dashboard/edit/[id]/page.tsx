@@ -7,8 +7,11 @@ import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
 import ContentForms from "@/components/qr/ContentForms";
 import DesignOptions from "@/components/qr/DesignOptions";
+import PhoneMockup from "@/components/qr/PhoneMockup";
+import { renderPreviewForType } from "@/components/qr/PhonePreviews";
 import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
+import { QrCodeIcon } from "@heroicons/react/24/outline";
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -20,6 +23,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [qrType, setQrType] = useState("");
   const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -188,19 +192,39 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         {/* Preview */}
-        <div>
-          <Card className="sticky top-24">
-            <h3 className="text-sm font-medium text-gray-700 mb-4">Preview</h3>
-            <div className="flex justify-center items-center bg-gray-50 rounded-lg p-4 min-h-[280px]">
-              {previewLoading ? (
-                <Spinner />
-              ) : previewUrl ? (
-                <img src={previewUrl} alt="QR Preview" className="w-64 h-64" />
-              ) : (
-                <Spinner />
-              )}
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <div className="flex justify-center mb-4">
+              <div className="flex bg-gray-100 rounded-full p-0.5">
+                <button onClick={() => setPreviewTab("preview")}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+                    previewTab === "preview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                  }`}>Preview</button>
+                <button onClick={() => setPreviewTab("qrcode")}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+                    previewTab === "qrcode" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"
+                  }`}>QR code</button>
+              </div>
             </div>
-          </Card>
+            <PhoneMockup>
+              {previewTab === "qrcode" ? (
+                <div className="h-full bg-white flex items-center justify-center p-6">
+                  {previewLoading ? (
+                    <Spinner />
+                  ) : previewUrl ? (
+                    <img src={previewUrl} alt="QR Preview" className="w-full max-w-[200px]" />
+                  ) : (
+                    <div className="text-center text-gray-400 text-sm">
+                      <QrCodeIcon className="h-16 w-16 mx-auto mb-2 text-gray-300" />
+                      <p>QR preview will appear here</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                qrType ? renderPreviewForType(qrType, content) : <div className="h-full bg-white" />
+              )}
+            </PhoneMockup>
+          </div>
         </div>
       </div>
     </div>

@@ -73,7 +73,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     }
 
     // For non-URL types, redirect to a landing page
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
     return NextResponse.redirect(`${baseUrl}/qr/${slug}`);
   } catch (error) {
     console.error('Redirect error:', error);

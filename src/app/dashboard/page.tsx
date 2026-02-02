@@ -12,12 +12,15 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowsUpDownIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
 import toast from 'react-hot-toast';
+import PhoneMockup from '@/components/qr/PhoneMockup';
+import { renderPreviewForType } from '@/components/qr/PhonePreviews';
 import { formatNumber, formatDate, QR_TYPES } from '@/lib/utils';
 
 interface QRCodeItem {
@@ -26,6 +29,7 @@ interface QRCodeItem {
   type: string;
   slug: string | null;
   qrfyId: number | null;
+  content: Record<string, any>;
   scanCount: number;
   isActive: boolean;
   createdAt: string;
@@ -45,6 +49,8 @@ export default function DashboardPage() {
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [previewModal, setPreviewModal] = useState<QRCodeItem | null>(null);
+  const [previewTab, setPreviewTab] = useState<'preview' | 'qrcode'>('preview');
 
   const fetchQRCodes = async () => {
     try {
@@ -268,6 +274,13 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
+                <button
+                  onClick={() => { setPreviewModal(qr); setPreviewTab('preview'); }}
+                  className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                  title="Preview"
+                >
+                  <EyeIcon className="h-4.5 w-4.5" />
+                </button>
                 <Link href={`/dashboard/analytics/${qr.id}`}>
                   <button className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="Analytics">
                     <ChartBarIcon className="h-4.5 w-4.5" />
@@ -313,6 +326,48 @@ export default function DashboardPage() {
           <Button variant="outline" onClick={() => setDeleteModal(null)}>Cancel</Button>
           <Button variant="danger" isLoading={deleting} onClick={() => deleteModal && handleDelete(deleteModal)}>Delete</Button>
         </div>
+      </Modal>
+
+      {/* Preview Modal */}
+      <Modal isOpen={!!previewModal} onClose={() => setPreviewModal(null)} title={previewModal?.name || 'Preview'}>
+        {previewModal && (
+          <div className="flex flex-col items-center">
+            <div className="flex bg-gray-100 rounded-full p-0.5 mb-4">
+              <button onClick={() => setPreviewTab('preview')}
+                className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  previewTab === 'preview' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}>Preview</button>
+              <button onClick={() => setPreviewTab('qrcode')}
+                className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
+                  previewTab === 'qrcode' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}>QR code</button>
+            </div>
+            <PhoneMockup>
+              {previewTab === 'qrcode' ? (
+                <div className="h-full bg-white flex items-center justify-center p-6">
+                  {previewModal.qrfyId ? (
+                    <img src={`/api/qrcodes/${previewModal.id}/image?format=png`} alt="QR Code" className="w-full max-w-[200px]" />
+                  ) : (
+                    <div className="text-center text-gray-400 text-sm">
+                      <QrCodeIcon className="h-16 w-16 mx-auto mb-2 text-gray-300" />
+                      <p>QR image unavailable</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                renderPreviewForType(previewModal.type, previewModal.content)
+              )}
+            </PhoneMockup>
+            <div className="flex gap-3 mt-4">
+              <Link href={`/dashboard/edit/${previewModal.id}`}>
+                <Button size="sm">
+                  <PencilIcon className="h-4 w-4 mr-1.5" /> Edit
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={() => setPreviewModal(null)}>Close</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
