@@ -239,20 +239,16 @@ export default function DashboardPage() {
             >
               <div className="flex items-center gap-4 min-w-0">
                 <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {qr.qrfyId ? (
-                    <img
-                      src={`/api/qrcodes/${qr.id}/image?format=webp`}
-                      alt={qr.name}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg class="h-6 w-6 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>';
-                      }}
-                    />
-                  ) : (
-                    <QrCodeIcon className="h-6 w-6 text-violet-500" />
-                  )}
+                  <img
+                    src={`/api/qrcodes/${qr.id}/image?format=webp`}
+                    alt={qr.name}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).parentElement!.innerHTML = '<svg class="h-6 w-6 text-violet-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /></svg>';
+                    }}
+                  />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -345,14 +341,14 @@ export default function DashboardPage() {
             <PhoneMockup>
               {previewTab === 'qrcode' ? (
                 <div className="h-full bg-white flex items-center justify-center p-6">
-                  {previewModal.qrfyId ? (
-                    <img src={`/api/qrcodes/${previewModal.id}/image?format=png`} alt="QR Code" className="w-full max-w-[200px]" />
-                  ) : (
-                    <div className="text-center text-gray-400 text-sm">
-                      <QrCodeIcon className="h-16 w-16 mx-auto mb-2 text-gray-300" />
-                      <p>QR image unavailable</p>
-                    </div>
-                  )}
+                  <img
+                    src={`/api/qrcodes/${previewModal.id}/image?format=png`}
+                    alt="QR Code"
+                    className="w-full max-w-[200px]"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
                 </div>
               ) : (
                 renderPreviewForType(previewModal.type, previewModal.content)

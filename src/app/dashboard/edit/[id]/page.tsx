@@ -73,7 +73,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   }, [loading, design, content, qrType, fetchPreview]);
 
   useEffect(() => {
-    if (!loading && qrfyId) {
+    if (!loading) {
       fetch(`/api/qrcodes/${id}/image?format=png`)
         .then(res => {
           if (res.ok) return res.blob();
@@ -89,7 +89,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         })
         .catch(() => {});
     }
-  }, [loading, qrfyId, id]);
+  }, [loading, id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -112,10 +112,6 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   };
 
   const handleDownload = async (format: "png" | "webp" | "jpeg") => {
-    if (!qrfyId) {
-      toast.error("Download not available for legacy QR codes");
-      return;
-    }
     try {
       const res = await fetch(`/api/qrcodes/${id}/image?format=${format}`);
       if (res.ok) {
@@ -174,16 +170,14 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
           </div>
 
           {/* Download section */}
-          {qrfyId && (
-            <Card>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Download QR Code</h2>
-              <div className="flex flex-wrap gap-2">
-                <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors">PNG</button>
-                <button onClick={() => handleDownload("webp")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">WEBP</button>
-                <button onClick={() => handleDownload("jpeg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">JPEG</button>
-              </div>
-            </Card>
-          )}
+          <Card>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Download QR Code</h2>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => handleDownload("png")} className="px-4 py-2 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors">PNG</button>
+              <button onClick={() => handleDownload("webp")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">WEBP</button>
+              <button onClick={() => handleDownload("jpeg")} className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors">JPEG</button>
+            </div>
+          </Card>
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={() => router.push("/dashboard")}>Cancel</Button>
