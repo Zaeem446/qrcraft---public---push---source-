@@ -220,6 +220,9 @@ export function mapDesignToStyle(design: Record<string, any>) {
 function toAbsoluteUrl(path: string): string {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  // data: URIs (base64 images, etc.) — return as-is; QRFY may not support them
+  // but mangling them with a base URL is worse
+  if (path.startsWith('data:') || path.startsWith('blob:')) return path;
   // Relative paths like /uploads/xxx.pdf → full URL
   const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
   return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
@@ -686,14 +689,36 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
 
 // ─── API Methods ─────────────────────────────────────────────────────────────
 
+// Static types whose content should be mapped directly for QRFY
+const QRFY_STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
+
 export async function createQR(params: {
   type: string;
   content: Record<string, any>;
   design: Record<string, any>;
   name?: string;
 }) {
-  const { type: qrfyType, data } = mapContentToData(params.type, params.content);
+  if (!QRFY_API_KEY) {
+    throw new Error('QRFY_API_KEY is not configured');
+  }
+
   const style = mapDesignToStyle(params.design);
+
+  let qrfyType: string;
+  let data: Record<string, any>;
+
+  if (QRFY_STATIC_TYPES.includes(params.type)) {
+    // Static types — map full content to QRFY format
+    const mapped = mapContentToData(params.type, params.content);
+    qrfyType = mapped.type;
+    data = mapped.data;
+  } else {
+    // Dynamic types — create a simple URL QR that points to our redirect
+    // Our landing page (/qr/[slug]) handles the actual content display
+    // This avoids sending complex data (images, PDFs, etc.) to QRFY
+    qrfyType = 'url';
+    data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
+  }
 
   const qr = {
     type: qrfyType,
@@ -702,6 +727,8 @@ export async function createQR(params: {
     name: params.name || 'QR Code',
   };
 
+  console.log('[QRFY createQR] Sending:', JSON.stringify({ type: qrfyType, dataKeys: Object.keys(data || {}), name: qr.name }).slice(0, 500));
+
   const res = await qrfyFetch('/api/public/qrs', {
     method: 'POST',
     body: JSON.stringify({ qrs: [qr] }),
@@ -709,8 +736,11 @@ export async function createQR(params: {
 
   if (!res.ok) {
     const err = await res.text();
+    console.error('[QRFY createQR] Error response:', res.status, err.slice(0, 1000));
     throw new Error(`QRFY create failed (${res.status}): ${err}`);
   }
+
+  console.log('[QRFY createQR] Success:', res.status);
 
   const result = await res.json();
   // Bulk create returns { ids: [...] }
@@ -727,12 +757,22 @@ export async function updateQR(
     name?: string;
   }
 ) {
+  if (!QRFY_API_KEY) {
+    throw new Error('QRFY_API_KEY is not configured');
+  }
+
   const body: Record<string, any> = {};
 
   if (params.type && params.content) {
-    const { type: qrfyType, data } = mapContentToData(params.type, params.content);
-    body.type = qrfyType;
-    body.data = data;
+    if (QRFY_STATIC_TYPES.includes(params.type)) {
+      const { type: qrfyType, data } = mapContentToData(params.type, params.content);
+      body.type = qrfyType;
+      body.data = data;
+    } else {
+      // Dynamic types — update with URL type pointing to our redirect
+      body.type = 'url';
+      body.data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
+    }
   }
 
   if (params.design) {
@@ -791,7 +831,10 @@ export async function createStaticQRImage(
   design: Record<string, any>,
   format: 'png' | 'webp' | 'jpeg' = 'png'
 ): Promise<Buffer> {
-  const { data } = mapContentToData(type, content);
+  if (!QRFY_API_KEY) {
+    throw new Error('QRFY_API_KEY is not configured');
+  }
+
   const style = mapDesignToStyle(design);
 
   // For preview, use url-static with a placeholder if type isn't natively static
@@ -805,10 +848,17 @@ export async function createStaticQRImage(
   };
 
   if (useType === qrfyType) {
-    // Use the mapped data directly
-    body.data = data;
+    // Static type — map content to QRFY data format
+    try {
+      const { data } = mapContentToData(type, content);
+      body.data = data;
+    } catch {
+      // If mapping fails, fall back to URL-static with text/url
+      body.type = 'url-static';
+      body.data = { url: content.url || content.text || 'https://example.com' };
+    }
   } else {
-    // Use a placeholder URL for preview of dynamic types
+    // Dynamic type — encode the redirect URL (or content URL) into the QR
     body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
   }
 

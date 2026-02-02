@@ -127,18 +127,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (qrcode.qrfyId) {
       try {
         imageBuffer = await getQRImage(qrcode.qrfyId, format);
-      } catch (err) {
-        console.error('QRFY getQRImage failed:', err);
+        console.log(`[QR Image] Tier 1 OK: qrfyId=${qrcode.qrfyId}, ${imageBuffer.length} bytes`);
+      } catch (err: any) {
+        console.error(`[QR Image] Tier 1 failed (qrfyId=${qrcode.qrfyId}):`, err?.message || err);
       }
     }
 
-    // 2) Try QRFY static image generation (same as preview — applies full design)
+    // 2) Try QRFY static image generation (applies full design styling)
     if (!imageBuffer) {
       try {
         const qrfyContent = getContentForQRFY(qrcode);
-        imageBuffer = await createStaticQRImage(qrcode.type, qrfyContent, design, format === 'jpeg' ? 'png' : format);
-      } catch (err) {
-        console.error('QRFY createStaticQRImage failed:', err);
+        const staticFormat = format === 'jpeg' ? 'png' : format;
+        imageBuffer = await createStaticQRImage(qrcode.type, qrfyContent, design, staticFormat);
+        console.log(`[QR Image] Tier 2 OK: type=${qrcode.type}, format=${staticFormat}, ${imageBuffer.length} bytes`);
+      } catch (err: any) {
+        console.error(`[QR Image] Tier 2 failed (type=${qrcode.type}):`, err?.message || err);
       }
     }
 

@@ -62,18 +62,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, type, and content are required' }, { status: 400 });
     }
 
+    // Generate slug first so we can use it in the QRFY redirect URL
+    const slug = nanoid(8);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+
     // Create QR on QRFY
     let qrfyId: number | null = null;
+    let qrfyError: string | null = null;
+
+    // For dynamic types, override URL to point to our redirect so QRFY encodes the tracking URL
+    const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar'];
+    const qrfyContent = STATIC_TYPES.includes(type)
+      ? content
+      : { ...content, url: `${baseUrl}/r/${slug}` };
+
     try {
-      const qrfyResult = await createQR({ type, content, design: design || {}, name });
+      const qrfyResult = await createQR({ type, content: qrfyContent, design: design || {}, name });
       qrfyId = qrfyResult?.id ?? null;
-    } catch (err) {
-      console.error('QRFY create error:', err);
+    } catch (err: any) {
+      qrfyError = err?.message || String(err);
+      console.error('QRFY create error:', qrfyError);
       // Continue without QRFY — QR will be stored locally only
     }
-
-    // Generate slug as fallback for legacy redirect support
-    const slug = nanoid(8);
 
     const qrcode = await prisma.qRCode.create({
       data: {
@@ -87,7 +97,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(qrcode, { status: 201 });
+    return NextResponse.json({
+      ...qrcode,
+      ...(qrfyError ? { _qrfyError: qrfyError } : {}),
+    }, { status: 201 });
   } catch (error) {
     console.error('Error creating QR code:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
