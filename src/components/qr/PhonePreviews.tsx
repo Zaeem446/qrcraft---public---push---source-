@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   GlobeAltIcon, UserIcon, BuildingOfficeIcon, DevicePhoneMobileIcon,
   VideoCameraIcon, DocumentIcon, PhotoIcon, MusicalNoteIcon,
@@ -980,30 +981,45 @@ export function DefaultPhonePreview() {
   );
 }
 
+// ─── Memoized dynamic previews ───────────────────────────────────────────────
+const MemoPdfPreview = React.memo(PdfPreview);
+const MemoLinksPreview = React.memo(LinksPreview);
+const MemoVcardPreview = React.memo(VcardPreview);
+const MemoBusinessPreview = React.memo(BusinessPreview);
+const MemoVideoPreview = React.memo(VideoPreview);
+const MemoImagesPreview = React.memo(ImagesPreview);
+const MemoSocialPreview = React.memo(SocialPreview);
+const MemoMp3Preview = React.memo(Mp3Preview);
+const MemoMenuPreview = React.memo(MenuPreview);
+const MemoAppsPreview = React.memo(AppsPreview);
+const MemoCouponPreview = React.memo(CouponPreview);
+const MemoEventPreview = React.memo(EventPreview);
+const MemoReviewPreview = React.memo(ReviewPreview);
+
 // ─── Preview Router ──────────────────────────────────────────────────────────
 
 export function renderPreviewForType(type: string, dynamicContent?: Record<string, any>) {
   switch (type) {
     case "website": return <WebsitePreview content={dynamicContent || {}} />;
-    case "pdf": return <PdfPreview content={dynamicContent || {}} />;
-    case "links": return <LinksPreview content={dynamicContent || {}} />;
-    case "vcard": return <VcardPreview content={dynamicContent || {}} />;
-    case "business": return <BusinessPreview content={dynamicContent || {}} />;
-    case "video": return <VideoPreview content={dynamicContent || {}} />;
-    case "images": return <ImagesPreview content={dynamicContent || {}} />;
+    case "pdf": return <MemoPdfPreview content={dynamicContent || {}} />;
+    case "links": return <MemoLinksPreview content={dynamicContent || {}} />;
+    case "vcard": return <MemoVcardPreview content={dynamicContent || {}} />;
+    case "business": return <MemoBusinessPreview content={dynamicContent || {}} />;
+    case "video": return <MemoVideoPreview content={dynamicContent || {}} />;
+    case "images": return <MemoImagesPreview content={dynamicContent || {}} />;
     case "facebook": return <FacebookPreview />;
     case "instagram": return <InstagramPreview />;
-    case "social": return <SocialPreview content={dynamicContent || {}} />;
+    case "social": return <MemoSocialPreview content={dynamicContent || {}} />;
     case "whatsapp": return <WhatsappPreview />;
-    case "mp3": return <Mp3Preview content={dynamicContent || {}} />;
-    case "menu": return <MenuPreview content={dynamicContent || {}} />;
-    case "apps": return <AppsPreview content={dynamicContent || {}} />;
-    case "coupon": return <CouponPreview content={dynamicContent || {}} />;
+    case "mp3": return <MemoMp3Preview content={dynamicContent || {}} />;
+    case "menu": return <MemoMenuPreview content={dynamicContent || {}} />;
+    case "apps": return <MemoAppsPreview content={dynamicContent || {}} />;
+    case "coupon": return <MemoCouponPreview content={dynamicContent || {}} />;
     case "wifi": return <WifiPreview />;
-    case "event": return <EventPreview content={dynamicContent || {}} />;
+    case "event": return <MemoEventPreview content={dynamicContent || {}} />;
     case "email": return <EmailPreview />;
     case "sms": return <SmsPreview />;
-    case "review": return <ReviewPreview content={dynamicContent || {}} />;
+    case "review": return <MemoReviewPreview content={dynamicContent || {}} />;
     case "bitcoin": return <BitcoinPreview />;
     case "text": return <TextPreview />;
     default: return <DefaultPhonePreview />;

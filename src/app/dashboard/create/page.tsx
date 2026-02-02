@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import {
   ArrowLeftIcon, ArrowRightIcon, LockClosedIcon, FolderIcon, QrCodeIcon,
+  ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "@/components/ui/Spinner";
 import TypeSelector from "@/components/qr/TypeSelector";
@@ -52,6 +53,7 @@ export default function CreateQRPage() {
   const [saving, setSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [createdQr, setCreatedQr] = useState<{ id: string; imageUrl: string } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   const activePreview = hoveredType || qrType || "";
@@ -84,7 +86,7 @@ export default function CreateQRPage() {
   useEffect(() => {
     if (step >= 2 && qrType) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchPreview(), 600);
+      debounceRef.current = setTimeout(() => fetchPreview(), 800);
       return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }
   }, [step, design, qrType, content, fetchPreview]);
@@ -105,8 +107,11 @@ export default function CreateQRPage() {
         body: JSON.stringify({ name, type: qrType, content, design }),
       });
       if (res.ok) {
+        const data = await res.json();
         toast.success("QR code created!");
-        router.push("/dashboard");
+        // Use the current preview as the created QR image
+        setCreatedQr({ id: data.id, imageUrl: previewUrl || "" });
+        setStep(4);
       } else {
         const d = await res.json();
         toast.error(d.error || "Failed to create");
@@ -115,8 +120,45 @@ export default function CreateQRPage() {
     setSaving(false);
   };
 
+  const downloadQr = async (format: "png" | "svg") => {
+    if (!createdQr?.imageUrl) return;
+    try {
+      if (format === "svg") {
+        // Re-fetch the QR as SVG from our preview endpoint
+        const res = await fetch("/api/qrcodes/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: qrType, content, design, format: "svg" }),
+        });
+        if (!res.ok) throw new Error("Failed to generate SVG");
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${name || "qrcode"}.svg`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // Download the PNG preview
+        const a = document.createElement("a");
+        a.href = createdQr.imageUrl;
+        a.download = `${name || "qrcode"}.png`;
+        a.click();
+      }
+    } catch {
+      toast.error("Download failed");
+    }
+  };
+
   // ─── Phone Preview Content ──────────────────────────────────────────────
   const renderPhoneContent = () => {
+    if (step === 4 && createdQr?.imageUrl) {
+      return (
+        <div className="h-full bg-white flex items-center justify-center p-6">
+          <img src={createdQr.imageUrl} alt="QR Code" className="w-full max-w-[200px]" />
+        </div>
+      );
+    }
     if (step === 1) {
       if (activePreview) return renderPreviewForType(activePreview);
       return <DefaultPhonePreview />;
@@ -149,12 +191,14 @@ export default function CreateQRPage() {
           {step === 1 && "1. Select a type of QR code"}
           {step === 2 && "2. Add content to your QR code"}
           {step === 3 && "3. Design the QR"}
+          {step === 4 && "Your QR Code is Ready!"}
         </h1>
         <div className="hidden sm:flex items-center gap-2">
           {[
             { num: 1, label: "Type of QR code" },
             { num: 2, label: "Content" },
             { num: 3, label: "QR design" },
+            { num: 4, label: "Download" },
           ].map((s, i) => (
             <div key={s.num} className="flex items-center gap-2">
               {step > s.num ? (
@@ -165,7 +209,7 @@ export default function CreateQRPage() {
                 }`}>{s.num}</span>
               )}
               <span className={`text-xs ${step === s.num ? "text-gray-900 font-medium" : "text-gray-500"}`}>{s.label}</span>
-              {i < 2 && <div className="w-8 h-px bg-gray-300 mx-1" />}
+              {i < 3 && <div className="w-8 h-px bg-gray-300 mx-1" />}
             </div>
           ))}
         </div>
@@ -261,12 +305,58 @@ export default function CreateQRPage() {
               </div>
             </div>
           )}
+
+          {/* ─── Step 4: Download ──────────────────────────────────── */}
+          {step === 4 && createdQr && (
+            <div className="space-y-6">
+              <div className="border border-gray-200 rounded-2xl overflow-hidden bg-white p-8 text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <CheckCircleIcon className="h-10 w-10 text-green-500" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 mb-1">QR Code Created Successfully!</h2>
+                <p className="text-sm text-gray-500 mb-6">Your QR code &ldquo;{name}&rdquo; is ready. Download it in your preferred format.</p>
+
+                {createdQr.imageUrl ? (
+                  <div className="bg-gray-50 rounded-xl p-6 mb-6 inline-block">
+                    <img src={createdQr.imageUrl} alt="Your QR Code" className="w-64 h-64 mx-auto" />
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-xl p-6 mb-6">
+                    <QrCodeIcon className="h-32 w-32 mx-auto text-gray-300" />
+                    <p className="text-xs text-gray-400 mt-2">QR code preview unavailable</p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-center gap-3">
+                  <button onClick={() => downloadQr("png")}
+                    className="flex items-center gap-2 px-6 py-3 bg-violet-600 rounded-xl text-sm text-white font-medium hover:bg-violet-700 transition-colors">
+                    <ArrowDownTrayIcon className="h-4 w-4" /> Download PNG
+                  </button>
+                  <button onClick={() => downloadQr("svg")}
+                    className="flex items-center gap-2 px-6 py-3 border-2 border-violet-600 rounded-xl text-sm text-violet-600 font-medium hover:bg-violet-50 transition-colors">
+                    <ArrowDownTrayIcon className="h-4 w-4" /> Download SVG
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <button onClick={() => { setCreatedQr(null); setStep(3); }}
+                  className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                  <ArrowLeftIcon className="h-4 w-4" /> Edit Design
+                </button>
+                <button onClick={() => router.push("/dashboard")}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-gray-900 rounded-lg text-sm text-white font-medium hover:bg-gray-800 transition-colors">
+                  Go to Dashboard <ArrowRightIcon className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ─── Right: Phone Mockup ──────────────────────────────────── */}
         <div className="hidden lg:block">
           <div className="sticky top-24">
-            {step >= 2 && (
+            {step >= 2 && step < 4 && (
               <div className="flex justify-center mb-4">
                 <div className="flex bg-gray-100 rounded-full p-0.5">
                   <button onClick={() => setPreviewTab("preview")}

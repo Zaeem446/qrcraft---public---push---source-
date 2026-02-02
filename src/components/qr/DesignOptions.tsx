@@ -399,7 +399,7 @@ const FRAME_META: { id: number; label: string }[] = [
   { id: 17, label: "Clipboard" }, { id: 18, label: "Coffee" }, { id: 19, label: "Cloud" }, { id: 20, label: "Gift" },
   { id: 21, label: "Bag" }, { id: 22, label: "Envelope" }, { id: 23, label: "Badge" }, { id: 24, label: "Ticket" },
   { id: 25, label: "Banner" }, { id: 26, label: "Monitor" },
-  { id: 27, label: "Frame 27" }, { id: 28, label: "Frame 28" }, { id: 29, label: "Frame 29" }, { id: 30, label: "Frame 30" },
+  { id: 27, label: "Speech Bubble" }, { id: 28, label: "Viewfinder" }, { id: 29, label: "Coupon" }, { id: 30, label: "Stamp" },
 ];
 
 function FrameSVG({ id }: { id: number }) {
@@ -640,13 +640,48 @@ function FrameSVG({ id }: { id: number }) {
           <rect x="12" y="8" width="24" height="22" rx="1" fill="currentColor" opacity="0.15" />
         </svg>
       );
-    default: // Frames 27-30 and any unknown
+    case 27: // Speech Bubble
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
+          <path d="M4 6 L44 6 L44 36 Q44 38 42 38 L28 38 L24 46 L20 38 L6 38 Q4 38 4 36 Z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinejoin="round" />
+          <rect x="12" y="10" width="24" height="18" rx="1" fill="currentColor" opacity="0.15" />
+          <rect x="10" y="30" width="28" height="4" rx="1" fill="currentColor" opacity="0.2" />
+        </svg>
+      );
+    case 28: // Viewfinder
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
+          <path d="M4 14 L4 6 Q4 4 6 4 L14 4" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M34 4 L42 4 Q44 4 44 6 L44 14" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M44 34 L44 42 Q44 44 42 44 L34 44" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <path d="M14 44 L6 44 Q4 44 4 42 L4 34" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
+          <rect x="12" y="10" width="24" height="20" rx="1" fill="currentColor" opacity="0.15" />
+          <rect x="10" y="34" width="28" height="6" rx="1" fill="currentColor" opacity="0.2" />
+        </svg>
+      );
+    case 29: // Coupon / Dashed
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
+          <rect x="4" y="4" width="40" height="40" rx="6" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="6 3" />
+          <line x1="4" y1="30" x2="44" y2="30" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" />
+          <rect x="12" y="8" width="24" height="18" rx="1" fill="currentColor" opacity="0.15" />
+          <rect x="14" y="34" width="20" height="6" rx="3" fill="currentColor" opacity="0.25" />
+        </svg>
+      );
+    case 30: // Stamp
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2" fill="none" />
+          <circle cx="24" cy="24" r="16" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="3 2" />
+          <rect x="14" y="12" width="20" height="16" rx="1" fill="currentColor" opacity="0.15" />
+          <rect x="12" y="32" width="24" height="5" rx="2.5" fill="currentColor" opacity="0.2" />
+        </svg>
+      );
+    default:
       return (
         <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
           <rect x="4" y="4" width="40" height="40" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-          <rect x="12" y="8" width="24" height="22" rx="1" fill="currentColor" opacity="0.15" />
-          <rect x="10" y="34" width="28" height="6" rx="2" fill="currentColor" opacity="0.2" />
-          <text x="24" y="44" textAnchor="middle" fontSize="7" fill="currentColor" opacity="0.5">{id}</text>
+          <rect x="12" y="12" width="24" height="24" rx="1" fill="currentColor" opacity="0.15" />
         </svg>
       );
   }
@@ -775,14 +810,15 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
     if (!file) return;
     if (file.size > 1024 * 1024) { toast.error("Logo must be under 1MB"); return; }
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Upload failed");
-      const { url } = await res.json();
-      set("logo", url);
+      const reader = new FileReader();
+      reader.onload = () => {
+        set("logo", reader.result as string);
+        toast.success("Logo loaded");
+      };
+      reader.onerror = () => { toast.error("Failed to read logo"); };
+      reader.readAsDataURL(file);
     } catch {
-      toast.error("Failed to upload logo");
+      toast.error("Failed to load logo");
     }
   };
 
