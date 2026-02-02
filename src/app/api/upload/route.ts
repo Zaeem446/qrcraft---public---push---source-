@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import crypto from 'crypto';
+
+// Force Node.js runtime (not Edge) so fs operations work
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const ALLOWED_EXTENSIONS = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'tiff', 'heic', 'heif',
@@ -14,69 +15,74 @@ const ALLOWED_EXTENSIONS = new Set([
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
+function randomId() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let id = '';
+  for (let i = 0; i < 24; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return id;
+}
+
 export async function POST(req: NextRequest) {
-  // 1. Auth check (wrapped separately so it can't crash the whole route)
-  let userId: string | undefined;
+  // 1. Parse form data
+  let formData: FormData;
   try {
-    const session = await getServerSession(authOptions);
-    userId = session?.user?.id;
-  } catch (authErr) {
-    console.error('Upload auth error:', authErr);
-    // Allow upload to proceed even if session check fails in dev
-    // This prevents getServerSession crashes from blocking all uploads
+    formData = await req.formData();
+  } catch (err: any) {
+    console.error('[upload] formData parse error:', err?.message || err);
+    return NextResponse.json({ error: 'Could not parse upload. Try a smaller file.' }, { status: 400 });
   }
 
-  if (!userId && process.env.NODE_ENV === 'production') {
-    return NextResponse.json({ error: 'Unauthorized — please log in first' }, { status: 401 });
+  const f = formData.get('file');
+  if (!f || typeof f === 'string') {
+    return NextResponse.json({ error: 'No file found in request' }, { status: 400 });
   }
 
-  // 2. Parse form data
-  let file: File;
-  try {
-    const formData = await req.formData();
-    const f = formData.get('file');
-    if (!f || typeof f === 'string') {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
-    file = f as File;
-  } catch (parseErr) {
-    console.error('Upload parse error:', parseErr);
-    return NextResponse.json({ error: 'Could not read uploaded file' }, { status: 400 });
-  }
+  const file = f as File;
+  const originalName = file.name || 'unnamed';
+  const ext = (originalName.split('.').pop() || '').toLowerCase();
 
-  // 3. Validate
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  if (!ALLOWED_EXTENSIONS.has(ext)) {
+  // 2. Validate extension
+  if (!ext || !ALLOWED_EXTENSIONS.has(ext)) {
     return NextResponse.json(
-      { error: `File type ".${ext}" is not allowed` },
+      { error: `File type ".${ext || '?'}" is not supported` },
       { status: 400 }
     );
   }
 
+  // 3. Validate size
   if (file.size > MAX_SIZE) {
-    const sizeMB = Math.round(file.size / 1024 / 1024);
     return NextResponse.json(
-      { error: `File too large (${sizeMB}MB). Max is 50MB.` },
+      { error: `File too large (${Math.round(file.size / 1024 / 1024)}MB). Max 50MB.` },
       { status: 400 }
     );
   }
 
-  // 4. Write file
+  // 4. Read bytes
+  let buffer: Buffer;
   try {
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const arrayBuf = await file.arrayBuffer();
+    buffer = Buffer.from(new Uint8Array(arrayBuf));
+  } catch (err: any) {
+    console.error('[upload] arrayBuffer error:', err?.message || err);
+    return NextResponse.json({ error: 'Could not read file data' }, { status: 400 });
+  }
 
-    const id = crypto.randomBytes(12).toString('hex');
-    const fileName = `${id}.${ext}`;
-
+  // 5. Write to disk
+  try {
+    const fileName = `${randomId()}.${ext}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
 
+    await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, fileName), buffer);
 
     return NextResponse.json({ url: `/uploads/${fileName}`, fileName });
-  } catch (writeErr) {
-    console.error('Upload write error:', writeErr);
-    return NextResponse.json({ error: 'Failed to save file to disk' }, { status: 500 });
+  } catch (err: any) {
+    console.error('[upload] disk write error:', err?.message || err);
+    return NextResponse.json(
+      { error: `Could not save file: ${err?.code || err?.message || 'unknown error'}` },
+      { status: 500 }
+    );
   }
 }
