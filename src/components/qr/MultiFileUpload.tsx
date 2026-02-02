@@ -22,6 +22,15 @@ interface MultiFileUploadProps {
   onChange: (files: FileEntry[]) => void;
 }
 
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function MultiFileUpload({ label, accept, value, onChange }: MultiFileUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -30,19 +39,16 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
   const upload = async (file: File) => {
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        onChange([...files, { file: data.url, name: file.name }]);
-        toast.success(`Uploaded ${file.name}`);
-      } else {
-        const data = await res.json().catch(() => ({ error: "Upload failed" }));
-        toast.error(data.error || `Failed to upload ${file.name}`);
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("File too large (max 50MB)");
+        setUploading(false);
+        return;
       }
+      const dataUrl = await readAsDataUrl(file);
+      onChange([...files, { file: dataUrl, name: file.name }]);
+      toast.success(`Loaded ${file.name}`);
     } catch {
-      toast.error("Network error — could not upload file");
+      toast.error("Could not load file");
     }
     setUploading(false);
   };
@@ -65,10 +71,10 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
     onChange(updated);
   };
 
-  const handleFiles = (fileList: FileList | null) => {
+  const handleFiles = async (fileList: FileList | null) => {
     if (!fileList?.length) return;
     for (let i = 0; i < fileList.length; i++) {
-      upload(fileList[i]);
+      await upload(fileList[i]);
     }
   };
 
@@ -79,14 +85,14 @@ export default function MultiFileUpload({ label, accept, value, onChange }: Mult
         <div className="space-y-2 mb-3">
           {files.map((entry, idx) => (
             <div key={idx} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200">
-              {accept.startsWith("image") || entry.file.match(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i) ? (
+              {accept.startsWith("image") || entry.file.match(/^data:image\//) || entry.file.match(/\.(png|jpe?g|gif|webp|svg|bmp|avif)$/i) ? (
                 <img src={entry.file} alt="" className="w-8 h-8 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
               ) : (
                 <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
                   <ArrowUpTrayIcon className="h-4 w-4 text-violet-600" />
                 </div>
               )}
-              <span className="text-xs text-gray-600 truncate flex-1">{entry.name || entry.file.split("/").pop()}</span>
+              <span className="text-xs text-gray-600 truncate flex-1">{entry.name || "File"}</span>
               <div className="flex items-center gap-0.5 flex-shrink-0">
                 <button
                   type="button"

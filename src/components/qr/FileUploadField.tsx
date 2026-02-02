@@ -13,31 +13,32 @@ interface FileUploadFieldProps {
   multiple?: boolean;
 }
 
-export default function FileUploadField({ label, accept, value, onChange, multiple }: FileUploadFieldProps) {
+export default function FileUploadField({ label, accept, value, onChange }: FileUploadFieldProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const readAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Could not read file"));
+      reader.readAsDataURL(file);
+    });
+
   const upload = async (file: File) => {
     setUploading(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (res.ok) {
-        const data = await res.json();
-        onChange(data.url);
-        toast.success("File uploaded successfully");
-      } else {
-        const data = await res.json().catch(() => ({ error: "Upload failed" }));
-        const msg = data.error || `Upload failed (${res.status})`;
-        setError(msg);
-        toast.error(msg);
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error("File too large (max 50MB)");
       }
-    } catch (err) {
-      const msg = "Network error — could not upload file";
+      const dataUrl = await readAsDataUrl(file);
+      onChange(dataUrl);
+      toast.success("File loaded successfully");
+    } catch (err: any) {
+      const msg = err?.message || "Could not load file";
       setError(msg);
       toast.error(msg);
     }
@@ -67,7 +68,9 @@ export default function FileUploadField({ label, accept, value, onChange, multip
               <ArrowUpTrayIcon className="h-5 w-5 text-violet-600" />
             </div>
           )}
-          <span className="text-xs text-gray-600 truncate flex-1">{value.split("/").pop()}</span>
+          <span className="text-xs text-gray-600 truncate flex-1">
+            {value.startsWith("data:") ? "File loaded" : value.split("/").pop()}
+          </span>
           <button onClick={() => onChange("")} className="text-xs text-red-500 hover:underline flex items-center gap-1">
             <XMarkIcon className="h-3.5 w-3.5" /> Remove
           </button>
@@ -97,7 +100,7 @@ export default function FileUploadField({ label, accept, value, onChange, multip
               )}
             </>
           )}
-          <input ref={inputRef} type="file" accept={accept} multiple={multiple} className="hidden"
+          <input ref={inputRef} type="file" accept={accept} className="hidden"
             onChange={(e) => { setError(""); handleFiles(e.target.files); }} />
         </div>
       )}
