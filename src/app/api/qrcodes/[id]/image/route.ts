@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { getQRImage } from '@/lib/qrfy';
+import { getQRImage, createStaticQRImage } from '@/lib/qrfy';
 import QRCode from 'qrcode';
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -14,7 +14,7 @@ const CONTENT_TYPES: Record<string, string> = {
 // Static types embed data directly in the QR code
 const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar'];
 
-// Convert content object to a QR-encodable string for static types
+// Convert content to a QR-encodable string (last resort fallback)
 function contentToString(type: string, content: Record<string, any>): string {
   switch (type) {
     case 'bitcoin':
@@ -53,24 +53,20 @@ function contentToString(type: string, content: Record<string, any>): string {
   }
 }
 
-// Get the URL to encode in the QR for a given QR code record
+// Get the URL/data to encode in the QR
 function getQRDataString(qrcode: { type: string; slug: string | null; content: any }): string {
   const content = qrcode.content as Record<string, any>;
   const type = qrcode.type;
 
-  // Static types: embed data directly
   if (STATIC_TYPES.includes(type)) {
     return contentToString(type, content);
   }
 
-  // Dynamic types: encode the redirect URL so scanning goes through our app
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
-
   if (qrcode.slug) {
     return `${baseUrl}/r/${qrcode.slug}`;
   }
 
-  // Fallback if slug somehow missing: use direct content URL
   if (type === 'website' && content.url) return content.url;
   if (type === 'video' && content.url) return content.url;
   if (type === 'instagram' && content.url) return content.url;
@@ -80,6 +76,24 @@ function getQRDataString(qrcode: { type: string; slug: string | null; content: a
   }
 
   return contentToString(type, content);
+}
+
+// Build content with the actual redirect URL for QRFY static image generation
+function getContentForQRFY(qrcode: { type: string; slug: string | null; content: any }): Record<string, any> {
+  const content = qrcode.content as Record<string, any>;
+  const type = qrcode.type;
+
+  // For static types, use original content as-is
+  if (STATIC_TYPES.includes(type)) {
+    return content;
+  }
+
+  // For dynamic types, override URL with the redirect URL so the QR encodes
+  // the tracking redirect, not a placeholder
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+  const redirectUrl = qrcode.slug ? `${baseUrl}/r/${qrcode.slug}` : (content.url || `${baseUrl}/preview`);
+
+  return { ...content, url: redirectUrl };
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -106,19 +120,30 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     let imageBuffer: Buffer | null = null;
+    const content = qrcode.content as Record<string, any>;
+    const design = (qrcode.design as Record<string, any>) || {};
 
-    // Try QRFY API first if this QR has a qrfyId
+    // 1) Try QRFY stored image (if QR was created on QRFY)
     if (qrcode.qrfyId) {
       try {
         imageBuffer = await getQRImage(qrcode.qrfyId, format);
       } catch (err) {
-        console.error('QRFY image fetch failed, falling back to local:', err);
+        console.error('QRFY getQRImage failed:', err);
       }
     }
 
-    // Fallback: generate locally
+    // 2) Try QRFY static image generation (same as preview — applies full design)
     if (!imageBuffer) {
-      const design = (qrcode.design as Record<string, any>) || {};
+      try {
+        const qrfyContent = getContentForQRFY(qrcode);
+        imageBuffer = await createStaticQRImage(qrcode.type, qrfyContent, design, format === 'jpeg' ? 'png' : format);
+      } catch (err) {
+        console.error('QRFY createStaticQRImage failed:', err);
+      }
+    }
+
+    // 3) Last resort: basic local generation (no custom shapes/frames, only colors)
+    if (!imageBuffer) {
       const text = getQRDataString(qrcode);
       const errorLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
 
