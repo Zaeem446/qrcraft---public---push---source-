@@ -12,6 +12,7 @@ import { renderPreviewForType } from "@/components/qr/PhonePreviews";
 import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
+import InstantQRPreview from "@/components/qr/InstantQRPreview";
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -202,11 +203,29 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
             </div>
             <PhoneMockup>
               {previewTab === "qrcode" ? (
-                <div className="h-full bg-white flex items-center justify-center p-6">
-                  {previewLoading ? (
-                    <Spinner />
-                  ) : previewUrl ? (
-                    <img src={previewUrl} alt="QR Preview" className="w-full max-w-[200px]" />
+                <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex flex-col items-center justify-center p-4">
+                  {previewUrl ? (
+                    <div className="relative">
+                      <div className="bg-white rounded-2xl p-4 shadow-lg">
+                        <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px] object-contain" />
+                      </div>
+                      {previewLoading && (
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : qrType ? (
+                    <div className="relative">
+                      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <InstantQRPreview content={content} type={qrType} design={design} size={180} />
+                      </div>
+                      {previewLoading && (
+                        <div className="absolute inset-0 bg-white/50 rounded-2xl flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="text-center text-gray-400 text-sm">
                       <QrCodeIcon className="h-16 w-16 mx-auto mb-2 text-gray-300" />

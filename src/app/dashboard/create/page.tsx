@@ -14,6 +14,7 @@ import ContentForms from "@/components/qr/ContentForms";
 import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
+import InstantQRPreview from "@/components/qr/InstantQRPreview";
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
@@ -93,7 +94,7 @@ export default function CreateQRPage() {
   useEffect(() => {
     if (step >= 2 && qrType) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchPreview(), 800);
+      debounceRef.current = setTimeout(() => fetchPreview(), 400);
       return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }
   }, [step, design, qrType, content, fetchPreview]);
@@ -171,15 +172,32 @@ export default function CreateQRPage() {
     }
     if (previewTab === "qrcode") {
       return (
-        <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
-          {previewLoading ? (
-            <div className="flex flex-col items-center gap-3">
-              <Spinner />
-              <span className="text-xs text-gray-500">Generating preview...</span>
+        <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex flex-col items-center justify-center p-4">
+          {/* Show styled QRFY preview if available, otherwise show instant preview */}
+          {previewUrl ? (
+            <div className="relative">
+              <div className="bg-white rounded-2xl p-4 shadow-lg">
+                <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px] object-contain" />
+              </div>
+              {previewLoading && (
+                <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
             </div>
-          ) : previewUrl ? (
-            <div className="bg-white rounded-2xl p-4 shadow-lg">
-              <img src={previewUrl} alt="QR Preview" className="w-full max-w-[180px]" />
+          ) : qrType ? (
+            <div className="relative">
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <InstantQRPreview content={content} type={qrType} design={design} size={180} />
+              </div>
+              {previewLoading && (
+                <div className="absolute inset-0 bg-white/50 rounded-2xl flex items-center justify-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                    <span className="text-[10px] text-violet-600 font-medium">Styling...</span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center text-gray-400 text-sm">
@@ -188,6 +206,9 @@ export default function CreateQRPage() {
               </div>
               <p className="text-xs">QR preview will appear here</p>
             </div>
+          )}
+          {previewUrl && (
+            <p className="text-[10px] text-gray-400 mt-3">Styled preview from QRFY</p>
           )}
         </div>
       );
