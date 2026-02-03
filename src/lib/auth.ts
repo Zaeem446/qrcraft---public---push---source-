@@ -5,6 +5,7 @@ import FacebookProvider from 'next-auth/providers/facebook';
 import LinkedInProvider from 'next-auth/providers/linkedin';
 import bcrypt from 'bcryptjs';
 import prisma from './db';
+import { AuthProvider } from '@prisma/client';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -69,7 +70,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name || 'User',
               email: user.email!,
               image: user.image || undefined,
-              provider: account.provider,
+              provider: account.provider as AuthProvider,
               emailVerified: true,
               plan: 'free',
               trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
