@@ -35,28 +35,28 @@ export default function CreateQRPage() {
   const [content, setContent] = useState<FormContent>({});
   const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
   const [design, setDesign] = useState<Record<string, any>>({
-    dotsColor: "#000000",
-    dotsType: "square",
-    cornersSquareColor: "#000000",
-    cornersSquareType: "default",
-    cornersDotColor: "#000000",
-    cornersDotType: "default",
+    dotsColor: "#6D28D9",
+    dotsType: "rounded",
+    cornersSquareColor: "#6D28D9",
+    cornersSquareType: "extra-rounded",
+    cornersDotColor: "#6D28D9",
+    cornersDotType: "dot",
     backgroundColor: "#FFFFFF",
     logo: "",
     logoSize: 0.4,
     frameStyle: "none",
-    frameId: 0,
-    frameColor: "#000000",
+    frameId: -1,
+    frameColor: "#6D28D9",
     frameText: "Scan me!",
     frameFontSize: 42,
     frameTextColor: "#FFFFFF",
-    frameBackgroundColor: "#000000",
+    frameBackgroundColor: "#6D28D9",
     patternGradient: false,
     patternColor2: "#7C3AED",
     bgTransparent: false,
     useGradientBg: false,
     bgColor2: "#7C3AED",
-    errorCorrectionLevel: "M",
+    errorCorrectionLevel: "H",
   });
   const [saving, setSaving] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -164,68 +164,6 @@ export default function CreateQRPage() {
     } catch {
       toast.error("Download failed");
     }
-  };
-
-  // ─── Phone Preview Content ──────────────────────────────────────────────
-  const renderPhoneContent = () => {
-    if (step === 4 && createdQr?.imageUrl) {
-      return (
-        <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
-          <div className="bg-white rounded-2xl p-4 shadow-lg">
-            <img src={createdQr.imageUrl} alt="QR Code" className="w-full max-w-[180px]" />
-          </div>
-        </div>
-      );
-    }
-    if (step === 1) {
-      if (activePreview) return renderPreviewForType(activePreview);
-      return <DefaultPhonePreview />;
-    }
-    if (previewTab === "qrcode") {
-      return (
-        <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex flex-col items-center justify-center p-4">
-          {/* Show styled QRFY preview if available, otherwise show instant preview */}
-          {previewUrl ? (
-            <div className="relative">
-              <div className="bg-white rounded-2xl p-4 shadow-lg">
-                <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px] object-contain" />
-              </div>
-              {previewLoading && (
-                <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
-            </div>
-          ) : qrType ? (
-            <div className="relative">
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <InstantQRPreview content={content} type={qrType} design={design} size={180} />
-              </div>
-              {previewLoading && (
-                <div className="absolute inset-0 bg-white/50 rounded-2xl flex items-center justify-center">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-[10px] text-violet-600 font-medium">Styling...</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center text-gray-400 text-sm">
-              <div className="w-20 h-20 mx-auto mb-3 rounded-2xl bg-white shadow-inner flex items-center justify-center">
-                <QrCodeIcon className="h-10 w-10 text-gray-300" />
-              </div>
-              <p className="text-xs">QR preview will appear here</p>
-            </div>
-          )}
-          {previewUrl && (
-            <p className="text-[10px] text-gray-400 mt-3">Styled preview from QRFY</p>
-          )}
-        </div>
-      );
-    }
-    if (qrType) return renderPreviewForType(qrType, content);
-    return <DefaultPhonePreview />;
   };
 
   return (
@@ -457,34 +395,87 @@ export default function CreateQRPage() {
           )}
         </div>
 
-        {/* ─── Right: Phone Mockup ──────────────────────────────────── */}
+        {/* ─── Right: Preview Panel ──────────────────────────────────── */}
         <div className="hidden lg:block">
           <div className="sticky top-24">
-            {/* Preview tab switcher */}
+            {/* Tab switcher */}
             {step >= 2 && step < 4 && (
-              <div className="flex justify-center mb-6">
+              <div className="flex justify-center mb-4">
                 <div className="flex bg-white rounded-xl p-1 shadow-sm border border-gray-100">
-                  <button onClick={() => setPreviewTab("preview")}
-                    className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      previewTab === "preview"
-                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}>
-                    Landing Page
-                  </button>
                   <button onClick={() => setPreviewTab("qrcode")}
                     className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
                       previewTab === "qrcode"
                         ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                     }`}>
+                    <QrCodeIcon className="h-4 w-4 inline mr-1.5" />
                     QR Code
+                  </button>
+                  <button onClick={() => setPreviewTab("preview")}
+                    className={`px-5 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      previewTab === "preview"
+                        ? "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}>
+                    Preview
                   </button>
                 </div>
               </div>
             )}
 
-            <PhoneMockup>{renderPhoneContent()}</PhoneMockup>
+            {/* QR Code Display (separate, clean) */}
+            {step >= 2 && step < 4 && previewTab === "qrcode" && (
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
+                <div className="flex items-center justify-center">
+                  {previewUrl ? (
+                    <div className="relative">
+                      <img src={previewUrl} alt="QR Preview" className="w-[220px] h-[220px] object-contain" />
+                      {previewLoading && (
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : qrType ? (
+                    <div className="relative">
+                      <InstantQRPreview content={content} type={qrType} design={design} size={220} />
+                      {previewLoading && (
+                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
+                          <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400">
+                      <QrCodeIcon className="h-20 w-20 mx-auto text-gray-200" />
+                      <p className="text-xs mt-2">QR preview</p>
+                    </div>
+                  )}
+                </div>
+                {previewUrl && (
+                  <p className="text-center text-[10px] text-gray-400 mt-3">Live preview from QRFY</p>
+                )}
+              </div>
+            )}
+
+            {/* Phone Mockup - shows content preview only */}
+            {(step === 1 || previewTab === "preview") && (
+              <PhoneMockup>
+                {step === 1 ? (
+                  activePreview ? renderPreviewForType(activePreview) : <DefaultPhonePreview />
+                ) : step === 4 && createdQr?.imageUrl ? (
+                  <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
+                    <div className="bg-white rounded-2xl p-4 shadow-lg">
+                      <img src={createdQr.imageUrl} alt="QR Code" className="w-full max-w-[180px]" />
+                    </div>
+                  </div>
+                ) : qrType ? (
+                  renderPreviewForType(qrType, content)
+                ) : (
+                  <DefaultPhonePreview />
+                )}
+              </PhoneMockup>
+            )}
 
             {step === 1 && (
               <p className="text-center text-sm text-gray-400 mt-6">
