@@ -28,6 +28,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     fetch(`/api/qrcodes/${id}`)
@@ -44,12 +45,19 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   }, [id]);
 
   const fetchPreview = useCallback(async () => {
+    // Abort any previous in-flight request to prevent race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
     setPreviewLoading(true);
     try {
       const res = await fetch("/api/qrcodes/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: qrType, content, design }),
+        signal: abortControllerRef.current.signal,
       });
       if (res.ok) {
         const blob = await res.blob();
@@ -60,6 +68,8 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         });
       }
     } catch (err) {
+      // Ignore abort errors - they're expected when user changes design quickly
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error("Preview fetch error:", err);
     }
     setPreviewLoading(false);
