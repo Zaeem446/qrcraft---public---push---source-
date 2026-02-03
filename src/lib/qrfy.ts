@@ -689,8 +689,9 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
 
 // ─── API Methods ─────────────────────────────────────────────────────────────
 
-// Static types whose content should be mapped directly for QRFY
-const QRFY_STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
+// Static types whose content should be mapped directly for QRFY (embed data in QR)
+// Exported so other modules use the same list
+export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
 
 export async function createQR(params: {
   type: string;
@@ -707,7 +708,7 @@ export async function createQR(params: {
   let qrfyType: string;
   let data: Record<string, any>;
 
-  if (QRFY_STATIC_TYPES.includes(params.type)) {
+  if (STATIC_TYPES.includes(params.type)) {
     // Static types — map full content to QRFY format
     const mapped = mapContentToData(params.type, params.content);
     qrfyType = mapped.type;
@@ -764,7 +765,7 @@ export async function updateQR(
   const body: Record<string, any> = {};
 
   if (params.type && params.content) {
-    if (QRFY_STATIC_TYPES.includes(params.type)) {
+    if (STATIC_TYPES.includes(params.type)) {
       const { type: qrfyType, data } = mapContentToData(params.type, params.content);
       body.type = qrfyType;
       body.data = data;

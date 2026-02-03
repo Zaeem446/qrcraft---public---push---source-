@@ -5,7 +5,8 @@ import prisma from '@/lib/db';
 async function getGeoData(ip: string) {
   try {
     if (ip === '127.0.0.1' || ip === '::1') return { country: 'Local', city: 'Local' };
-    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,city`, { next: { revalidate: 3600 } });
+    // Use HTTPS for security (ip-api.com supports both)
+    const res = await fetch(`https://ip-api.com/json/${ip}?fields=country,city`, { next: { revalidate: 3600 } });
     if (res.ok) return await res.json();
   } catch {}
   return { country: 'Unknown', city: 'Unknown' };
@@ -25,15 +26,27 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     // For QRs migrated to QRFY, QRFY handles tracking and redirects.
     // This route only serves as a legacy fallback for old QR codes without qrfyId.
 
-    // Only track scans locally for legacy (non-QRFY) QR codes
+    // Track scans locally for legacy (non-QRFY) QR codes
+    // For QRs with qrfyId, QRFY handles tracking
     if (!qrcode.qrfyId) {
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '127.0.0.1';
       const userAgent = req.headers.get('user-agent') || '';
       const parser = new UAParser(userAgent);
       const referer = req.headers.get('referer') || '';
 
-      getGeoData(ip).then((geo) => {
-        prisma.scan.create({
+      // Get geo data and record scan in parallel, then await both
+      // This ensures tracking completes before response is sent
+      try {
+        const [geo] = await Promise.all([
+          getGeoData(ip),
+          prisma.qRCode.update({
+            where: { id: qrcode.id },
+            data: { scanCount: { increment: 1 } },
+          }),
+        ]);
+
+        // Create scan record (don't block redirect on this)
+        await prisma.scan.create({
           data: {
             qrCodeId: qrcode.id,
             userId: qrcode.userId,
@@ -45,14 +58,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
             os: parser.getOS().name || 'Unknown',
             referer,
           },
-        }).catch(console.error);
-      });
-
-      // Increment scan count
-      prisma.qRCode.update({
-        where: { id: qrcode.id },
-        data: { scanCount: { increment: 1 } },
-      }).catch(console.error);
+        });
+      } catch (trackingError) {
+        // Log but don't fail the redirect
+        console.error('Tracking error:', trackingError);
+      }
     }
 
     const content = qrcode.content as any;

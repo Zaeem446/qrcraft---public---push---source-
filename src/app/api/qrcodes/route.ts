@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { nanoid } from 'nanoid';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { createQR } from '@/lib/qrfy';
+import { createQR, STATIC_TYPES } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -71,7 +71,6 @@ export async function POST(req: NextRequest) {
     let qrfyError: string | null = null;
 
     // For dynamic types, override URL to point to our redirect so QRFY encodes the tracking URL
-    const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar'];
     const qrfyContent = STATIC_TYPES.includes(type)
       ? content
       : { ...content, url: `${baseUrl}/r/${slug}` };

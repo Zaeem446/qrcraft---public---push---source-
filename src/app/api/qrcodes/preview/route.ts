@@ -157,7 +157,7 @@ async function generateFallbackQR(type: string, content: Record<string, any>, de
   const buffer = await QRCode.toBuffer(text, {
     errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
     type: 'png',
-    width: 400,
+    width: 600, // Match download size for consistency
     margin: 2,
     color: {
       dark: design.dotsColor || '#000000',

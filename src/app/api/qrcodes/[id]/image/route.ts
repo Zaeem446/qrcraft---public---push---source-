@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
-import { getQRImage, createStaticQRImage } from '@/lib/qrfy';
+import { getQRImage, createStaticQRImage, STATIC_TYPES } from '@/lib/qrfy';
 import QRCode from 'qrcode';
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -10,9 +10,6 @@ const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
   jpeg: 'image/jpeg',
 };
-
-// Static types embed data directly in the QR code
-const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar'];
 
 // Convert content to a QR-encodable string (last resort fallback)
 function contentToString(type: string, content: Record<string, any>): string {
