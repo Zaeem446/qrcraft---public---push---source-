@@ -235,10 +235,10 @@ export default function DashboardPage() {
           {filteredQRCodes.map((qr) => (
             <div
               key={qr.id}
-              className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between hover:shadow-sm hover:border-gray-300 transition-all duration-200"
+              className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between hover:shadow-lg hover:border-violet-200 hover:-translate-y-0.5 transition-all duration-300"
             >
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="w-14 h-14 bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-violet-100/50 shadow-sm">
                   <img
                     src={`/api/qrcodes/${qr.id}/image?format=webp`}
                     alt={qr.name}
