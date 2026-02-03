@@ -808,6 +808,26 @@ const ERROR_CORRECTION = [
   { id: "H", label: "High" },
 ];
 
+// Preset logos matching QRFY's built-in options
+const PRESET_LOGOS = [
+  { id: "", label: "None", icon: null },
+  { id: "whatsapp", label: "WhatsApp", color: "#25D366" },
+  { id: "link", label: "Link", color: "#6366F1" },
+  { id: "location", label: "Location", color: "#EF4444" },
+  { id: "wifi", label: "WiFi", color: "#06B6D4" },
+  { id: "vcard", label: "Contact", color: "#3B82F6" },
+  { id: "email", label: "Email", color: "#F59E0B" },
+  { id: "scan", label: "Scan", color: "#8B5CF6" },
+  { id: "facebook", label: "Facebook", color: "#1877F2" },
+  { id: "instagram", label: "Instagram", color: "#E4405F" },
+  { id: "twitter", label: "Twitter", color: "#1DA1F2" },
+  { id: "youtube", label: "YouTube", color: "#FF0000" },
+  { id: "linkedin", label: "LinkedIn", color: "#0A66C2" },
+  { id: "tiktok", label: "TikTok", color: "#000000" },
+  { id: "paypal", label: "PayPal", color: "#003087" },
+  { id: "bitcoin", label: "Bitcoin", color: "#F7931A" },
+];
+
 // ─── Main DesignOptions Component ────────────────────────────────────────────
 
 interface DesignOptionsProps {
@@ -818,20 +838,36 @@ interface DesignOptionsProps {
 export default function DesignOptions({ design, setDesign }: DesignOptionsProps) {
   const set = (key: string, val: any) => setDesign({ ...design, [key]: val });
 
+  const [logoUploading, setLogoUploading] = useState(false);
+
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 1024 * 1024) { toast.error("Logo must be under 1MB"); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error("Logo must be under 2MB"); return; }
+
+    setLogoUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = () => {
-        set("logo", reader.result as string);
-        toast.success("Logo loaded");
-      };
-      reader.onerror = () => { toast.error("Failed to read logo"); };
-      reader.readAsDataURL(file);
-    } catch {
-      toast.error("Failed to load logo");
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Upload failed');
+      }
+
+      const { url } = await res.json();
+      set("logo", url);
+      set("logoType", "custom"); // Mark as custom upload
+      toast.success("Logo uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload logo");
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -1003,19 +1039,84 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
       {/* Logo */}
       <AccordionSection
         icon={<PhotoSolidIcon className="h-5 w-5 text-gray-500" />}
-        title="Add Logo" subtitle="Make your QR code unique by adding your logo.">
-        <div>
-          <label className="text-xs font-medium text-gray-600 mb-3 block">Upload your logo (Maximum size: 1 MB)</label>
-          <label className="flex flex-col items-center justify-center w-16 h-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-violet-400 hover:bg-violet-50 transition-colors">
-            <PhotoSolidIcon className="h-6 w-6 text-gray-400" />
-            <span className="text-[9px] text-gray-400 mt-0.5">Upload</span>
-            <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          </label>
-          {design.logo && (
-            <div className="flex items-center gap-2 mt-3">
-              <img src={design.logo} alt="Logo" className="w-10 h-10 rounded-lg object-cover border border-gray-200" />
-              <p className="text-xs text-green-600">Logo uploaded</p>
-              <button onClick={() => set("logo", "")} className="text-xs text-red-500 ml-auto hover:underline">Remove</button>
+        title="Add Logo" subtitle="Add a central logo by uploading your image or choosing a preset.">
+        <div className="space-y-4">
+          {/* Preset Logos */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-3 block">Select a logo</label>
+            <div className="grid grid-cols-8 gap-2">
+              {PRESET_LOGOS.map(preset => (
+                <button
+                  key={preset.id}
+                  onClick={() => {
+                    set("logo", preset.id);
+                    set("logoType", preset.id ? "preset" : "");
+                  }}
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg border-2 transition-all ${
+                    design.logoType === "preset" && design.logo === preset.id
+                      ? "border-violet-500 bg-violet-50"
+                      : design.logoType !== "preset" && design.logoType !== "custom" && !preset.id && !design.logo
+                      ? "border-violet-500 bg-violet-50"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                  title={preset.label}
+                >
+                  {preset.id === "" ? (
+                    <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="4" y1="4" x2="20" y2="20" />
+                      <line x1="20" y1="4" x2="4" y2="20" />
+                    </svg>
+                  ) : (
+                    <div
+                      className="w-6 h-6 rounded-md flex items-center justify-center text-white text-[10px] font-bold"
+                      style={{ backgroundColor: preset.color }}
+                    >
+                      {preset.label.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Upload */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-3 block">Add your logo (JPG, PNG / 2MB max)</label>
+            <label className={`flex flex-col items-center justify-center w-full h-20 bg-gray-50 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+              logoUploading ? "border-violet-400 bg-violet-50" : "border-gray-300 hover:border-violet-400 hover:bg-violet-50"
+            }`}>
+              {logoUploading ? (
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-violet-500" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="text-sm text-violet-600">Uploading...</span>
+                </div>
+              ) : (
+                <>
+                  <PhotoSolidIcon className="h-6 w-6 text-gray-400" />
+                  <span className="text-xs text-gray-500 mt-1">Click to upload</span>
+                </>
+              )}
+              <input type="file" accept="image/png,image/jpeg,image/jpg" className="hidden" onChange={handleLogoUpload} disabled={logoUploading} />
+            </label>
+          </div>
+
+          {/* Show uploaded logo */}
+          {design.logoType === "custom" && design.logo && (
+            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <img src={design.logo} alt="Logo" className="w-12 h-12 rounded-lg object-cover border border-green-300" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-700">Custom logo uploaded</p>
+                <p className="text-xs text-green-600">Your logo will appear in the center of the QR code</p>
+              </div>
+              <button
+                onClick={() => { set("logo", ""); set("logoType", ""); }}
+                className="text-sm text-red-500 hover:text-red-700 font-medium"
+              >
+                Remove
+              </button>
             </div>
           )}
         </div>

@@ -165,9 +165,18 @@ function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
 export function mapDesignToStyle(design: Record<string, any>) {
   const style: Record<string, any> = {};
 
-  // Logo — must be a hosted URL (not base64); QRFY downloads it server-side
-  if (design.logo && !design.logo.startsWith('data:')) {
-    style.image = toAbsoluteUrl(design.logo);
+  // Logo handling - supports preset IDs and custom URLs
+  if (design.logo) {
+    if (design.logoType === 'preset') {
+      // Preset logo - send as preset ID
+      style.image = design.logo;
+    } else if (design.logoType === 'custom' && !design.logo.startsWith('data:')) {
+      // Custom uploaded logo - must be a hosted URL (not base64)
+      style.image = toAbsoluteUrl(design.logo);
+    } else if (!design.logoType && !design.logo.startsWith('data:')) {
+      // Legacy support - URL without logoType
+      style.image = toAbsoluteUrl(design.logo);
+    }
   }
 
   // Shape / pattern
