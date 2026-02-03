@@ -12,10 +12,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
     }
 
+    const content = qrcode.content as Record<string, any>;
+
     return NextResponse.json({
       type: qrcode.type,
       content: qrcode.content,
       name: qrcode.name,
+      // Extract pageDesign for easy access by landing page
+      pageDesign: content?.pageDesign || null,
     });
   } catch (error) {
     console.error('Error fetching QR by slug:', error);
