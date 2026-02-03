@@ -1,6 +1,8 @@
 import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
+import FacebookProvider from 'next-auth/providers/facebook';
+import LinkedInProvider from 'next-auth/providers/linkedin';
 import bcrypt from 'bcryptjs';
 import prisma from './db';
 
@@ -9,6 +11,17 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    FacebookProvider({
+      clientId: process.env.FACEBOOK_CLIENT_ID!,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+    }),
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID!,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
+      authorization: {
+        params: { scope: 'openid profile email' },
+      },
     }),
     CredentialsProvider({
       name: 'credentials',
@@ -45,7 +58,8 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === 'google') {
+      // Handle OAuth providers (Google, Facebook, LinkedIn)
+      if (account?.provider && ['google', 'facebook', 'linkedin'].includes(account.provider)) {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
         });
@@ -55,7 +69,7 @@ export const authOptions: NextAuthOptions = {
               name: user.name || 'User',
               email: user.email!,
               image: user.image || undefined,
-              provider: 'google',
+              provider: account.provider,
               emailVerified: true,
               plan: 'free',
               trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
