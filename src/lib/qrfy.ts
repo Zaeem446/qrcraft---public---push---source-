@@ -195,17 +195,20 @@ export function mapDesignToStyle(design: Record<string, any>) {
     dotColor: design.cornersDotColor || '#000000',
   };
 
-  // Frame — QRFY always requires color/text/textColor/fontSize even when id=0
-  const frameId = typeof design.frameId === 'number' ? design.frameId : 0;
-  style.frame = {
-    id: frameId,
-    color: design.frameColor || '#7C3AED',
-    text: (design.frameText || 'Scan me!').slice(0, 30),
-    fontSize: design.frameFontSize || 42,
-    textColor: design.frameTextColor || '#FFFFFF',
-  };
-  if (frameId > 0) {
-    style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
+  // Frame — only include if frameId is a valid QRFY frame (0-30)
+  // frameId -1 means "None" (no frame)
+  const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
+  if (frameId >= 0) {
+    style.frame = {
+      id: frameId,
+      color: design.frameColor || '#7C3AED',
+      text: (design.frameText || 'Scan me!').slice(0, 30),
+      fontSize: design.frameFontSize || 42,
+      textColor: design.frameTextColor || '#FFFFFF',
+    };
+    if (frameId > 0) {
+      style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
+    }
   }
 
   // Error correction

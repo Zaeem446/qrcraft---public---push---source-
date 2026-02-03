@@ -388,27 +388,40 @@ function CornerDotSVG({ style }: { style: string }) {
 // ─── Frame Thumbnails ────────────────────────────────────────────────────────
 
 const FRAME_META: { id: number; label: string }[] = [
-  { id: 0, label: "None" },
-  { id: 1, label: "Square Bottom" }, { id: 2, label: "Square Top" }, { id: 3, label: "Square Both" },
-  { id: 4, label: "Round Bottom" }, { id: 5, label: "Round Top" }, { id: 6, label: "Round Both" },
-  { id: 7, label: "Pill Bottom" }, { id: 8, label: "Pill Both" },
-  { id: 9, label: "Dash Square" }, { id: 10, label: "Dash Round" },
-  { id: 11, label: "Dot Square" }, { id: 12, label: "Dot Round" },
-  { id: 13, label: "Double Square" }, { id: 14, label: "Double Round" },
-  { id: 15, label: "Square Simple" }, { id: 16, label: "Round Simple" },
-  { id: 17, label: "Clipboard" }, { id: 18, label: "Coffee" }, { id: 19, label: "Cloud" }, { id: 20, label: "Gift" },
-  { id: 21, label: "Bag" }, { id: 22, label: "Envelope" }, { id: 23, label: "Badge" }, { id: 24, label: "Ticket" },
-  { id: 25, label: "Banner" }, { id: 26, label: "Monitor" },
-  { id: 27, label: "Speech Bubble" }, { id: 28, label: "Viewfinder" }, { id: 29, label: "Coupon" }, { id: 30, label: "Stamp" },
+  { id: -1, label: "None" },
+  // QRFY Frame IDs 0-30 - labels match actual QRFY renders
+  { id: 0, label: "Video Player" },
+  { id: 1, label: "Simple 1" }, { id: 2, label: "Simple 2" }, { id: 3, label: "Simple 3" },
+  { id: 4, label: "Simple 4" }, { id: 5, label: "Simple 5" }, { id: 6, label: "Simple 6" },
+  { id: 7, label: "Simple 7" }, { id: 8, label: "Simple 8" },
+  { id: 9, label: "Simple 9" }, { id: 10, label: "Simple 10" },
+  { id: 11, label: "Simple 11" }, { id: 12, label: "Text Top" },
+  { id: 13, label: "Plain" }, { id: 14, label: "Script" },
+  { id: 15, label: "Banner Top" }, { id: 16, label: "Gift Bow" },
+  { id: 17, label: "Polaroid" }, { id: 18, label: "Simple 18" }, { id: 19, label: "Ribbons" }, { id: 20, label: "Minimal" },
+  { id: 21, label: "Scooter" }, { id: 22, label: "Monitor" }, { id: 23, label: "Folder" }, { id: 24, label: "Clipboard" },
+  { id: 25, label: "Notebook" }, { id: 26, label: "Drink Cup" },
+  { id: 27, label: "Alarm Clock" }, { id: 28, label: "Plain 28" }, { id: 29, label: "Plain 29" }, { id: 30, label: "Plain 30" },
 ];
 
 function FrameSVG({ id }: { id: number }) {
   const s = 48;
-  if (id === 0) {
+  // "None" - no frame
+  if (id === -1) {
     return (
       <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-400">
         <line x1="8" y1="8" x2="40" y2="40" stroke="currentColor" strokeWidth="2" />
         <line x1="40" y1="8" x2="8" y2="40" stroke="currentColor" strokeWidth="2" />
+      </svg>
+    );
+  }
+  // Video Player frame (QRFY id 0)
+  if (id === 0) {
+    return (
+      <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-700">
+        <rect x="4" y="2" width="40" height="36" rx="3" stroke="currentColor" strokeWidth="2" fill="none" />
+        <rect x="4" y="38" width="40" height="8" rx="2" fill="currentColor" opacity="0.4" />
+        <polygon points="18,14 18,28 30,21" fill="currentColor" opacity="0.5" />
       </svg>
     );
   }
