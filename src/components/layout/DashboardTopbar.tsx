@@ -27,7 +27,7 @@ const mainNav = [
 ];
 
 const footerNav = [
-  { href: '/contact', label: 'Contact us', icon: ChatBubbleLeftRightIcon },
+  { href: 'mailto:support@qrcraft.com', label: 'Contact us', icon: ChatBubbleLeftRightIcon, external: true },
   { href: '/faq', label: 'FAQs', icon: QuestionMarkCircleIcon },
 ];
 
@@ -139,17 +139,29 @@ export default function DashboardTopbar() {
             )}
 
             <div className="px-3 py-3 border-t border-gray-100 space-y-0.5">
-              {footerNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
-                >
-                  <item.icon className="h-4 w-4 text-gray-400" />
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {footerNav.map((item) =>
+                'external' in item && item.external ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  >
+                    <item.icon className="h-4 w-4 text-gray-400" />
+                    <span>{item.label}</span>
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                  >
+                    <item.icon className="h-4 w-4 text-gray-400" />
+                    <span>{item.label}</span>
+                  </Link>
+                )
+              )}
             </div>
           </div>
         </div>
