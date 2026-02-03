@@ -24,6 +24,21 @@ function randomId() {
   return id;
 }
 
+// Get Supabase client if configured (dynamic import)
+async function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (url && key) {
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      return createClient(url, key);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   // 1. Parse form data
   let formData: FormData;
@@ -69,14 +84,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not read file data' }, { status: 400 });
   }
 
-  // 5. Write to disk
-  try {
-    const fileName = `${randomId()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+  const fileName = `${randomId()}.${ext}`;
 
+  // 5. Try Supabase first (works on Vercel), fall back to local disk (works locally)
+  const supabase = await getSupabase();
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .upload(fileName, buffer, {
+          contentType: file.type || 'application/octet-stream',
+          cacheControl: '3600',
+        });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(data.path);
+
+      return NextResponse.json({ url: urlData.publicUrl, fileName });
+    } catch (err: any) {
+      console.error('[upload] Supabase error:', err?.message || err);
+      // Fall through to local disk
+    }
+  }
+
+  // Fallback: Write to local disk
+  try {
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     await mkdir(uploadDir, { recursive: true });
     await writeFile(path.join(uploadDir, fileName), buffer);
-
     return NextResponse.json({ url: `/uploads/${fileName}`, fileName });
   } catch (err: any) {
     console.error('[upload] disk write error:', err?.message || err);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   QrCodeIcon, ChevronDownIcon, ArrowPathIcon,
   PhotoIcon as PhotoSolidIcon,
+  ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 
@@ -833,7 +834,44 @@ interface DesignOptionsProps {
 
 export default function DesignOptions({ design, setDesign }: DesignOptionsProps) {
   const set = (key: string, val: any) => setDesign({ ...design, [key]: val });
+  const [uploading, setUploading] = useState(false);
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be under 2MB");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+
+      set("logo", data.url);
+      toast.success("Logo uploaded!");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -1031,6 +1069,30 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Custom Upload */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-2 block">Or upload your own</label>
+            <label className={`flex items-center justify-center gap-2 w-full py-3 px-4 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
+              uploading ? "border-violet-400 bg-violet-50" : "border-gray-300 hover:border-violet-400 hover:bg-gray-50"
+            }`}>
+              {uploading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-violet-500" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span className="text-sm text-violet-600">Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <ArrowUpTrayIcon className="h-5 w-5 text-gray-400" />
+                  <span className="text-sm text-gray-500">Upload logo (PNG, JPG - max 2MB)</span>
+                </>
+              )}
+              <input type="file" accept="image/png,image/jpeg,image/jpg,image/webp" className="hidden" onChange={handleLogoUpload} disabled={uploading} />
+            </label>
           </div>
 
           {/* Show selected logo */}
