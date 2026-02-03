@@ -808,19 +808,19 @@ const ERROR_CORRECTION = [
   { id: "H", label: "High" },
 ];
 
-// Actual QRFY preset logo URLs
+// Preset logo URLs (external sources - QRFY can't fetch from its own domain)
 const PRESET_LOGOS = [
   { id: "", label: "None", url: "" },
-  { id: "whatsapp", label: "WhatsApp", url: "https://qrfy.com/assets/whatsapp-wsWHf8wQ.svg" },
-  { id: "link", label: "Link", url: "https://qrfy.com/assets/link-CXAlAtgE.svg" },
-  { id: "location", label: "Location", url: "https://qrfy.com/assets/location-N972obC2.svg" },
-  { id: "wifi", label: "WiFi", url: "https://qrfy.com/assets/wifi-DXYB8ErO.svg" },
-  { id: "credential", label: "Contact", url: "https://qrfy.com/assets/credential-SvsrpHCw.svg" },
-  { id: "email", label: "Email", url: "https://qrfy.com/assets/email-Btl7fxE7.svg" },
-  { id: "scan", label: "Scan", url: "https://qrfy.com/assets/scan-DKuPeK62.svg" },
-  { id: "scan-me", label: "Scan Me", url: "https://qrfy.com/assets/scan-me-v2-o9QXj0SA.svg" },
-  { id: "paypal", label: "PayPal", url: "https://qrfy.com/assets/paypal-OrTqum6D.svg" },
-  { id: "bitcoin", label: "Bitcoin", url: "https://qrfy.com/assets/bitcoin-CN9ejNhz.svg" },
+  { id: "whatsapp", label: "WhatsApp", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/120px-WhatsApp.svg.png" },
+  { id: "facebook", label: "Facebook", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Facebook_Logo_%282019%29.png/120px-Facebook_Logo_%282019%29.png" },
+  { id: "instagram", label: "Instagram", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/120px-Instagram_logo_2016.svg.png" },
+  { id: "twitter", label: "X/Twitter", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/X_logo_2023.svg/120px-X_logo_2023.svg.png" },
+  { id: "youtube", label: "YouTube", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/120px-YouTube_full-color_icon_%282017%29.svg.png" },
+  { id: "linkedin", label: "LinkedIn", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/LinkedIn_logo_initials.png/120px-LinkedIn_logo_initials.png" },
+  { id: "tiktok", label: "TikTok", url: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/120px-TikTok_logo.svg.png" },
+  { id: "telegram", label: "Telegram", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Telegram_logo.svg/120px-Telegram_logo.svg.png" },
+  { id: "paypal", label: "PayPal", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/120px-PayPal.svg.png" },
+  { id: "bitcoin", label: "Bitcoin", url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/120px-Bitcoin.svg.png" },
 ];
 
 
