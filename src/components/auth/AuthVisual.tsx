@@ -11,7 +11,7 @@ export default function AuthVisual() {
   useEffect(() => {
     const timer = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % 2);
-    }, 5000);
+    }, 3000); // Auto-cycle every 3 seconds
     return () => clearInterval(timer);
   }, []);
 
