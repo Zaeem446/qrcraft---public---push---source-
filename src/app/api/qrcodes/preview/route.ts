@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthUser } from '@/lib/clerk-auth';
 import { createStaticQRImage } from '@/lib/qrfy';
 import QRCode from 'qrcode';
 
@@ -170,8 +169,8 @@ async function generateFallbackQR(type: string, content: Record<string, any>, de
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

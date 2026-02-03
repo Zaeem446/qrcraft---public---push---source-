@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -10,7 +9,6 @@ import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");

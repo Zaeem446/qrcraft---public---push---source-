@@ -1,20 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthUser } from '@/lib/clerk-auth';
 import prisma from '@/lib/db';
 import { getReport, transformQrfyReport } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
 
     const qrcode = await prisma.qRCode.findFirst({
-      where: { id, userId: session.user.id },
+      where: { id, userId: user.id },
     });
     if (!qrcode) {
       return NextResponse.json({ error: 'QR code not found' }, { status: 404 });

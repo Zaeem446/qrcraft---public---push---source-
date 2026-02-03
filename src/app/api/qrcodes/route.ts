@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
 import { nanoid } from 'nanoid';
-import { authOptions } from '@/lib/auth';
+import { getAuthUser } from '@/lib/clerk-auth';
 import prisma from '@/lib/db';
 import { createQR, STATIC_TYPES } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || '';
 
-    const where: any = { userId: session.user.id };
+    const where: any = { userId: user.id };
     if (search) {
       where.name = { contains: search, mode: 'insensitive' };
     }
@@ -50,8 +49,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -86,7 +85,7 @@ export async function POST(req: NextRequest) {
 
     const qrcode = await prisma.qRCode.create({
       data: {
-        userId: session.user.id,
+        userId: user.id,
         name,
         type,
         slug,

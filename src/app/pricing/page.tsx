@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
@@ -114,12 +114,12 @@ function PricingFAQItem({ q, a }: { q: string; a: string }) {
 
 export default function PricingPage() {
   const [yearly, setYearly] = useState(false);
-  const { data: session } = useSession();
+  const { isSignedIn } = useUser();
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
-    if (!session) {
+    if (!isSignedIn) {
       router.push("/auth/register");
       return;
     }

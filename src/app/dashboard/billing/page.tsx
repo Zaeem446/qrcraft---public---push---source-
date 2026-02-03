@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -15,7 +14,6 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function BillingPage() {
-  const { data: session } = useSession();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);

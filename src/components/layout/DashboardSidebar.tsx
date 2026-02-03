@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@clerk/nextjs';
 import {
   PlusCircleIcon,
   ChartBarIcon,
@@ -29,11 +29,11 @@ const footerNav = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user } = useUser();
 
-  const trialEndsAt = session?.user?.trialEndsAt ? new Date(session.user.trialEndsAt) : null;
-  const isTrialing = session?.user?.subscriptionStatus === 'trialing' && trialEndsAt && trialEndsAt > new Date();
-  const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+  // TODO: Get trial info from database/API instead of session
+  const isTrialing = false;
+  const trialDaysLeft: number = 0;
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">

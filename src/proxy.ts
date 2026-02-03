@@ -1,42 +1,18 @@
-import { withAuth } from 'next-auth/middleware';
-import { NextResponse } from 'next/server';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const pathname = req.nextUrl.pathname;
+const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
 
-    if (pathname.startsWith('/dashboard')) {
-      if (!token) {
-        return NextResponse.redirect(new URL('/auth/login', req.url));
-      }
-
-      // Check trial expiration
-      if (token.subscriptionStatus !== 'active' && token.trialEndsAt) {
-        const trialEnd = new Date(token.trialEndsAt);
-        if (trialEnd < new Date() && token.plan === 'free') {
-          // Allow access to settings and create page for upgrade
-          if (!pathname.includes('/settings') && !pathname.includes('/pricing')) {
-            return NextResponse.redirect(new URL('/pricing', req.url));
-          }
-        }
-      }
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        if (req.nextUrl.pathname.startsWith('/dashboard')) {
-          return !!token;
-        }
-        return true;
-      },
-    },
+export default clerkMiddleware(async (auth, req) => {
+  if (isProtectedRoute(req)) {
+    await auth.protect();
   }
-);
+});
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
 };

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import {
   QrCodeIcon,
@@ -36,7 +36,7 @@ interface QRCodeItem {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [qrcodes, setQrcodes] = useState<QRCodeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

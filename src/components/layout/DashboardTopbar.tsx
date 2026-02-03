@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useUser, useClerk } from '@clerk/nextjs';
 import { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -32,13 +32,14 @@ const footerNav = [
 ];
 
 export default function DashboardTopbar() {
-  const { data: session } = useSession();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  const trialEndsAt = session?.user?.trialEndsAt ? new Date(session.user.trialEndsAt) : null;
-  const isTrialing = session?.user?.subscriptionStatus === 'trialing' && trialEndsAt && trialEndsAt > new Date();
-  const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
+  // TODO: Get trial info from database/API instead of session
+  const isTrialing = false;
+  const trialDaysLeft: number = 0;
 
   return (
     <>
@@ -49,15 +50,21 @@ export default function DashboardTopbar() {
           </button>
           <div className="flex items-center space-x-4 ml-auto">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-violet-700">
-                  {session?.user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
-              </div>
-              <span className="text-sm font-medium text-gray-700 hidden sm:inline">{session?.user?.name}</span>
+              {user?.imageUrl ? (
+                <img src={user.imageUrl} alt="" className="w-8 h-8 rounded-full" />
+              ) : (
+                <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-violet-700">
+                    {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}
+              </span>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: '/' })}
+              onClick={() => signOut({ redirectUrl: '/' })}
               className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
             >
               <ArrowRightOnRectangleIcon className="h-4 w-4" />

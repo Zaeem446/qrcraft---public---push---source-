@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthUser } from '@/lib/clerk-auth';
 import prisma from '@/lib/db';
 import { getReport, transformQrfyReport } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -19,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     // Try to fetch QRFY report for QRs with qrfyId
     const qrfyQRCodes = await prisma.qRCode.findMany({
-      where: { userId: session.user.id, qrfyId: { not: null } },
+      where: { userId: user.id, qrfyId: { not: null } },
       select: { qrfyId: true },
     });
     const qrfyIds = qrfyQRCodes.map(q => q.qrfyId!);
@@ -51,39 +50,39 @@ export async function GET(req: NextRequest) {
 
     // Legacy scan-based analytics
     const [totalQRCodes, activeQRCodes, totalScans, uniqueScansCount, scansRaw, uniqueScansRaw, devicesRaw, browsersRaw, osRaw, locationsRaw, citiesRaw] = await Promise.all([
-      prisma.qRCode.count({ where: { userId: session.user.id } }),
-      prisma.qRCode.count({ where: { userId: session.user.id, isActive: true } }),
-      prisma.scan.count({ where: { userId: session.user.id, createdAt: { gte: startDate } } }),
+      prisma.qRCode.count({ where: { userId: user.id } }),
+      prisma.qRCode.count({ where: { userId: user.id, isActive: true } }),
+      prisma.scan.count({ where: { userId: user.id, createdAt: { gte: startDate } } }),
       prisma.$queryRaw`
         SELECT COUNT(DISTINCT s.ip)::int as count
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
       ` as Promise<{ count: number }[]>,
       prisma.$queryRaw`
         SELECT DATE(s."createdAt") as date, COUNT(*)::int as count
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY DATE(s."createdAt")
         ORDER BY date ASC
       ` as Promise<{ date: Date; count: number }[]>,
       prisma.$queryRaw`
         SELECT DATE(s."createdAt") as date, COUNT(DISTINCT s.ip)::int as count
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY DATE(s."createdAt")
         ORDER BY date ASC
       ` as Promise<{ date: Date; count: number }[]>,
       prisma.$queryRaw`
         SELECT s.device as name, COUNT(*)::int as value
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.device
         ORDER BY value DESC
       ` as Promise<{ name: string; value: number }[]>,
       prisma.$queryRaw`
         SELECT s.browser as name, COUNT(*)::int as value
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.browser
         ORDER BY value DESC
         LIMIT 10
@@ -91,7 +90,7 @@ export async function GET(req: NextRequest) {
       prisma.$queryRaw`
         SELECT s.os as name, COUNT(*)::int as value
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.os
         ORDER BY value DESC
         LIMIT 10
@@ -99,7 +98,7 @@ export async function GET(req: NextRequest) {
       prisma.$queryRaw`
         SELECT s.country as name, COUNT(*)::int as value
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.country
         ORDER BY value DESC
         LIMIT 10
@@ -107,7 +106,7 @@ export async function GET(req: NextRequest) {
       prisma.$queryRaw`
         SELECT s.city as name, COUNT(*)::int as value
         FROM scans s
-        WHERE s."userId" = ${session.user.id} AND s."createdAt" >= ${startDate}
+        WHERE s."userId" = ${user.id} AND s."createdAt" >= ${startDate}
         GROUP BY s.city
         ORDER BY value DESC
         LIMIT 10
