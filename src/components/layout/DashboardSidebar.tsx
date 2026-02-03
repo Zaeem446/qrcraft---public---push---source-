@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
+import { useAuthUser } from '@/hooks/useAuthUser';
 import {
   PlusCircleIcon,
   ChartBarIcon,
@@ -29,7 +29,7 @@ const footerNav = [
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user } = useAuthUser();
 
   // TODO: Get trial info from database/API instead of session
   const isTrialing = false;

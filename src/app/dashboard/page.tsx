@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import {
   QrCodeIcon,
@@ -15,7 +14,6 @@ import {
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
-import Card from '@/components/ui/Card';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
 import toast from 'react-hot-toast';
@@ -36,7 +34,6 @@ interface QRCodeItem {
 }
 
 export default function DashboardPage() {
-  const { user } = useUser();
   const [qrcodes, setQrcodes] = useState<QRCodeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

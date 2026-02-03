@@ -1,59 +1,104 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
+import { jwtVerify } from 'jose';
+import { cookies } from 'next/headers';
 import prisma from './db';
 
-export async function getAuthUser() {
-  const { userId } = await auth();
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.NEXTAUTH_SECRET || 'your-secret-key'
+);
 
-  if (!userId) {
-    return null;
-  }
+// Check custom JWT session (for email/password login)
+async function getCustomSessionUser() {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('session-token')?.value;
 
-  // Try to find user by clerkId
-  let user = await prisma.user.findFirst({
-    where: { clerkId: userId },
-  });
+    if (!token) return null;
 
-  // If not found, try to get Clerk user data and create/link the user
-  if (!user) {
-    const clerkUser = await currentUser();
-    if (!clerkUser?.emailAddresses?.[0]?.emailAddress) {
-      return null;
-    }
+    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const userId = payload.userId as string;
 
-    const email = clerkUser.emailAddresses[0].emailAddress;
+    if (!userId) return null;
 
-    // Check if user exists with this email (might be migrated from NextAuth)
-    user = await prisma.user.findUnique({
-      where: { email },
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
     });
 
-    if (user) {
-      // Link existing user to Clerk
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: { clerkId: userId },
-      });
-    } else {
-      // Create new user
-      user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          email,
-          name: clerkUser.firstName
-            ? `${clerkUser.firstName}${clerkUser.lastName ? ' ' + clerkUser.lastName : ''}`
-            : 'User',
-          image: clerkUser.imageUrl,
-          provider: 'credentials',
-          emailVerified: true,
-          plan: 'free',
-          trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
-          subscriptionStatus: 'trialing',
-        },
-      });
-    }
+    return user;
+  } catch {
+    return null;
   }
+}
 
-  return user;
+// Check Clerk session (for social login)
+async function getClerkUser() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) return null;
+
+    // Try to find user by clerkId
+    let user = await prisma.user.findFirst({
+      where: { clerkId: userId },
+    });
+
+    // If not found, get Clerk user data and create/link
+    if (!user) {
+      const clerkUser = await currentUser();
+      if (!clerkUser?.emailAddresses?.[0]?.emailAddress) {
+        return null;
+      }
+
+      const email = clerkUser.emailAddresses[0].emailAddress;
+
+      // Check if user exists with this email
+      user = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (user) {
+        // Link existing user to Clerk
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { clerkId: userId },
+        });
+      } else {
+        // Create new user
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email,
+            name: clerkUser.firstName
+              ? `${clerkUser.firstName}${clerkUser.lastName ? ' ' + clerkUser.lastName : ''}`
+              : 'User',
+            image: clerkUser.imageUrl,
+            provider: 'google', // Social login
+            emailVerified: true,
+            plan: 'free',
+            trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            subscriptionStatus: 'trialing',
+          },
+        });
+      }
+    }
+
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+// Main function - checks both auth methods
+export async function getAuthUser() {
+  // First try Clerk (social login)
+  const clerkUser = await getClerkUser();
+  if (clerkUser) return clerkUser;
+
+  // Then try custom session (email/password)
+  const customUser = await getCustomSessionUser();
+  if (customUser) return customUser;
+
+  return null;
 }
 
 export async function requireAuthUser() {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
@@ -9,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { CheckIcon, XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const plans = [
   {
@@ -114,12 +114,12 @@ function PricingFAQItem({ q, a }: { q: string; a: string }) {
 
 export default function PricingPage() {
   const [yearly, setYearly] = useState(false);
-  const { isSignedIn } = useUser();
+  const { isAuthenticated } = useAuthUser();
   const router = useRouter();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
-    if (!isSignedIn) {
+    if (!isAuthenticated) {
       router.push("/auth/register");
       return;
     }

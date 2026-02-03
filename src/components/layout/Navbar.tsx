@@ -1,15 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { useUser, useClerk } from '@clerk/nextjs';
 import { useState } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Button from '../ui/Button';
+import { useAuthUser } from '@/hooks/useAuthUser';
 
 export default function Navbar() {
-  const { isSignedIn } = useUser();
-  const { signOut } = useClerk();
+  const { isAuthenticated, signOut } = useAuthUser();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-gray-200">
@@ -25,12 +28,12 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
             <Link href="/faq" className="text-gray-600 hover:text-gray-900 transition-colors">FAQ</Link>
-            {isSignedIn ? (
+            {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <Link href="/dashboard">
                   <Button variant="primary" size="sm">Dashboard</Button>
                 </Link>
-                <button onClick={() => signOut({ redirectUrl: '/' })} className="text-gray-600 hover:text-gray-900 transition-colors">Sign Out</button>
+                <button onClick={handleSignOut} className="text-gray-600 hover:text-gray-900 transition-colors">Sign Out</button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
@@ -53,12 +56,12 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-3">
             <Link href="/pricing" className="block text-gray-600 hover:text-gray-900" onClick={() => setMobileOpen(false)}>Pricing</Link>
             <Link href="/faq" className="block text-gray-600 hover:text-gray-900" onClick={() => setMobileOpen(false)}>FAQ</Link>
-            {isSignedIn ? (
+            {isAuthenticated ? (
               <>
                 <Link href="/dashboard" className="block" onClick={() => setMobileOpen(false)}>
                   <Button variant="primary" size="sm" className="w-full">Dashboard</Button>
                 </Link>
-                <button onClick={() => signOut({ redirectUrl: '/' })} className="block text-gray-600 hover:text-gray-900">Sign Out</button>
+                <button onClick={handleSignOut} className="block text-gray-600 hover:text-gray-900">Sign Out</button>
               </>
             ) : (
               <>

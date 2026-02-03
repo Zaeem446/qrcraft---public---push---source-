@@ -1,6 +1,5 @@
 'use client';
 
-import { useUser, useClerk } from '@clerk/nextjs';
 import { useState } from 'react';
 import Link from 'next/link';
 import {
@@ -17,6 +16,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline';
 import { usePathname } from 'next/navigation';
+import { useAuthUser } from '@/hooks/useAuthUser';
 
 const mainNav = [
   { href: '/dashboard/create', label: 'Create QR Code', icon: PlusCircleIcon },
@@ -32,14 +32,17 @@ const footerNav = [
 ];
 
 export default function DashboardTopbar() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user, signOut } = useAuthUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
   // TODO: Get trial info from database/API instead of session
   const isTrialing = false;
   const trialDaysLeft: number = 0;
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <>
@@ -50,21 +53,21 @@ export default function DashboardTopbar() {
           </button>
           <div className="flex items-center space-x-4 ml-auto">
             <div className="flex items-center gap-2">
-              {user?.imageUrl ? (
-                <img src={user.imageUrl} alt="" className="w-8 h-8 rounded-full" />
+              {user?.image ? (
+                <img src={user.image} alt="" className="w-8 h-8 rounded-full" />
               ) : (
                 <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center">
                   <span className="text-sm font-medium text-violet-700">
-                    {user?.firstName?.charAt(0)?.toUpperCase() || 'U'}
+                    {user?.name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
                   </span>
                 </div>
               )}
               <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                {user?.firstName || user?.emailAddresses?.[0]?.emailAddress}
+                {user?.name || user?.email}
               </span>
             </div>
             <button
-              onClick={() => signOut({ redirectUrl: '/' })}
+              onClick={handleSignOut}
               className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
             >
               <ArrowRightOnRectangleIcon className="h-4 w-4" />
