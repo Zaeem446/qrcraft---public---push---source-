@@ -978,10 +978,10 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
                   className="w-full accent-violet-500" />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <InlineColorPicker label="Frame color" value={design.frameColor || "#000000"} onChange={v => set("frameColor", v)} />
+                <InlineColorPicker label="Frame color" value={design.frameColor || "#7C3AED"} onChange={v => set("frameColor", v)} />
                 <InlineColorPicker label="Text color" value={design.frameTextColor || "#FFFFFF"} onChange={v => set("frameTextColor", v)} />
               </div>
-              <InlineColorPicker label="Frame background" value={design.frameBackgroundColor || "#000000"} onChange={v => set("frameBackgroundColor", v)} />
+              <InlineColorPicker label="Frame background" value={design.frameBackgroundColor || "#7C3AED"} onChange={v => set("frameBackgroundColor", v)} />
             </>
           )}
         </div>

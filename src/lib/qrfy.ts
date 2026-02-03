@@ -199,13 +199,13 @@ export function mapDesignToStyle(design: Record<string, any>) {
   const frameId = typeof design.frameId === 'number' ? design.frameId : 0;
   style.frame = {
     id: frameId,
-    color: design.frameColor || '#000000',
+    color: design.frameColor || '#7C3AED',
     text: (design.frameText || 'Scan me!').slice(0, 30),
     fontSize: design.frameFontSize || 42,
     textColor: design.frameTextColor || '#FFFFFF',
   };
   if (frameId > 0) {
-    style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#000000';
+    style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
   }
 
   // Error correction
