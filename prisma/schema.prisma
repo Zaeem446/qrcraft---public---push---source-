@@ -44,8 +44,11 @@ model User {
   image               String?
   provider            AuthProvider         @default(credentials)
   emailVerified       Boolean             @default(false)
+  isAdmin             Boolean             @default(false)
+  isDisabled          Boolean             @default(false)
   plan                Plan                @default(free)
   trialEndsAt         DateTime            @default(dbgenerated("NOW() + INTERVAL '14 days'"))
+  subscriptionEndsAt  DateTime?
   stripeCustomerId    String?             @unique
   stripeSubscriptionId String?
   subscriptionStatus  SubscriptionStatus  @default(trialing)
