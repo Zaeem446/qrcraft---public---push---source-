@@ -5,76 +5,28 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { CheckIcon, XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import { CheckIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { PRICING, PLAN_FEATURES, type BillingInterval } from "@/lib/utils";
 
-const plans = [
-  {
-    id: "starter",
-    name: "Starter",
-    desc: "Perfect for individuals and small projects",
-    monthlyPrice: 9.99,
-    yearlyPrice: 99.99,
-    features: [
-      { text: "25 Dynamic QR Codes", included: true },
-      { text: "10,000 Scans/month", included: true },
-      { text: "Basic Analytics", included: true },
-      { text: "PNG & SVG Download", included: true },
-      { text: "Custom Colors", included: true },
-      { text: "Email Support", included: true },
-      { text: "Custom Logo", included: false },
-      { text: "Bulk Creation", included: false },
-      { text: "API Access", included: false },
-    ],
-  },
-  {
-    id: "professional",
-    name: "Professional",
-    desc: "Best for growing businesses and teams",
-    monthlyPrice: 19.99,
-    yearlyPrice: 199.99,
-    popular: true,
-    features: [
-      { text: "100 Dynamic QR Codes", included: true },
-      { text: "100,000 Scans/month", included: true },
-      { text: "Advanced Analytics", included: true },
-      { text: "All Download Formats", included: true },
-      { text: "Custom Colors & Gradients", included: true },
-      { text: "Priority Support", included: true },
-      { text: "Custom Logo & Styling", included: true },
-      { text: "Bulk Creation", included: true },
-      { text: "API Access", included: false },
-    ],
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    desc: "For large organizations with advanced needs",
-    monthlyPrice: 49.99,
-    yearlyPrice: 499.99,
-    features: [
-      { text: "Unlimited QR Codes", included: true },
-      { text: "Unlimited Scans", included: true },
-      { text: "Full Analytics Suite", included: true },
-      { text: "All Download Formats", included: true },
-      { text: "White Label Options", included: true },
-      { text: "Dedicated Support", included: true },
-      { text: "Custom Logo & Styling", included: true },
-      { text: "Bulk Creation", included: true },
-      { text: "API Access", included: true },
-    ],
-  },
+const billingOptions: {
+  key: BillingInterval;
+  popular?: boolean;
+}[] = [
+  { key: "monthly" },
+  { key: "annually", popular: true },
+  { key: "quarterly" },
 ];
 
 const pricingFAQ = [
-  { q: "Do you offer refunds?", a: "We offer a full refund within 30 days of your initial purchase if you're not satisfied with the service. Contact support@qrcraft.com to request a refund." },
-  { q: "What payment methods do you accept?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely through Stripe with industry-standard encryption." },
-  { q: "Can I cancel my subscription anytime?", a: "Yes, you can easily cancel your subscription from the Settings page in your dashboard. Your plan will remain active until the end of your current billing period." },
-  { q: "Can I change my plan later?", a: "You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated difference. When downgrading, the change takes effect at the next billing cycle." },
+  { q: "Do you refund unused subscriptions?", a: "We offer a full refund within 30 days of your initial purchase if you're not satisfied with the service. Contact support@qrcraft.com to request a refund." },
+  { q: "What are my payment options?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely through Stripe with industry-standard encryption." },
+  { q: "Can I cancel my subscription anytime?", a: "Yes, you can easily cancel your subscription from your dashboard. Your plan will remain active until the end of your current billing period." },
+  { q: "Can I change my billing cycle later?", a: "You can switch between monthly, quarterly, and annual billing at any time. Changes take effect at the next billing cycle." },
   { q: "What happens when my trial expires?", a: "Once your 14-day trial ends, you'll need to subscribe to a paid plan to continue creating and editing QR codes. Your existing codes and data will be preserved." },
-  { q: "Do you offer annual billing?", a: "Yes! You can save up to 17% by choosing annual billing. The discount is automatically applied when you select the yearly option." },
+  { q: "Why choose annual billing?", a: "Annual billing saves you 60% compared to monthly billing. That's like getting over 7 months free every year!" },
 ];
 
 const fadeInUp = {
@@ -113,22 +65,21 @@ function PricingFAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function PricingPage() {
-  const [yearly, setYearly] = useState(false);
   const { isAuthenticated } = useAuthUser();
   const router = useRouter();
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [loadingInterval, setLoadingInterval] = useState<string | null>(null);
 
-  const handleSubscribe = async (planId: string) => {
+  const handleSubscribe = async (interval: BillingInterval) => {
     if (!isAuthenticated) {
       router.push("/auth/register");
       return;
     }
-    setLoadingPlan(planId);
+    setLoadingInterval(interval);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: planId, interval: yearly ? "yearly" : "monthly" }),
+        body: JSON.stringify({ plan: "professional", interval }),
       });
       const data = await res.json();
       if (data.url) {
@@ -139,7 +90,7 @@ export default function PricingPage() {
     } catch {
       toast.error("Something went wrong");
     }
-    setLoadingPlan(null);
+    setLoadingInterval(null);
   };
 
   return (
@@ -158,38 +109,24 @@ export default function PricingPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4"
           >
-            Simple, Transparent Pricing
+            Plans <span className="text-violet-300">&</span> Pricing
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-blue-100 text-lg mb-8"
+            className="text-blue-100 text-lg mb-4"
           >
-            Start with a free 14-day trial. No credit card required. Upgrade anytime.
+            Select the most convenient plan for you.
           </motion.p>
-
-          {/* Toggle */}
-          <motion.div
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="inline-flex items-center gap-3 bg-white/10 backdrop-blur rounded-full px-2 py-1.5"
+            className="text-blue-200 text-sm"
           >
-            <button
-              onClick={() => setYearly(false)}
-              className={"px-5 py-2 rounded-full text-sm font-semibold transition-all " + (!yearly ? "bg-white text-gray-900 shadow-sm" : "text-white/80 hover:text-white")}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setYearly(true)}
-              className={"px-5 py-2 rounded-full text-sm font-semibold transition-all flex items-center gap-2 " + (yearly ? "bg-white text-gray-900 shadow-sm" : "text-white/80 hover:text-white")}
-            >
-              Yearly
-              <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full">-17%</span>
-            </button>
-          </motion.div>
+            Start with a free 14-day trial. No credit card required.
+          </motion.p>
         </div>
       </section>
 
@@ -201,57 +138,90 @@ export default function PricingPage() {
           variants={stagger}
           className="grid md:grid-cols-3 gap-6"
         >
-          {plans.map((plan) => (
-            <motion.div
-              key={plan.id}
-              variants={fadeInUp}
-              whileHover={{ y: -4 }}
-              className={"relative bg-white rounded-2xl border-2 p-8 shadow-lg " + (plan.popular ? "border-blue-500 shadow-xl shadow-blue-500/10" : "border-gray-200")}
-            >
-              {plan.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
-                  <SparklesIcon className="h-3.5 w-3.5" />
-                  Most Popular
-                </div>
-              )}
+          {billingOptions.map((option) => {
+            const plan = PRICING[option.key];
+            const isPopular = option.popular;
 
-              <h3 className="text-xl font-bold text-gray-900">{plan.name}</h3>
-              <p className="text-sm text-gray-500 mt-1">{plan.desc}</p>
-
-              <div className="mt-6 mb-8">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-gray-900">${yearly ? plan.yearlyPrice : plan.monthlyPrice}</span>
-                  <span className="text-gray-500">/{yearly ? "year" : "month"}</span>
-                </div>
-                {yearly && (
-                  <p className="text-sm text-green-600 font-medium mt-1">
-                    ${(plan.monthlyPrice * 12 - plan.yearlyPrice).toFixed(0)} saved per year
-                  </p>
-                )}
-              </div>
-
-              <button
-                onClick={() => handleSubscribe(plan.id)}
-                disabled={loadingPlan === plan.id}
-                className={"w-full py-3 rounded-xl font-semibold transition-all mb-6 " + (plan.popular ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25" : "bg-gray-100 text-gray-900 hover:bg-gray-200")}
+            return (
+              <motion.div
+                key={option.key}
+                variants={fadeInUp}
+                whileHover={{ y: -4 }}
+                className={
+                  "relative bg-white rounded-2xl border-2 p-8 shadow-lg " +
+                  (isPopular
+                    ? "border-blue-500 shadow-xl shadow-blue-500/10"
+                    : "border-gray-200")
+                }
               >
-                {loadingPlan === plan.id ? "Processing..." : "Get Started"}
-              </button>
+                {isPopular && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-lg">
+                    <SparklesIcon className="h-3.5 w-3.5" />
+                    Most Popular
+                  </div>
+                )}
 
-              <ul className="space-y-3">
-                {plan.features.map((feature) => (
-                  <li key={feature.text} className="flex items-start gap-2.5">
-                    {feature.included ? (
-                      <CheckIcon className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    ) : (
-                      <XMarkIcon className="h-5 w-5 text-gray-300 flex-shrink-0 mt-0.5" />
-                    )}
-                    <span className={"text-sm " + (feature.included ? "text-gray-700" : "text-gray-400")}>{feature.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-          ))}
+                {/* Discount Badge */}
+                {plan.discount > 0 && (
+                  <div className="absolute -top-3 -right-3 w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xs font-bold">{plan.discount}%</span>
+                  </div>
+                )}
+
+                <h3 className={
+                  "text-xl font-bold text-center mb-1 " +
+                  (isPopular ? "text-blue-600" : "text-gray-900")
+                }>
+                  {plan.label}
+                </h3>
+
+                <div className="text-center mt-6 mb-2">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-lg font-medium text-gray-500">$</span>
+                    <span className="text-4xl font-bold text-gray-900">
+                      {plan.perMonth.toFixed(2)}
+                    </span>
+                    <span className="text-gray-500 text-sm"> USD/mo</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                  {plan.discount > 0 && (
+                    <p className="text-xs text-green-600 font-medium mt-1">
+                      Save {plan.discount}% vs monthly
+                    </p>
+                  )}
+                </div>
+
+                <div className="my-6">
+                  <button
+                    onClick={() => handleSubscribe(option.key)}
+                    disabled={loadingInterval === option.key}
+                    className={
+                      "w-full py-3 rounded-xl font-semibold transition-all " +
+                      (isPopular
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25"
+                        : "bg-gray-100 text-gray-900 hover:bg-gray-200")
+                    }
+                  >
+                    {loadingInterval === option.key ? "Processing..." : "Buy Now"}
+                  </button>
+                </div>
+
+                <div className="border-t border-gray-100 pt-6">
+                  <ul className="space-y-3">
+                    {PLAN_FEATURES.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5">
+                        <CheckIcon className={
+                          "h-5 w-5 flex-shrink-0 mt-0.5 " +
+                          (isPopular ? "text-blue-500" : "text-green-500")
+                        } />
+                        <span className="text-sm text-gray-700">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* All plans include */}
@@ -263,7 +233,7 @@ export default function PricingPage() {
         >
           <h3 className="text-lg font-bold text-gray-900 mb-6">All plans include</h3>
           <div className="flex flex-wrap justify-center gap-6">
-            {["Unlimited edits", "Dynamic QR codes", "Multiple download formats", "Cancel anytime", "No watermarks", "HTTPS redirects"].map((item) => (
+            {["Dynamic QR codes", "Unlimited edits", "All QR types", "Multiple download formats", "No watermarks", "HTTPS redirects"].map((item) => (
               <div key={item} className="flex items-center gap-2 text-sm text-gray-600">
                 <CheckIcon className="h-4 w-4 text-green-500" />
                 {item}

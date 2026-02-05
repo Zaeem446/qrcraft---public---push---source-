@@ -5,7 +5,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
-import { formatDate, PLANS } from "@/lib/utils";
+import { formatDate, PLAN_FEATURES } from "@/lib/utils";
 import {
   CreditCardIcon,
   CheckCircleIcon,
@@ -43,8 +43,7 @@ export default function BillingPage() {
   const isTrialing = profile?.subscriptionStatus === "trialing" && trialEndsAt && trialEndsAt > new Date();
   const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
-  const currentPlanKey = profile?.plan as keyof typeof PLANS | "free" | undefined;
-  const currentPlanDetails = currentPlanKey && currentPlanKey !== "free" ? PLANS[currentPlanKey as keyof typeof PLANS] : null;
+  const isPaid = profile?.plan && profile.plan !== "free";
 
   if (loading) {
     return (
@@ -97,26 +96,21 @@ export default function BillingPage() {
             </div>
             <div>
               <p className="font-semibold text-gray-900 capitalize">
-                {profile?.plan || "Free"} Plan
+                {isPaid ? "Premium Plan" : "Free Plan"}
               </p>
               <p className="text-sm text-gray-500">
                 Status: <span className="capitalize font-medium">{profile?.subscriptionStatus || "N/A"}</span>
               </p>
             </div>
           </div>
-          {currentPlanDetails && (
-            <p className="text-lg font-bold text-gray-900">
-              ${currentPlanDetails.monthlyPrice}<span className="text-sm font-normal text-gray-500">/mo</span>
-            </p>
-          )}
         </div>
 
         {/* Plan features */}
-        {currentPlanDetails && (
+        {isPaid && (
           <div className="mt-5">
             <p className="text-sm font-medium text-gray-700 mb-3">Included features:</p>
             <div className="grid sm:grid-cols-2 gap-2">
-              {currentPlanDetails.features.map((feature) => (
+              {PLAN_FEATURES.map((feature) => (
                 <div key={feature} className="flex items-center gap-2 text-sm text-gray-600">
                   <CheckCircleIcon className="h-4 w-4 text-green-500 flex-shrink-0" />
                   <span>{feature}</span>
@@ -167,7 +161,7 @@ export default function BillingPage() {
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-xs font-medium text-gray-500 mb-1">Plan</p>
-            <p className="text-sm font-semibold text-gray-900 capitalize">{profile?.plan || "Free"}</p>
+            <p className="text-sm font-semibold text-gray-900 capitalize">{isPaid ? "Premium" : "Free"}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-xs font-medium text-gray-500 mb-1">Status</p>

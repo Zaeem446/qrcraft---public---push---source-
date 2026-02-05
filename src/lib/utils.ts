@@ -62,30 +62,71 @@ export const QR_TYPES = [...DYNAMIC_QR_TYPES, ...STATIC_QR_TYPES] as const;
 
 export type QRType = typeof QR_TYPES[number]['id'];
 
+export const PLAN_FEATURES = [
+  'Create unlimited dynamic QR codes',
+  'Access a variety of QR types',
+  'Unlimited modifications of QR codes',
+  'Unlimited scans',
+  'Multiple QR code download formats',
+  'Unlimited users',
+  'Premium customer support',
+  'Cancel at anytime',
+] as const;
+
+export const PRICING = {
+  monthly: {
+    price: 49.95,
+    perMonth: 49.95,
+    interval: 'monthly' as const,
+    label: 'Monthly',
+    description: 'Invoiced every month',
+    discount: 0,
+  },
+  quarterly: {
+    price: 89.85,
+    perMonth: 29.95,
+    interval: 'quarterly' as const,
+    label: 'Quarterly',
+    description: 'Invoiced each quarter',
+    discount: 40,
+  },
+  annually: {
+    price: 239.40,
+    perMonth: 19.95,
+    interval: 'annually' as const,
+    label: 'Annually',
+    description: 'Invoiced every year',
+    discount: 60,
+  },
+} as const;
+
+export type BillingInterval = keyof typeof PRICING;
+
+// Keep backward compatibility with existing code that references PLANS
 export const PLANS = {
   starter: {
     name: 'Starter',
-    monthlyPrice: 9.99,
-    yearlyPrice: 99.99,
-    qrLimit: 25,
-    scanLimit: 10000,
-    features: ['25 Dynamic QR Codes', '10,000 Scans/month', 'Basic Analytics', 'PNG & SVG Download', 'Custom Colors', 'Email Support'],
+    monthlyPrice: 49.95,
+    yearlyPrice: 239.40,
+    qrLimit: -1,
+    scanLimit: -1,
+    features: [...PLAN_FEATURES],
   },
   professional: {
     name: 'Professional',
-    monthlyPrice: 19.99,
-    yearlyPrice: 199.99,
-    qrLimit: 100,
-    scanLimit: 100000,
-    features: ['100 Dynamic QR Codes', '100,000 Scans/month', 'Advanced Analytics', 'All Download Formats', 'Custom Logo & Styling', 'Priority Support', 'Bulk Creation'],
+    monthlyPrice: 49.95,
+    yearlyPrice: 239.40,
+    qrLimit: -1,
+    scanLimit: -1,
+    features: [...PLAN_FEATURES],
   },
   enterprise: {
     name: 'Enterprise',
-    monthlyPrice: 49.99,
-    yearlyPrice: 499.99,
+    monthlyPrice: 49.95,
+    yearlyPrice: 239.40,
     qrLimit: -1,
     scanLimit: -1,
-    features: ['Unlimited QR Codes', 'Unlimited Scans', 'Full Analytics Suite', 'All Download Formats', 'White Label Options', 'API Access', 'Dedicated Support', 'Custom Integrations'],
+    features: [...PLAN_FEATURES],
   },
 } as const;
 
