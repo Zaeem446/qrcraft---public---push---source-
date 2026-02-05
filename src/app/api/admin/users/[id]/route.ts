@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdminUser } from '@/lib/admin-auth';
 import prisma from '@/lib/db';
 
-// Get single user with full details
+// Get single user with full details including QR codes with scan stats
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await requireAdminUser();
@@ -17,9 +17,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             id: true,
             name: true,
             type: true,
+            slug: true,
             scanCount: true,
             isActive: true,
             createdAt: true,
+            updatedAt: true,
+            _count: {
+              select: { scans: true },
+            },
           },
         },
         _count: {
@@ -32,10 +37,80 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // Get per-QR analytics summary (top 5 scans per QR)
+    const qrAnalytics: Record<string, any> = {};
+    for (const qr of user.qrcodes) {
+      const [deviceBreakdown, recentScans] = await Promise.all([
+        prisma.scan.groupBy({
+          by: ['device'],
+          where: { qrCodeId: qr.id },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+          take: 3,
+        }),
+        prisma.scan.findMany({
+          where: { qrCodeId: qr.id },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: {
+            country: true,
+            city: true,
+            device: true,
+            browser: true,
+            createdAt: true,
+          },
+        }),
+      ]);
+
+      qrAnalytics[qr.id] = {
+        devices: deviceBreakdown.map((d) => ({ name: d.device || 'Unknown', count: d._count.id })),
+        recentScans,
+      };
+    }
+
+    // Determine auth method
+    let authMethod = 'Email/Password';
+    if (user.clerkId) {
+      if (user.provider === 'google') authMethod = 'Google (Clerk)';
+      else if (user.provider === 'facebook') authMethod = 'Facebook (Clerk)';
+      else if (user.provider === 'linkedin') authMethod = 'LinkedIn (Clerk)';
+      else authMethod = 'Social Login (Clerk)';
+    }
+
+    // Calculate trial info
+    const trialEndsAt = user.trialEndsAt;
+    const isTrialActive = user.subscriptionStatus === 'trialing' && trialEndsAt && new Date(trialEndsAt) > new Date();
+    const trialDaysLeft = trialEndsAt
+      ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+      : 0;
+
     return NextResponse.json({
-      ...user,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      image: user.image,
+      provider: user.provider,
+      authMethod,
+      emailVerified: user.emailVerified,
+      isAdmin: user.isAdmin,
+      isDisabled: user.isDisabled,
+      plan: user.plan,
+      subscriptionStatus: user.subscriptionStatus,
+      stripeCustomerId: user.stripeCustomerId,
+      stripeSubscriptionId: user.stripeSubscriptionId,
+      trialEndsAt: user.trialEndsAt,
+      subscriptionEndsAt: user.subscriptionEndsAt,
+      isTrialActive,
+      trialDaysLeft,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
       qrCodeCount: user._count.qrcodes,
       totalScans: user._count.scans,
+      qrcodes: user.qrcodes.map((qr) => ({
+        ...qr,
+        totalScans: qr._count.scans,
+        analytics: qrAnalytics[qr.id] || { devices: [], recentScans: [] },
+      })),
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Unauthorized' }, { status: 401 });
