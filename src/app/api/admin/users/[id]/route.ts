@@ -77,6 +77,34 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       else authMethod = 'Social Login (Clerk)';
     }
 
+    // Get country — from user record, or derive from most common scan country
+    let country = (user as any).country || null;
+    let city = (user as any).city || null;
+    if (!country) {
+      const topCountry = await prisma.scan.groupBy({
+        by: ['country'],
+        where: { userId: user.id, country: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 1,
+      });
+      if (topCountry.length > 0) {
+        country = topCountry[0].country;
+      }
+    }
+    if (!city) {
+      const topCity = await prisma.scan.groupBy({
+        by: ['city'],
+        where: { userId: user.id, city: { not: null } },
+        _count: { id: true },
+        orderBy: { _count: { id: 'desc' } },
+        take: 1,
+      });
+      if (topCity.length > 0) {
+        city = topCity[0].city;
+      }
+    }
+
     // Calculate trial info
     const trialEndsAt = user.trialEndsAt;
     const isTrialActive = user.subscriptionStatus === 'trialing' && trialEndsAt && new Date(trialEndsAt) > new Date();
@@ -94,6 +122,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       emailVerified: user.emailVerified,
       isAdmin: user.isAdmin,
       isDisabled: user.isDisabled,
+      country,
+      city,
       plan: user.plan,
       subscriptionStatus: user.subscriptionStatus,
       stripeCustomerId: user.stripeCustomerId,

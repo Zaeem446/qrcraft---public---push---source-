@@ -14,6 +14,7 @@ import {
   CursorArrowRaysIcon,
   ShieldCheckIcon,
   ClockIcon,
+  MapPinIcon,
   CheckCircleIcon,
   XCircleIcon,
   ChevronDownIcon,
@@ -62,6 +63,8 @@ interface UserData {
   subscriptionEndsAt: string | null;
   isTrialActive: boolean;
   trialDaysLeft: number;
+  country: string | null;
+  city: string | null;
   createdAt: string;
   updatedAt: string;
   qrCodeCount: number;
@@ -190,6 +193,62 @@ export default function AdminUserDetailPage() {
     setActionLoading(null);
   };
 
+  const handleSetTrialDate = async () => {
+    const input = document.getElementById('trial-date-picker') as HTMLInputElement;
+    if (!input?.value) {
+      toast.error('Please select a date');
+      return;
+    }
+    setActionLoading('trial-set');
+    try {
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trialEndsAt: new Date(input.value).toISOString(),
+          subscriptionStatus: 'trialing',
+        }),
+      });
+      if (res.ok) {
+        toast.success('Trial date updated');
+        fetchUser();
+      }
+    } catch {
+      toast.error('Failed to update trial date');
+    }
+    setActionLoading(null);
+  };
+
+  const handleSetSubDate = async () => {
+    const input = document.getElementById('sub-date-picker') as HTMLInputElement;
+    if (!input?.value) {
+      toast.error('Please select a date');
+      return;
+    }
+    setActionLoading('sub-set');
+    try {
+      const newDate = new Date(input.value);
+      const isPast = newDate < new Date();
+
+      const res = await fetch(`/api/admin/users/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscriptionEndsAt: newDate.toISOString(),
+          subscriptionStatus: isPast ? 'expired' : 'active',
+          plan: isPast ? 'free' : 'professional',
+        }),
+      });
+      if (res.ok) {
+        toast.success(isPast ? 'Subscription expired' : 'Subscription date updated');
+        fetchUser();
+      }
+    } catch {
+      toast.error('Failed to update subscription date');
+    }
+    setActionLoading(null);
+  };
+
   const handleToggleDisabled = async () => {
     if (!user) return;
     setActionLoading('disable');
@@ -306,7 +365,7 @@ export default function AdminUserDetailPage() {
       </div>
 
       {/* Info Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
             <CalendarDaysIcon className="h-4 w-4" />
@@ -320,6 +379,17 @@ export default function AdminUserDetailPage() {
             <span className="text-xs font-medium">Auth Method</span>
           </div>
           <p className="text-sm font-semibold text-gray-900">{user.authMethod}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 text-gray-500 mb-2">
+            <MapPinIcon className="h-4 w-4" />
+            <span className="text-xs font-medium">Location</span>
+          </div>
+          <p className="text-sm font-semibold text-gray-900">
+            {user.country || user.city
+              ? `${user.city || ''}${user.city && user.country ? ', ' : ''}${user.country || ''}`
+              : 'Unknown'}
+          </p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-2 text-gray-500 mb-2">
@@ -359,7 +429,8 @@ export default function AdminUserDetailPage() {
               </span>
             </div>
           </div>
-          <div className="flex gap-2">
+          {/* Quick extend */}
+          <div className="flex gap-2 mb-3">
             <button
               onClick={() => handleExtendTrial(7)}
               disabled={actionLoading === 'trial'}
@@ -381,6 +452,25 @@ export default function AdminUserDetailPage() {
             >
               +30 days
             </button>
+          </div>
+          {/* Set exact date */}
+          <div className="border-t border-gray-100 pt-3">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Set exact date</label>
+            <div className="flex gap-2">
+              <input
+                type="datetime-local"
+                defaultValue={user.trialEndsAt ? new Date(user.trialEndsAt).toISOString().slice(0, 16) : ''}
+                id="trial-date-picker"
+                className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                onClick={() => handleSetTrialDate()}
+                disabled={actionLoading === 'trial-set'}
+                className="px-3 py-1.5 text-xs bg-violet-50 text-violet-700 rounded-lg hover:bg-violet-100 whitespace-nowrap"
+              >
+                {actionLoading === 'trial-set' ? '...' : 'Set'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -414,7 +504,7 @@ export default function AdminUserDetailPage() {
               </div>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-3">
             <button
               onClick={handleActivateSubscription}
               disabled={actionLoading === 'activate'}
@@ -429,6 +519,25 @@ export default function AdminUserDetailPage() {
             >
               Expire Sub
             </button>
+          </div>
+          {/* Set exact subscription end date */}
+          <div className="border-t border-gray-100 pt-3">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Set subscription end date</label>
+            <div className="flex gap-2">
+              <input
+                type="datetime-local"
+                defaultValue={user.subscriptionEndsAt ? new Date(user.subscriptionEndsAt).toISOString().slice(0, 16) : ''}
+                id="sub-date-picker"
+                className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+              />
+              <button
+                onClick={() => handleSetSubDate()}
+                disabled={actionLoading === 'sub-set'}
+                className="px-3 py-1.5 text-xs bg-violet-50 text-violet-700 rounded-lg hover:bg-violet-100 whitespace-nowrap"
+              >
+                {actionLoading === 'sub-set' ? '...' : 'Set'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

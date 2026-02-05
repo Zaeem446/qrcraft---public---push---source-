@@ -43,6 +43,8 @@ model User {
   password            String?
   image               String?
   provider            AuthProvider         @default(credentials)
+  country             String?
+  city                String?
   emailVerified       Boolean             @default(false)
   isAdmin             Boolean             @default(false)
   isDisabled          Boolean             @default(false)
