@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import QRCodeStyling from "qr-code-styling";
+
+// QRCodeStyling type - we import the actual module dynamically
+type QRCodeStylingType = import("qr-code-styling").default;
 
 interface StyledQRPreviewProps {
   content: Record<string, any>;
   type: string;
   design: Record<string, any>;
   size?: number;
-  onReady?: (qrCode: QRCodeStyling) => void;
+  onReady?: (qrCode: QRCodeStylingType) => void;
 }
 
 // Convert content to a string for QR encoding
@@ -139,7 +141,7 @@ export default function StyledQRPreview({
   onReady,
 }: StyledQRPreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const qrCodeRef = useRef<QRCodeStyling | null>(null);
+  const qrCodeRef = useRef<QRCodeStylingType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const qrValue = contentToString(type, content);
@@ -157,71 +159,86 @@ export default function StyledQRPreview({
   useEffect(() => {
     if (!containerRef.current) return;
 
+    let mounted = true;
     setIsLoading(true);
 
-    // Create QR code options
-    const options: any = {
-      width: size,
-      height: size,
-      margin: 10,
-      data: qrValue,
-      dotsOptions: {
-        type: dotsType,
-        color: dotsColor,
-      },
-      cornersSquareOptions: {
-        type: cornerSquareType,
-        color: cornersSquareColor,
-      },
-      cornersDotOptions: {
-        type: cornerDotType,
-        color: cornersDotColor,
-      },
-      backgroundOptions: {
-        color: backgroundColor,
-      },
-      qrOptions: {
-        errorCorrectionLevel: design?.errorCorrectionLevel || (design?.logo ? "H" : "M"),
-      },
+    // Dynamically import qr-code-styling
+    import("qr-code-styling").then((module) => {
+      if (!mounted || !containerRef.current) return;
+
+      const QRCodeStyling = module.default;
+
+      // Create QR code options
+      const options: any = {
+        width: size,
+        height: size,
+        margin: 10,
+        data: qrValue,
+        dotsOptions: {
+          type: dotsType,
+          color: dotsColor,
+        },
+        cornersSquareOptions: {
+          type: cornerSquareType,
+          color: cornersSquareColor,
+        },
+        cornersDotOptions: {
+          type: cornerDotType,
+          color: cornersDotColor,
+        },
+        backgroundOptions: {
+          color: backgroundColor,
+        },
+        qrOptions: {
+          errorCorrectionLevel: design?.errorCorrectionLevel || (design?.logo ? "H" : "M"),
+        },
+      };
+
+      // Add gradient support
+      if (design?.patternGradient && design?.patternColor2) {
+        options.dotsOptions.gradient = {
+          type: "linear",
+          rotation: 45,
+          colorStops: [
+            { offset: 0, color: dotsColor },
+            { offset: 1, color: design.patternColor2 },
+          ],
+        };
+      }
+
+      // Add logo if provided
+      if (design?.logo) {
+        options.image = design.logo;
+        options.imageOptions = {
+          crossOrigin: "anonymous",
+          margin: 5,
+          imageSize: 0.4,
+          hideBackgroundDots: true,
+        };
+      }
+
+      // Create new QR code instance
+      const qrCode = new QRCodeStyling(options);
+      qrCodeRef.current = qrCode;
+
+      // Clear container and append new QR code
+      containerRef.current!.innerHTML = "";
+      qrCode.append(containerRef.current!);
+
+      setIsLoading(false);
+
+      // Notify parent component
+      if (onReady) {
+        onReady(qrCode);
+      }
+    }).catch(err => {
+      console.error("Failed to load qr-code-styling:", err);
+      setIsLoading(false);
+    });
+
+    return () => {
+      mounted = false;
     };
-
-    // Add gradient support
-    if (design?.patternGradient && design?.patternColor2) {
-      options.dotsOptions.gradient = {
-        type: "linear",
-        rotation: 45,
-        colorStops: [
-          { offset: 0, color: dotsColor },
-          { offset: 1, color: design.patternColor2 },
-        ],
-      };
-    }
-
-    // Add logo if provided
-    if (design?.logo) {
-      options.image = design.logo;
-      options.imageOptions = {
-        crossOrigin: "anonymous",
-        margin: 5,
-        imageSize: 0.4,
-        hideBackgroundDots: true,
-      };
-    }
-
-    // Create new QR code instance
-    const qrCode = new QRCodeStyling(options);
-    qrCodeRef.current = qrCode;
-
-    // Clear container and append new QR code
-    containerRef.current.innerHTML = "";
-    qrCode.append(containerRef.current);
-
-    setIsLoading(false);
-
-    // Notify parent component
-    if (onReady) {
-      onReady(qrCode);
-    }
   }, [
     qrValue,
     size,
@@ -293,7 +310,7 @@ export default function StyledQRPreview({
 
 // Export a function to download QR code
 export async function downloadQRCode(
-  qrCode: QRCodeStyling,
+  qrCode: QRCodeStylingType,
   filename: string = "qrcode",
   format: "png" | "svg" | "jpeg" | "webp" = "png"
 ): Promise<void> {
@@ -305,7 +322,7 @@ export async function downloadQRCode(
 
 // Export a function to get QR code as blob
 export async function getQRCodeBlob(
-  qrCode: QRCodeStyling,
+  qrCode: QRCodeStylingType,
   format: "png" | "svg" | "jpeg" | "webp" = "png"
 ): Promise<Blob | null> {
   const data = await qrCode.getRawData(format);
