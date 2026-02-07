@@ -233,8 +233,10 @@ function renderDotPattern(
   }
 }
 
-// ─── Corner Square Rendering (outer ring only) ───────────────────────────────
-// For shapes with double borders (6, 9, 10), don't render inner ring - let corner dot fill that space
+// ─── Corner Square Rendering ─────────────────────────────────────────────────
+// IMPORTANT: QR finder patterns must use FILLED shapes, not strokes
+// Pattern: Outer filled square + inner white square = creates the ring effect
+// The cornerDot function renders the center separately
 
 function renderCornerSquare(
   style: string,
@@ -242,107 +244,168 @@ function renderCornerSquare(
   cy: number,
   size: number,
   outerColor: string,
+  bgColor: string, // Added: background color for the inner cutout
   key: string
 ): React.ReactNode {
-  const strokeWidth = size * 0.14;
   const x = cx - size / 2;
   const y = cy - size / 2;
+  // Ring thickness is 1/7th of finder size (1 cell out of 7)
+  const ringThickness = size / 7;
+  const innerSize = size - ringThickness * 2;
+  const innerX = x + ringThickness;
+  const innerY = y + ringThickness;
 
   switch (style) {
     case "square":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} fill={bgColor} />
+        </g>
       );
 
     case "dot":
       return (
-        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <circle cx={cx} cy={cy} r={size / 2} fill={outerColor} />
+          <circle cx={cx} cy={cy} r={size / 2 - ringThickness} fill={bgColor} />
+        </g>
       );
 
     case "extra-rounded":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.25} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.2} fill={bgColor} />
+        </g>
       );
 
     case "shape1":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.08} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.05} fill={bgColor} />
+        </g>
       );
 
     case "shape2":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} fill={bgColor} />
+        </g>
       );
 
     case "shape3": {
-      const diamondSize = size / 2;
+      const outerD = size / 2;
+      const innerD = innerSize / 2;
       return (
-        <polygon key={key} points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <polygon points={`${cx},${cy - outerD} ${cx + outerD},${cy} ${cx},${cy + outerD} ${cx - outerD},${cy}`} fill={outerColor} />
+          <polygon points={`${cx},${cy - innerD} ${cx + innerD},${cy} ${cx},${cy + innerD} ${cx - innerD},${cy}`} fill={bgColor} />
+        </g>
       );
     }
 
     case "shape4":
       return (
-        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <circle cx={cx} cy={cy} r={size / 2} fill={outerColor} />
+          <circle cx={cx} cy={cy} r={size / 2 - ringThickness} fill={bgColor} />
+        </g>
       );
 
     case "shape5":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-      );
-
-    // shape6, shape9, shape10 - Double border styles
-    // Inner ring is CLOSER to outer border (less gap between them)
-    // This leaves more space in center for corner dot
-    case "shape6":
-      return (
         <g key={key}>
-          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.32} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.18} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.15} fill={bgColor} />
         </g>
       );
 
+    // shape6, shape9, shape10 - Double border styles (outer + middle ring)
+    case "shape6": {
+      const middleRingSize = size * 0.65;
+      const middleX = cx - middleRingSize / 2;
+      const middleY = cy - middleRingSize / 2;
+      return (
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.08} fill={bgColor} />
+          <circle cx={cx} cy={cy} r={middleRingSize / 2} fill={outerColor} />
+          <circle cx={cx} cy={cy} r={middleRingSize / 2 - ringThickness * 0.7} fill={bgColor} />
+        </g>
+      );
+    }
+
     case "shape7":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size / 2} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize / 2} fill={bgColor} />
+        </g>
       );
 
     case "shape8":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-      );
-
-    case "shape9":
-      return (
         <g key={key}>
-          <rect x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
-          <rect x={cx - size * 0.26} y={cy - size * 0.26} width={size * 0.52} height={size * 0.52} rx={size * 0.08} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <rect x={x} y={y} width={size} height={size} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} fill={bgColor} />
         </g>
       );
 
-    case "shape10":
+    case "shape9": {
+      const middleSize = size * 0.55;
+      const middleX = cx - middleSize / 2;
+      const middleY = cy - middleSize / 2;
+      const middleInner = middleSize - ringThickness;
       return (
         <g key={key}>
-          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.30} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.12} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.1} fill={bgColor} />
+          <rect x={middleX} y={middleY} width={middleSize} height={middleSize} rx={middleSize * 0.1} fill={outerColor} />
+          <rect x={middleX + ringThickness / 2} y={middleY + ringThickness / 2} width={middleInner} height={middleInner} rx={middleInner * 0.08} fill={bgColor} />
         </g>
       );
+    }
+
+    case "shape10": {
+      const middleR = size * 0.32;
+      return (
+        <g key={key}>
+          <circle cx={cx} cy={cy} r={size / 2} fill={outerColor} />
+          <circle cx={cx} cy={cy} r={size / 2 - ringThickness} fill={bgColor} />
+          <circle cx={cx} cy={cy} r={middleR} fill={outerColor} />
+          <circle cx={cx} cy={cy} r={middleR - ringThickness * 0.6} fill={bgColor} />
+        </g>
+      );
+    }
 
     case "shape11":
       return (
-        <rect key={key} x={x} y={y + size * 0.1} width={size} height={size * 0.8} rx={size * 0.4} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y + size * 0.1} width={size} height={size * 0.8} rx={size * 0.4} fill={outerColor} />
+          <rect x={innerX} y={innerY + size * 0.1} width={innerSize} height={innerSize * 0.8 / (size * 0.8) * innerSize} rx={innerSize * 0.35} fill={bgColor} />
+        </g>
       );
 
     case "shape12": {
-      const diamondSize = size / 2;
+      const outerD = size / 2;
+      const innerD = innerSize / 2;
       return (
-        <polygon key={key} points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" strokeLinejoin="round" />
+        <g key={key}>
+          <polygon points={`${cx},${cy - outerD} ${cx + outerD},${cy} ${cx},${cy + outerD} ${cx - outerD},${cy}`} fill={outerColor} />
+          <polygon points={`${cx},${cy - innerD} ${cx + innerD},${cy} ${cx},${cy + innerD} ${cx - innerD},${cy}`} fill={bgColor} />
+        </g>
       );
     }
 
     default:
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} fill={outerColor} />
+          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.08} fill={bgColor} />
+        </g>
       );
   }
 }
@@ -851,12 +914,12 @@ export default function CustomSVGQR({
       { x: margin + finderSize / 2, y: margin + (matrixSize - 3.5) * cellSize },
     ];
 
-    // Corner dot size - smaller to fit inside double-border corner squares (shape6, 9, 10)
-    // 35% of finder size leaves proper gap for inner rings
-    const cornerDotSize = finderSize * 0.35;
+    // Corner dot size - 3/7 of finder size (the center 3x3 cells of a 7x7 finder)
+    // This is the standard QR code finder pattern center size
+    const cornerDotSize = finderSize * (3 / 7);
 
     finderCenters.forEach((center, idx) => {
-      // Render outer corner square
+      // Render outer corner square (with background color for inner cutout)
       elements.push(
         renderCornerSquare(
           cornersSquareType,
@@ -864,10 +927,11 @@ export default function CustomSVGQR({
           center.y,
           finderSize,
           cornersSquareColor,
+          backgroundColor,
           `corner-${idx}`
         )
       );
-      // Render inner corner dot
+      // Render inner corner dot (center of finder pattern)
       elements.push(
         renderCornerDot(
           cornersDotType,
