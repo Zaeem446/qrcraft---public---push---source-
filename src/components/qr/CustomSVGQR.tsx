@@ -209,7 +209,7 @@ function renderDotPattern(
   }
 }
 
-// ─── Corner Square Rendering ─────────────────────────────────────────────────
+// ─── Corner Square Rendering (outer ring only) ───────────────────────────────
 
 function renderCornerSquare(
   style: string,
@@ -217,82 +217,55 @@ function renderCornerSquare(
   cy: number,
   size: number,
   outerColor: string,
-  innerColor: string,
+  _innerColor: string, // Unused - inner dot rendered separately
   key: string
 ): React.ReactNode {
   const outerSize = size;
-  const innerSize = size * 0.43;
   const strokeWidth = size * 0.14;
   const x = cx - size / 2;
   const y = cy - size / 2;
-  const innerX = cx - innerSize / 2;
-  const innerY = cy - innerSize / 2;
 
   switch (style) {
     case "square":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "dot":
       return (
-        <g key={key}>
-          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <circle cx={cx} cy={cy} r={innerSize / 2} fill={innerColor} />
-        </g>
+        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "extra-rounded":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.2} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape1":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <circle cx={cx} cy={cy} r={innerSize / 2} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape2":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <polygon points={`${cx},${cy - innerSize / 2} ${cx + innerSize / 2},${cy} ${cx},${cy + innerSize / 2} ${cx - innerSize / 2},${cy}`} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape3": {
       const diamondSize = size / 2;
       return (
-        <g key={key}>
-          <polygon points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={cx - innerSize / 2.5} y={cy - innerSize / 2.5} width={innerSize / 1.25} height={innerSize / 1.25} fill={innerColor} />
-        </g>
+        <polygon key={key} points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
     }
 
     case "shape4":
       return (
-        <g key={key}>
-          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.1} fill={innerColor} />
-        </g>
+        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape5":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <polygon points={`${cx},${cy - innerSize / 2} ${cx + innerSize / 2},${cy} ${cx},${cy + innerSize / 2} ${cx - innerSize / 2},${cy}`} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape6":
@@ -300,24 +273,17 @@ function renderCornerSquare(
         <g key={key}>
           <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
           <circle cx={cx} cy={cy} r={size * 0.28} stroke={outerColor} strokeWidth={strokeWidth * 0.6} fill="none" />
-          <circle cx={cx} cy={cy} r={innerSize * 0.35} fill={innerColor} />
         </g>
       );
 
     case "shape7":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize / 2} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape8":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <circle cx={cx} cy={cy} r={innerSize / 1.8} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape9":
@@ -333,34 +299,24 @@ function renderCornerSquare(
         <g key={key}>
           <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
           <circle cx={cx} cy={cy} r={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth * 0.6} fill="none" />
-          <circle cx={cx} cy={cy} r={innerSize * 0.3} fill={innerColor} />
         </g>
       );
 
     case "shape11":
       return (
-        <g key={key}>
-          <rect x={x} y={y + size * 0.1} width={outerSize} height={outerSize * 0.8} rx={size * 0.4} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize / 2} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y + size * 0.1} width={outerSize} height={outerSize * 0.8} rx={size * 0.4} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape12": {
       const diamondSize = size / 2;
       return (
-        <g key={key}>
-          <polygon points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" strokeLinejoin="round" />
-          <circle cx={cx} cy={cy} r={innerSize / 2.5} fill={innerColor} />
-        </g>
+        <polygon key={key} points={`${cx},${cy - diamondSize} ${cx + diamondSize},${cy} ${cx},${cy + diamondSize} ${cx - diamondSize},${cy}`} stroke={outerColor} strokeWidth={strokeWidth} fill="none" strokeLinejoin="round" />
       );
     }
 
     default: // "default"
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
-          <rect x={innerX} y={innerY} width={innerSize} height={innerSize} rx={innerSize * 0.1} fill={innerColor} />
-        </g>
+        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
   }
 }
@@ -602,8 +558,10 @@ export default function CustomSVGQR({
       { x: margin + finderSize / 2, y: margin + (matrixSize - 3.5) * cellSize }, // Bottom-left
     ];
 
-    // Render finder patterns (corner squares)
+    // Render finder patterns (corner squares + corner dots separately)
+    const cornerDotSize = finderSize * 0.43; // Inner dot size
     finderCenters.forEach((center, idx) => {
+      // Render outer corner square
       elements.push(
         renderCornerSquare(
           cornersSquareType,
@@ -615,10 +573,22 @@ export default function CustomSVGQR({
           `corner-${idx}`
         )
       );
+      // Render inner corner dot with separate style
+      elements.push(
+        renderCornerDot(
+          cornersDotType,
+          center.x,
+          center.y,
+          cornerDotSize,
+          cornersDotColor,
+          backgroundColor,
+          `corner-dot-${idx}`
+        )
+      );
     });
 
     return elements;
-  }, [qrMatrix, size, dotsType, dotsColor, cornersSquareType, cornersSquareColor, cornersDotColor]);
+  }, [qrMatrix, size, dotsType, dotsColor, cornersSquareType, cornersSquareColor, cornersDotType, cornersDotColor, backgroundColor]);
 
   // Frame rendering
   const frameId = typeof design?.frameId === "number" ? design.frameId : -1;
