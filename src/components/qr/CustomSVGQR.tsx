@@ -80,7 +80,7 @@ function contentToString(type: string, content: Record<string, any>): string {
 }
 
 // ─── Pattern Rendering Functions ─────────────────────────────────────────────
-// SIGNIFICANTLY LARGER patterns for visibility
+// ALL patterns made LARGE and visually distinct
 
 function renderDotPattern(
   style: string,
@@ -90,133 +90,146 @@ function renderDotPattern(
   color: string,
   key: string
 ): React.ReactNode {
-  // Base radius - LARGE for visibility
-  const r = cellSize * 0.48;
+  // Use full cell size for calculations
   const half = cellSize / 2;
   const x = cx - half;
   const y = cy - half;
 
   switch (style) {
     case "square":
-      // FULL square - almost no gap
-      return <rect key={key} x={x + 0.3} y={y + 0.3} width={cellSize - 0.6} height={cellSize - 0.6} fill={color} />;
+      // FULL square - fills entire cell
+      return <rect key={key} x={x} y={y} width={cellSize} height={cellSize} fill={color} />;
 
     case "rounded":
-      // Rounded square - VERY rounded corners (40% radius)
-      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} rx={cellSize * 0.4} ry={cellSize * 0.4} fill={color} />;
+      // Large rounded square - 50% corner radius makes it very rounded but still square-ish
+      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} rx={cellSize * 0.35} ry={cellSize * 0.35} fill={color} />;
 
     case "dots":
-      // LARGE circles - clear circular shape
-      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.42} fill={color} />;
+      // Perfect circles - smaller than rounded to show clear gaps between dots
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.38} fill={color} />;
 
     case "classy":
-      // Smaller SHARP squares with visible gaps
-      return <rect key={key} x={x + cellSize * 0.18} y={y + cellSize * 0.18} width={cellSize * 0.64} height={cellSize * 0.64} fill={color} />;
+      // Smaller sharp squares - visible gaps between modules
+      return <rect key={key} x={x + cellSize * 0.12} y={y + cellSize * 0.12} width={cellSize * 0.76} height={cellSize * 0.76} fill={color} />;
 
     case "classy-rounded":
-      // Smaller ROUNDED squares with gaps - more rounded than classy
-      return <rect key={key} x={x + cellSize * 0.15} y={y + cellSize * 0.15} width={cellSize * 0.7} height={cellSize * 0.7} rx={cellSize * 0.25} ry={cellSize * 0.25} fill={color} />;
+      // Smaller with VERY rounded corners - clearly different from classy
+      return <rect key={key} x={x + cellSize * 0.1} y={y + cellSize * 0.1} width={cellSize * 0.8} height={cellSize * 0.8} rx={cellSize * 0.35} ry={cellSize * 0.35} fill={color} />;
 
     case "extra-rounded":
-      // VERY LARGE circles - almost touching
-      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.48} fill={color} />;
+      // Perfect large circles - almost touching, clearly circular
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.5} fill={color} />;
 
     case "cross":
+      // THICK cross - sharp corners
       return (
         <g key={key}>
-          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} fill={color} />
+          <rect x={cx - cellSize * 0.22} y={y} width={cellSize * 0.44} height={cellSize} fill={color} />
+          <rect x={x} y={cy - cellSize * 0.22} width={cellSize} height={cellSize * 0.44} fill={color} />
         </g>
       );
 
     case "cross-rounded":
+      // THICK cross with VERY rounded ends
       return (
         <g key={key}>
-          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} rx={r * 0.15} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} rx={r * 0.15} fill={color} />
+          <rect x={cx - cellSize * 0.22} y={y} width={cellSize * 0.44} height={cellSize} rx={cellSize * 0.22} fill={color} />
+          <rect x={x} y={cy - cellSize * 0.22} width={cellSize} height={cellSize * 0.44} rx={cellSize * 0.22} fill={color} />
         </g>
       );
 
     case "diamond":
+      // LARGE diamond - touches cell edges
       return (
-        <polygon key={key} points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} fill={color} />
+        <polygon key={key} points={`${cx},${y} ${x + cellSize},${cy} ${cx},${y + cellSize} ${x},${cy}`} fill={color} />
       );
 
     case "diamond-special":
+      // Large diamond with visible center hole
       return (
         <g key={key}>
-          <polygon points={`${cx},${cy - r * 0.95} ${cx + r * 0.95},${cy} ${cx},${cy + r * 0.95} ${cx - r * 0.95},${cy}`} fill={color} />
-          <circle cx={cx} cy={cy} r={r * 0.25} fill="white" />
+          <polygon points={`${cx},${y} ${x + cellSize},${cy} ${cx},${y + cellSize} ${x},${cy}`} fill={color} />
+          <circle cx={cx} cy={cy} r={cellSize * 0.18} fill="white" />
         </g>
       );
 
     case "heart": {
-      // LARGER heart
-      const hr = r * 1.1;
+      // BIG heart that fills the cell
+      const s = cellSize * 0.52;
       return (
-        <path key={key} d={`M${cx} ${cy + hr * 0.6} C${cx - hr * 1.2} ${cy - hr * 0.1} ${cx - hr * 0.6} ${cy - hr * 0.95} ${cx} ${cy - hr * 0.3} C${cx + hr * 0.6} ${cy - hr * 0.95} ${cx + hr * 1.2} ${cy - hr * 0.1} ${cx} ${cy + hr * 0.6}Z`} fill={color} />
+        <path key={key} d={`M${cx} ${cy + s * 0.85} C${cx - s * 1.4} ${cy + s * 0.1} ${cx - s * 0.9} ${cy - s * 0.9} ${cx} ${cy - s * 0.2} C${cx + s * 0.9} ${cy - s * 0.9} ${cx + s * 1.4} ${cy + s * 0.1} ${cx} ${cy + s * 0.85}Z`} fill={color} />
       );
     }
 
     case "horizontal-rounded":
-      return <rect key={key} x={x} y={cy - r * 0.45} width={cellSize} height={r * 0.9} rx={r * 0.45} fill={color} />;
+      // THICK horizontal pill
+      return <rect key={key} x={x} y={cy - cellSize * 0.28} width={cellSize} height={cellSize * 0.56} rx={cellSize * 0.28} fill={color} />;
 
     case "vertical-rounded":
-      return <rect key={key} x={cx - r * 0.45} y={y} width={r * 0.9} height={cellSize} rx={r * 0.45} fill={color} />;
+      // THICK vertical pill
+      return <rect key={key} x={cx - cellSize * 0.28} y={y} width={cellSize * 0.56} height={cellSize} rx={cellSize * 0.28} fill={color} />;
 
     case "ribbon":
+      // Two THICK horizontal bars
       return (
         <g key={key}>
-          <rect x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize * 0.4} rx={1} fill={color} />
-          <rect x={x + 0.5} y={y + cellSize * 0.5} width={cellSize - 1} height={cellSize * 0.4} rx={1} fill={color} />
+          <rect x={x} y={y + cellSize * 0.08} width={cellSize} height={cellSize * 0.36} rx={cellSize * 0.08} fill={color} />
+          <rect x={x} y={y + cellSize * 0.56} width={cellSize} height={cellSize * 0.36} rx={cellSize * 0.08} fill={color} />
         </g>
       );
 
     case "shake": {
-      const offset = Math.random() > 0.5 ? 1.5 : -1.5;
-      return <rect key={key} x={x + 0.5 + offset} y={y + 0.5 - offset} width={cellSize - 1} height={cellSize - 1} fill={color} />;
+      // Randomly offset large square
+      const offset = Math.random() > 0.5 ? cellSize * 0.12 : -cellSize * 0.12;
+      return <rect key={key} x={x + offset} y={y - offset} width={cellSize} height={cellSize} fill={color} />;
     }
 
     case "sparkle": {
+      // LARGE 4-point star sparkle
+      const s = cellSize * 0.5;
       const pts = [];
       for (let i = 0; i < 4; i++) {
         const a1 = (Math.PI / 2) * i - Math.PI / 2;
         const a2 = a1 + Math.PI / 4;
-        pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
-        pts.push(`${cx + Math.cos(a2) * r * 0.35},${cy + Math.sin(a2) * r * 0.35}`);
+        pts.push(`${cx + Math.cos(a1) * s},${cy + Math.sin(a1) * s}`);
+        pts.push(`${cx + Math.cos(a2) * s * 0.35},${cy + Math.sin(a2) * s * 0.35}`);
       }
       return <polygon key={key} points={pts.join(" ")} fill={color} />;
     }
 
     case "star": {
+      // LARGE 5-point star
+      const s = cellSize * 0.52;
       const pts = [];
       for (let i = 0; i < 5; i++) {
         const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
         const a2 = a1 + Math.PI / 5;
-        pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
-        pts.push(`${cx + Math.cos(a2) * r * 0.4},${cy + Math.sin(a2) * r * 0.4}`);
+        pts.push(`${cx + Math.cos(a1) * s},${cy + Math.sin(a1) * s}`);
+        pts.push(`${cx + Math.cos(a2) * s * 0.4},${cy + Math.sin(a2) * s * 0.4}`);
       }
       return <polygon key={key} points={pts.join(" ")} fill={color} />;
     }
 
     case "x":
+      // THICK X with sharp corners
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - cellSize * 0.5} y={cy - cellSize * 0.15} width={cellSize} height={cellSize * 0.3} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - cellSize * 0.5} y={cy - cellSize * 0.15} width={cellSize} height={cellSize * 0.3} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
     case "x-rounded":
+      // THICK X with VERY rounded ends - clearly different from regular X
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - cellSize * 0.5} y={cy - cellSize * 0.15} width={cellSize} height={cellSize * 0.3} rx={cellSize * 0.15} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - cellSize * 0.5} y={cy - cellSize * 0.15} width={cellSize} height={cellSize * 0.3} rx={cellSize * 0.15} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
     default:
-      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} fill={color} />;
+      return <rect key={key} x={x} y={y} width={cellSize} height={cellSize} fill={color} />;
   }
 }
 
