@@ -12,8 +12,19 @@ import { renderPreviewForType } from "@/components/qr/PhonePreviews";
 import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
-import StyledQRPreview, { downloadQRCode } from "@/components/qr/StyledQRPreview";
+import dynamic from "next/dynamic";
 import type QRCodeStyling from "qr-code-styling";
+
+// Dynamic import with SSR disabled
+const StyledQRPreview = dynamic(
+  () => import("@/components/qr/StyledQRPreview").then(mod => mod.default),
+  { ssr: false, loading: () => <div className="w-[180px] h-[180px] bg-gray-100 animate-pulse rounded-xl" /> }
+);
+
+const downloadQRCodeFn = async (qrCode: QRCodeStyling, name: string, format: "png" | "svg") => {
+  const { downloadQRCode } = await import("@/components/qr/StyledQRPreview");
+  return downloadQRCode(qrCode, name, format);
+};
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -73,9 +84,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
     }
     try {
       // Note: qr-code-styling only supports png and svg natively
-      // For other formats, download as png
-      const downloadFormat = format === "png" ? "png" : "png";
-      await downloadQRCode(qrCodeInstanceRef.current, name || "qrcode", downloadFormat as "png");
+      await downloadQRCodeFn(qrCodeInstanceRef.current, name || "qrcode", "png");
     } catch {
       toast.error("Download failed");
     }

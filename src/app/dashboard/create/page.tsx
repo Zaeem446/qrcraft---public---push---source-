@@ -14,8 +14,20 @@ import ContentForms from "@/components/qr/ContentForms";
 import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
-import StyledQRPreview, { downloadQRCode } from "@/components/qr/StyledQRPreview";
+import dynamic from "next/dynamic";
 import type QRCodeStyling from "qr-code-styling";
+
+// Dynamic import with SSR disabled - qr-code-styling needs browser APIs
+const StyledQRPreview = dynamic(
+  () => import("@/components/qr/StyledQRPreview").then(mod => mod.default),
+  { ssr: false, loading: () => <div className="w-[220px] h-[220px] bg-gray-100 animate-pulse rounded-xl" /> }
+);
+
+// Import download function separately
+const downloadQRCodeFn = async (qrCode: QRCodeStyling, name: string, format: "png" | "svg") => {
+  const { downloadQRCode } = await import("@/components/qr/StyledQRPreview");
+  return downloadQRCode(qrCode, name, format);
+};
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
@@ -98,7 +110,7 @@ export default function CreateQRPage() {
       return;
     }
     try {
-      await downloadQRCode(qrCodeInstanceRef.current, name || "qrcode", format);
+      await downloadQRCodeFn(qrCodeInstanceRef.current, name || "qrcode", format);
     } catch {
       toast.error("Download failed");
     }
