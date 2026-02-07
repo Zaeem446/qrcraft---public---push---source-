@@ -278,11 +278,14 @@ function renderCornerSquare(
         <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
-    // FIXED: shape6, shape9, shape10 - Only render outer ring, inner ring is removed
-    // The corner dot will fill the center space
+    // shape6, shape9, shape10 - Double border styles with inner ring
+    // Inner ring is SMALLER to leave more space for corner dot
     case "shape6":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
+          <circle cx={cx} cy={cy} r={size * 0.22} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+        </g>
       );
 
     case "shape7":
@@ -297,12 +300,18 @@ function renderCornerSquare(
 
     case "shape9":
       return (
-        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
+          <rect x={cx - size * 0.18} y={cy - size * 0.18} width={size * 0.36} height={size * 0.36} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+        </g>
       );
 
     case "shape10":
       return (
-        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <g key={key}>
+          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
+          <circle cx={cx} cy={cy} r={size * 0.2} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+        </g>
       );
 
     case "shape11":
@@ -681,9 +690,9 @@ export default function CustomSVGQR({
       { x: margin + finderSize / 2, y: margin + (matrixSize - 3.5) * cellSize },
     ];
 
-    // Corner dot size - approximately 3 cells (3/7 of finder = ~43%)
-    // Made slightly larger for visibility
-    const cornerDotSize = finderSize * 0.45;
+    // Corner dot size - smaller to fit inside double-border corner squares (shape6, 9, 10)
+    // 35% of finder size leaves proper gap for inner rings
+    const cornerDotSize = finderSize * 0.35;
 
     finderCenters.forEach((center, idx) => {
       // Render outer corner square
