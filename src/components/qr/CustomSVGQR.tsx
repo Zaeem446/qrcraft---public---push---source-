@@ -291,13 +291,14 @@ function renderCornerSquare(
         <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
-    // shape6, shape9, shape10 - Double border styles with inner ring
-    // Inner ring is SMALLER to leave more space for corner dot
+    // shape6, shape9, shape10 - Double border styles
+    // Inner ring is CLOSER to outer border (less gap between them)
+    // This leaves more space in center for corner dot
     case "shape6":
       return (
         <g key={key}>
-          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.22} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
+          <circle cx={cx} cy={cy} r={size * 0.32} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
         </g>
       );
 
@@ -314,16 +315,16 @@ function renderCornerSquare(
     case "shape9":
       return (
         <g key={key}>
-          <rect x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <rect x={cx - size * 0.18} y={cy - size * 0.18} width={size * 0.36} height={size * 0.36} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <rect x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
+          <rect x={cx - size * 0.26} y={cy - size * 0.26} width={size * 0.52} height={size * 0.52} rx={size * 0.08} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
         </g>
       );
 
     case "shape10":
       return (
         <g key={key}>
-          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.2} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
+          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.7} fill="none" />
+          <circle cx={cx} cy={cy} r={size * 0.30} stroke={outerColor} strokeWidth={strokeWidth * 0.5} fill="none" />
         </g>
       );
 
@@ -505,101 +506,248 @@ interface FrameProps {
 }
 
 function QRFrame({ frameId, frameColor, frameBgColor, frameText, frameTextColor, fontSize, children }: FrameProps) {
+  // Compute text size from fontSize prop (30-98 range)
+  const textSize = Math.max(11, Math.min(16, fontSize / 4));
+
+  // Common text bar style
+  const textBarStyle = (position: "top" | "bottom", rounded?: boolean, pill?: boolean) => ({
+    backgroundColor: frameBgColor,
+    color: frameTextColor,
+    fontSize: `${textSize}px`,
+    fontWeight: 600,
+    textAlign: "center" as const,
+    padding: pill ? "6px 20px" : "8px 16px",
+    borderRadius: pill
+      ? "999px"
+      : rounded
+        ? position === "top" ? "12px 12px 0 0" : "0 0 12px 12px"
+        : position === "top" ? "6px 6px 0 0" : "0 0 6px 6px",
+  });
+
   // No frame
   if (frameId < 0) {
     return <div className="p-3 bg-white rounded-xl shadow-sm">{children}</div>;
   }
 
-  // Compute frame text size - scale with fontSize prop
-  const textSize = Math.max(10, Math.min(18, fontSize / 3));
-
-  // Frame 0: Video Player style
+  // Frame 0: Video Player
   if (frameId === 0) {
     return (
-      <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: frameBgColor }}>
-        <div className="p-3 pb-10">{children}</div>
-        <div className="absolute bottom-0 left-0 right-0 py-2 px-3 flex items-center gap-2" style={{ backgroundColor: frameColor }}>
-          <div className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
-            <div className="w-0 h-0 border-l-[6px] border-l-white border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5" />
+      <div className="relative rounded-xl overflow-hidden shadow-sm bg-white">
+        <div className="p-3 pb-12">{children}</div>
+        <div className="absolute bottom-0 left-0 right-0 py-2.5 px-4 flex items-center gap-3" style={{ backgroundColor: frameColor }}>
+          <div className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center flex-shrink-0">
+            <div className="w-0 h-0 border-l-[7px] border-l-white border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent ml-0.5" />
           </div>
-          <span className="text-xs font-medium truncate" style={{ color: frameTextColor }}>{frameText}</span>
+          <span className="text-sm font-semibold truncate" style={{ color: frameTextColor }}>{frameText}</span>
         </div>
       </div>
     );
   }
 
-  // Frame styles by ID
-  const frameConfig: Record<number, { textPosition: "top" | "bottom" | "both"; borderRadius: string; dashed?: boolean; double?: boolean }> = {
-    1: { textPosition: "bottom", borderRadius: "8px" },
-    2: { textPosition: "top", borderRadius: "8px" },
-    3: { textPosition: "both", borderRadius: "8px" },
-    4: { textPosition: "bottom", borderRadius: "16px" },
-    5: { textPosition: "top", borderRadius: "16px" },
-    6: { textPosition: "both", borderRadius: "16px" },
-    7: { textPosition: "bottom", borderRadius: "8px" },
-    8: { textPosition: "both", borderRadius: "8px" },
-    9: { textPosition: "bottom", borderRadius: "8px", dashed: true },
-    10: { textPosition: "bottom", borderRadius: "16px", dashed: true },
-    11: { textPosition: "bottom", borderRadius: "8px", dashed: true },
-    12: { textPosition: "top", borderRadius: "16px", dashed: true },
-    13: { textPosition: "bottom", borderRadius: "8px", double: true },
-    14: { textPosition: "bottom", borderRadius: "16px", double: true },
-    15: { textPosition: "top", borderRadius: "8px" },
-    16: { textPosition: "bottom", borderRadius: "12px" },
-    17: { textPosition: "bottom", borderRadius: "8px" },
-    18: { textPosition: "bottom", borderRadius: "8px" },
-    19: { textPosition: "bottom", borderRadius: "12px" },
-    20: { textPosition: "bottom", borderRadius: "8px" },
-    21: { textPosition: "bottom", borderRadius: "10px" },
-    22: { textPosition: "bottom", borderRadius: "8px" },
-    23: { textPosition: "bottom", borderRadius: "8px" },
-    24: { textPosition: "bottom", borderRadius: "8px" },
-    25: { textPosition: "bottom", borderRadius: "10px" },
-    26: { textPosition: "bottom", borderRadius: "12px" },
-    27: { textPosition: "bottom", borderRadius: "50%" },
-    28: { textPosition: "bottom", borderRadius: "8px" },
-    29: { textPosition: "bottom", borderRadius: "8px", dashed: true },
-    30: { textPosition: "bottom", borderRadius: "16px" },
+  // Frame 1: Square, text bottom
+  if (frameId === 1) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `2px solid ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom")}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 2: Square, text top
+  if (frameId === 2) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `2px solid ${frameColor}` }}>
+        <div style={textBarStyle("top")}>{frameText}</div>
+        <div className="p-3">{children}</div>
+      </div>
+    );
+  }
+
+  // Frame 3: Square, text both
+  if (frameId === 3) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `2px solid ${frameColor}` }}>
+        <div style={textBarStyle("top")}>{frameText}</div>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom")}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 4: Rounded, text bottom
+  if (frameId === 4) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-2xl" style={{ border: `2px solid ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom", true)}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 5: Rounded, text top
+  if (frameId === 5) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-2xl" style={{ border: `2px solid ${frameColor}` }}>
+        <div style={textBarStyle("top", true)}>{frameText}</div>
+        <div className="p-3">{children}</div>
+      </div>
+    );
+  }
+
+  // Frame 6: Rounded, text both
+  if (frameId === 6) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-2xl" style={{ border: `2px solid ${frameColor}` }}>
+        <div style={textBarStyle("top", true)}>{frameText}</div>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom", true)}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 7: Square frame, pill text bottom
+  if (frameId === 7) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg p-3 pb-0" style={{ border: `2px solid ${frameColor}` }}>
+        {children}
+        <div className="flex justify-center py-3">
+          <div style={{ ...textBarStyle("bottom", false, true), margin: 0 }}>{frameText}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Frame 8: Square frame, pill text both
+  if (frameId === 8) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg p-3" style={{ border: `2px solid ${frameColor}` }}>
+        <div className="flex justify-center pb-3">
+          <div style={{ ...textBarStyle("top", false, true), margin: 0 }}>{frameText}</div>
+        </div>
+        {children}
+        <div className="flex justify-center pt-3">
+          <div style={{ ...textBarStyle("bottom", false, true), margin: 0 }}>{frameText}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Frame 9: Dashed square
+  if (frameId === 9) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `2px dashed ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom")}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 10: Dashed rounded
+  if (frameId === 10) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-2xl" style={{ border: `2px dashed ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom", true)}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 11: Dotted square
+  if (frameId === 11) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `3px dotted ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom")}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 12: Dotted rounded
+  if (frameId === 12) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-2xl" style={{ border: `3px dotted ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom", true)}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 13: Double border square
+  if (frameId === 13) {
+    return (
+      <div className="shadow-sm bg-white rounded-lg p-1" style={{ border: `2px solid ${frameColor}` }}>
+        <div className="rounded overflow-hidden" style={{ border: `2px solid ${frameColor}` }}>
+          <div className="p-3">{children}</div>
+          <div style={textBarStyle("bottom")}>{frameText}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Frame 14: Double border rounded
+  if (frameId === 14) {
+    return (
+      <div className="shadow-sm bg-white rounded-2xl p-1" style={{ border: `2px solid ${frameColor}` }}>
+        <div className="rounded-xl overflow-hidden" style={{ border: `2px solid ${frameColor}` }}>
+          <div className="p-3">{children}</div>
+          <div style={textBarStyle("bottom", true)}>{frameText}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Frame 15: Thick border square
+  if (frameId === 15) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-lg" style={{ border: `4px solid ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom")}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frame 16: Thick border rounded
+  if (frameId === 16) {
+    return (
+      <div className="overflow-hidden shadow-sm bg-white rounded-3xl" style={{ border: `4px solid ${frameColor}` }}>
+        <div className="p-3">{children}</div>
+        <div style={textBarStyle("bottom", true)}>{frameText}</div>
+      </div>
+    );
+  }
+
+  // Frames 17-30: Various special frames with bottom text
+  // Using a consistent style with different border radii
+  const specialFrameRadius: Record<number, string> = {
+    17: "12px", 18: "16px", 19: "20px", 20: "8px",
+    21: "10px", 22: "8px", 23: "12px", 24: "8px",
+    25: "14px", 26: "18px", 27: "24px", 28: "6px",
+    29: "8px", 30: "20px",
   };
 
-  const config = frameConfig[frameId] || { textPosition: "bottom", borderRadius: "8px" };
-  const { textPosition, borderRadius, dashed, double } = config;
-
-  const textStyle = {
-    backgroundColor: frameBgColor,
-    color: frameTextColor,
-    fontSize: `${textSize}px`,
-    padding: "8px 16px",
-    fontWeight: 600,
-    textAlign: "center" as const,
-  };
-
-  const borderStyle = dashed
-    ? `2px dashed ${frameColor}`
-    : double
-      ? `3px double ${frameColor}`
-      : `2px solid ${frameColor}`;
+  const isDashedSpecial = frameId === 29;
+  const radius = specialFrameRadius[frameId] || "8px";
 
   return (
     <div
-      className="overflow-hidden shadow-sm"
+      className="overflow-hidden shadow-sm bg-white"
       style={{
-        borderRadius,
-        border: borderStyle,
-        backgroundColor: "#FFFFFF",
+        borderRadius: radius,
+        border: isDashedSpecial ? `2px dashed ${frameColor}` : `2px solid ${frameColor}`
       }}
     >
-      {(textPosition === "top" || textPosition === "both") && (
-        <div style={{ ...textStyle, borderTopLeftRadius: borderRadius, borderTopRightRadius: borderRadius }}>
-          {frameText}
-        </div>
-      )}
       <div className="p-3">{children}</div>
-      {(textPosition === "bottom" || textPosition === "both") && (
-        <div style={{ ...textStyle, borderBottomLeftRadius: borderRadius, borderBottomRightRadius: borderRadius }}>
-          {frameText}
-        </div>
-      )}
+      <div style={{
+        backgroundColor: frameBgColor,
+        color: frameTextColor,
+        fontSize: `${textSize}px`,
+        fontWeight: 600,
+        textAlign: "center",
+        padding: "8px 16px"
+      }}>
+        {frameText}
+      </div>
     </div>
   );
 }
