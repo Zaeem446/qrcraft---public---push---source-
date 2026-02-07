@@ -96,22 +96,28 @@ function renderDotPattern(
 
   switch (style) {
     case "square":
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} fill={color} />;
+      // Full square - fills almost entire cell
+      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} fill={color} />;
 
     case "rounded":
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} rx={cellSize * 0.3} fill={color} />;
+      // Rounded square - clearly rounded corners
+      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} rx={cellSize * 0.35} ry={cellSize * 0.35} fill={color} />;
 
     case "dots":
-      return <circle key={key} cx={cx} cy={cy} r={r} fill={color} />;
+      // Small circles - visibly smaller than cells
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.32} fill={color} />;
 
     case "classy":
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} rx={2} fill={color} />;
+      // Smaller square with gap - creates visible spacing
+      return <rect key={key} x={x + cellSize * 0.15} y={y + cellSize * 0.15} width={cellSize * 0.7} height={cellSize * 0.7} fill={color} />;
 
     case "classy-rounded":
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} rx={cellSize * 0.4} ry={2} fill={color} />;
+      // Smaller rounded square with gap
+      return <rect key={key} x={x + cellSize * 0.12} y={y + cellSize * 0.12} width={cellSize * 0.76} height={cellSize * 0.76} rx={cellSize * 0.2} fill={color} />;
 
     case "extra-rounded":
-      return <circle key={key} cx={cx} cy={cy} r={r * 1.1} fill={color} />;
+      // Large circles - almost touching
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.45} fill={color} />;
 
     case "cross":
       return (
@@ -559,7 +565,8 @@ export default function CustomSVGQR({
     ];
 
     // Render finder patterns (corner squares + corner dots separately)
-    const cornerDotSize = finderSize * 0.43; // Inner dot size
+    // Inner dot should be about 3/7 of the finder size (3 cells out of 7)
+    const cornerDotSize = finderSize * 0.50; // Slightly larger for better visibility of different styles
     finderCenters.forEach((center, idx) => {
       // Render outer corner square
       elements.push(
@@ -627,8 +634,8 @@ export default function CustomSVGQR({
           border: hasFrame && frameStyle.isDashed ? `2px dashed ${frameColor}` : "none",
         }}
       >
-        {/* Top frame */}
-        {hasFrame && frameStyle.textTop && (
+        {/* Top frame (renders for textTop OR textBoth) */}
+        {hasFrame && (frameStyle.textTop || frameStyle.textBoth) && (
           <div
             className="py-2 px-4 text-center font-bold -mx-3 -mt-3 mb-3"
             style={{
@@ -699,8 +706,8 @@ export default function CustomSVGQR({
           </div>
         )}
 
-        {/* Bottom frame */}
-        {hasFrame && frameId !== 0 && !frameStyle.textTop && (
+        {/* Bottom frame (only when NOT textTop and NOT textBoth, since textBoth has its own bottom section) */}
+        {hasFrame && frameId !== 0 && !frameStyle.textTop && !frameStyle.textBoth && (
           <div
             className="mt-3 py-2.5 px-4 text-center font-bold"
             style={{
