@@ -1,53 +1,20 @@
-// QR Code Generator — Self-hosted using mobstac-awesome-qr
+// Self-hosted QR Generator using mobstac-awesome-qr
 // Replaces QRFY API with local generation
-// Original QRFY code preserved below for reference
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SELF-HOSTED IMPLEMENTATION (Active)
-// ═══════════════════════════════════════════════════════════════════════════════
+import { QRCodeBuilder } from 'mobstac-awesome-qr';
+import {
+  CanvasType,
+  DataPattern,
+  EyeBallShape,
+  EyeFrameShape,
+  GradientType,
+  QRCodeFrame,
+  QRErrorCorrectLevel,
+} from 'mobstac-awesome-qr/lib/Enums';
+import sharp from 'sharp';
 
-export {
-  mapTypeToQrfy,
-  mapDesignToStyle,
-  mapContentToData,
-  createQR,
-  updateQR,
-  deleteQR,
-  getQRImage,
-  createStaticQRImage,
-  getReport,
-  transformQrfyReport,
-  STATIC_TYPES,
-  QRFY_SHAPE_STYLES,
-  QRFY_CORNER_SQUARE_STYLES,
-  QRFY_CORNER_DOT_STYLES,
-  QRFY_FRAME_IDS,
-  QRFY_ERROR_CORRECTION,
-} from './qr-generator';
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ORIGINAL QRFY API CODE (Preserved for rollback if needed)
-// To restore: delete the export block above and uncomment everything below
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/*
-const QRFY_API_URL = process.env.QRFY_API_URL || 'https://qrfy.com';
-const QRFY_API_KEY = process.env.QRFY_API_KEY || '';
-
-async function qrfyFetch(path: string, options: RequestInit = {}) {
-  const res = await fetch(`${QRFY_API_URL}${path}`, {
-    ...options,
-    headers: {
-      'API-KEY': QRFY_API_KEY,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
-  return res;
-}*/
-
-/*
 // ─── Type Mapping ────────────────────────────────────────────────────────────
+// Keep same interface as before for compatibility
 
 const TYPE_MAP: Record<string, string> = {
   website: 'url',
@@ -83,152 +50,165 @@ export function mapTypeToQrfy(ourType: string): string {
   return TYPE_MAP[ourType] || 'url';
 }
 
-// ─── Style Mapping ──────────────────────────────────────────────────────────
+// ─── Style Mapping: QRFY → mobstac-awesome-qr ─────────────────────────────────
 
-// QRFY shape styles (19 native + backward-compat aliases)
-const SHAPE_STYLE_MAP: Record<string, string> = {
-  // 19 native QRFY styles (identity)
-  square: 'square',
-  rounded: 'rounded',
-  dots: 'dots',
-  classy: 'classy',
-  'classy-rounded': 'classy-rounded',
-  'extra-rounded': 'extra-rounded',
-  cross: 'cross',
-  'cross-rounded': 'cross-rounded',
-  diamond: 'diamond',
-  'diamond-special': 'diamond-special',
-  heart: 'heart',
-  'horizontal-rounded': 'horizontal-rounded',
-  ribbon: 'ribbon',
-  shake: 'shake',
-  sparkle: 'sparkle',
-  star: 'star',
-  'vertical-rounded': 'vertical-rounded',
-  x: 'x',
-  'x-rounded': 'x-rounded',
-  // Backward-compat aliases from old UI
-  dot: 'dots',
-  'small-square': 'square',
-  'tiny-square': 'square',
-  'vertical-line': 'vertical-rounded',
-  'horizontal-line': 'horizontal-rounded',
-  'random-dot': 'dots',
-  wave: 'rounded',
-  weave: 'cross',
-  pentagon: 'sparkle',
-  hexagon: 'sparkle',
-  'zebra-horizontal': 'horizontal-rounded',
-  'zebra-vertical': 'vertical-rounded',
-  'blocks-horizontal': 'horizontal-rounded',
-  'blocks-vertical': 'vertical-rounded',
-};
-
-// QRFY corner square styles (16 native + backward-compat aliases)
-const CORNER_SQUARE_MAP: Record<string, string> = {
-  // 16 native QRFY styles (identity)
-  default: 'default',
-  dot: 'dot',
-  square: 'square',
-  'extra-rounded': 'extra-rounded',
-  shape1: 'shape1',
-  shape2: 'shape2',
-  shape3: 'shape3',
-  shape4: 'shape4',
-  shape5: 'shape5',
-  shape6: 'shape6',
-  shape7: 'shape7',
-  shape8: 'shape8',
-  shape9: 'shape9',
-  shape10: 'shape10',
-  shape11: 'shape11',
-  shape12: 'shape12',
+// Map QRFY shape styles to mobstac DataPattern
+const SHAPE_TO_DATA_PATTERN: Record<string, DataPattern> = {
+  // Direct mappings
+  square: DataPattern.SQUARE,
+  dots: DataPattern.CIRCLE,
+  dot: DataPattern.CIRCLE,
+  rounded: DataPattern.SMOOTH_ROUND,
+  'extra-rounded': DataPattern.SMOOTH_ROUND,
+  // Best-effort mappings
+  classy: DataPattern.KITE,
+  'classy-rounded': DataPattern.KITE,
+  cross: DataPattern.THIN_SQUARE,
+  'cross-rounded': DataPattern.THIN_SQUARE,
+  diamond: DataPattern.LEFT_DIAMOND,
+  'diamond-special': DataPattern.RIGHT_DIAMOND,
+  heart: DataPattern.CIRCLE,
+  'horizontal-rounded': DataPattern.SMOOTH_SHARP,
+  ribbon: DataPattern.SMOOTH_SHARP,
+  shake: DataPattern.CIRCLE,
+  sparkle: DataPattern.CIRCLE,
+  star: DataPattern.KITE,
+  'vertical-rounded': DataPattern.SMOOTH_SHARP,
+  x: DataPattern.THIN_SQUARE,
+  'x-rounded': DataPattern.THIN_SQUARE,
   // Backward-compat aliases
-  classy: 'shape1',
-  outpoint: 'shape2',
-  inpoint: 'shape3',
-  'center-circle': 'shape4',
+  'small-square': DataPattern.SQUARE,
+  'tiny-square': DataPattern.THIN_SQUARE,
+  'vertical-line': DataPattern.SMOOTH_SHARP,
+  'horizontal-line': DataPattern.SMOOTH_SHARP,
+  'random-dot': DataPattern.CIRCLE,
+  wave: DataPattern.SMOOTH_ROUND,
+  weave: DataPattern.THIN_SQUARE,
+  pentagon: DataPattern.KITE,
+  hexagon: DataPattern.KITE,
+  'zebra-horizontal': DataPattern.SMOOTH_SHARP,
+  'zebra-vertical': DataPattern.SMOOTH_SHARP,
+  'blocks-horizontal': DataPattern.THIN_SQUARE,
+  'blocks-vertical': DataPattern.THIN_SQUARE,
 };
 
-// QRFY corner dot styles (17 native + backward-compat aliases)
-const CORNER_DOT_MAP: Record<string, string> = {
-  // 17 native QRFY styles (identity)
-  default: 'default',
-  dot: 'dot',
-  square: 'square',
-  cross: 'cross',
-  'cross-rounded': 'cross-rounded',
-  diamond: 'diamond',
-  dot2: 'dot2',
-  dot3: 'dot3',
-  dot4: 'dot4',
-  heart: 'heart',
-  rounded: 'rounded',
-  square2: 'square2',
-  square3: 'square3',
-  star: 'star',
-  sun: 'sun',
-  x: 'x',
-  'x-rounded': 'x-rounded',
-  // Backward-compat aliases
-  'extra-rounded': 'rounded',
-  classy: 'square2',
-  outpoint: 'diamond',
-  inpoint: 'cross',
-  pentagon: 'dot2',
-  hexagon: 'dot3',
+// Map QRFY corner square styles to mobstac EyeFrameShape
+const CORNER_SQUARE_TO_EYE_FRAME: Record<string, EyeFrameShape> = {
+  default: EyeFrameShape.SQUARE,
+  dot: EyeFrameShape.CIRCLE,
+  square: EyeFrameShape.SQUARE,
+  'extra-rounded': EyeFrameShape.ROUNDED,
+  shape1: EyeFrameShape.ROUNDED,
+  shape2: EyeFrameShape.LEFT_LEAF,
+  shape3: EyeFrameShape.RIGHT_LEAF,
+  shape4: EyeFrameShape.CIRCLE,
+  shape5: EyeFrameShape.ROUNDED,
+  shape6: EyeFrameShape.LEFT_LEAF,
+  shape7: EyeFrameShape.RIGHT_LEAF,
+  shape8: EyeFrameShape.CIRCLE,
+  shape9: EyeFrameShape.ROUNDED,
+  shape10: EyeFrameShape.LEFT_LEAF,
+  shape11: EyeFrameShape.RIGHT_LEAF,
+  shape12: EyeFrameShape.ROUNDED,
+  classy: EyeFrameShape.ROUNDED,
+  outpoint: EyeFrameShape.LEFT_LEAF,
+  inpoint: EyeFrameShape.RIGHT_LEAF,
+  'center-circle': EyeFrameShape.CIRCLE,
 };
 
-function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
-  if (useGradient && hex2) {
-    return {
-      type: 'linear' as const,
-      rotation: 45,
-      colorStops: [
-        { offset: 0, color: hex },
-        { offset: 1, color: hex2 },
-      ],
-    };
-  }
-  return hex;
+// Map QRFY corner dot styles to mobstac EyeBallShape
+const CORNER_DOT_TO_EYE_BALL: Record<string, EyeBallShape> = {
+  default: EyeBallShape.SQUARE,
+  dot: EyeBallShape.CIRCLE,
+  square: EyeBallShape.SQUARE,
+  cross: EyeBallShape.SQUARE,
+  'cross-rounded': EyeBallShape.ROUNDED,
+  diamond: EyeBallShape.LEFT_DIAMOND,
+  dot2: EyeBallShape.CIRCLE,
+  dot3: EyeBallShape.CIRCLE,
+  dot4: EyeBallShape.CIRCLE,
+  heart: EyeBallShape.CIRCLE,
+  rounded: EyeBallShape.ROUNDED,
+  square2: EyeBallShape.SQUARE,
+  square3: EyeBallShape.SQUARE,
+  star: EyeBallShape.LEFT_DIAMOND,
+  sun: EyeBallShape.RIGHT_DIAMOND,
+  x: EyeBallShape.LEFT_DIAMOND,
+  'x-rounded': EyeBallShape.RIGHT_DIAMOND,
+  'extra-rounded': EyeBallShape.ROUNDED,
+  classy: EyeBallShape.ROUNDED,
+  outpoint: EyeBallShape.LEFT_DIAMOND,
+  inpoint: EyeBallShape.RIGHT_DIAMOND,
+  pentagon: EyeBallShape.LEFT_LEAF,
+  hexagon: EyeBallShape.RIGHT_LEAF,
+};
+
+// Map QRFY frame IDs to mobstac QRCodeFrame
+const FRAME_ID_TO_QR_FRAME: Record<number, QRCodeFrame> = {
+  0: QRCodeFrame.NONE,
+  1: QRCodeFrame.BOX_BOTTOM,
+  2: QRCodeFrame.BOX_TOP,
+  3: QRCodeFrame.BANNER_BOTTOM,
+  4: QRCodeFrame.BANNER_TOP,
+  5: QRCodeFrame.BALLOON_BOTTOM,
+  6: QRCodeFrame.BALLOON_TOP,
+  7: QRCodeFrame.CIRCULAR,
+  8: QRCodeFrame.TEXT_ONLY,
+  9: QRCodeFrame.FOCUS,
+  10: QRCodeFrame.BOX_BOTTOM,
+  11: QRCodeFrame.BOX_TOP,
+  12: QRCodeFrame.BANNER_BOTTOM,
+  13: QRCodeFrame.BANNER_TOP,
+  14: QRCodeFrame.BALLOON_BOTTOM,
+  15: QRCodeFrame.BALLOON_TOP,
+  16: QRCodeFrame.CIRCULAR,
+  17: QRCodeFrame.TEXT_ONLY,
+  18: QRCodeFrame.FOCUS,
+  19: QRCodeFrame.BOX_BOTTOM,
+  20: QRCodeFrame.BOX_TOP,
+  21: QRCodeFrame.BANNER_BOTTOM,
+  22: QRCodeFrame.BANNER_TOP,
+  23: QRCodeFrame.BALLOON_BOTTOM,
+  24: QRCodeFrame.BALLOON_TOP,
+  25: QRCodeFrame.CIRCULAR,
+  26: QRCodeFrame.TEXT_ONLY,
+  27: QRCodeFrame.FOCUS,
+  28: QRCodeFrame.BOX_BOTTOM,
+  29: QRCodeFrame.BOX_TOP,
+  30: QRCodeFrame.BANNER_BOTTOM,
+};
+
+// ─── Design Mapping ──────────────────────────────────────────────────────────
+
+function toAbsoluteUrl(path: string): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  if (path.startsWith('data:') || path.startsWith('blob:')) return path;
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
+  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
 export function mapDesignToStyle(design: Record<string, any>) {
+  // Keep same interface for compatibility with existing code
   const style: Record<string, any> = {};
 
-  // Logo - must be a publicly accessible URL (not base64)
-  // QRFY downloads the image from this URL server-side
   if (design.logo && !design.logo.startsWith('data:')) {
     style.image = toAbsoluteUrl(design.logo);
   }
 
-  // Shape / pattern
   style.shape = {
-    style: SHAPE_STYLE_MAP[design.dotsType] || 'square',
-    color: makeColorValue(
-      design.dotsColor || '#000000',
-      design.patternGradient,
-      design.patternColor2
-    ),
-    backgroundColor: design.bgTransparent
-      ? '#FFFFFF'
-      : makeColorValue(
-          design.backgroundColor || '#FFFFFF',
-          design.useGradientBg,
-          design.bgColor2
-        ),
+    style: design.dotsType || 'square',
+    color: design.dotsColor || '#000000',
+    backgroundColor: design.bgTransparent ? '#FFFFFF' : (design.backgroundColor || '#FFFFFF'),
   };
 
-  // Corners
   style.corners = {
-    squareStyle: CORNER_SQUARE_MAP[design.cornersSquareType] || 'default',
-    dotStyle: CORNER_DOT_MAP[design.cornersDotType] || 'default',
+    squareStyle: design.cornersSquareType || 'default',
+    dotStyle: design.cornersDotType || 'default',
     squareColor: design.cornersSquareColor || '#000000',
     dotColor: design.cornersDotColor || '#000000',
   };
 
-  // Frame — only include if frameId is a valid QRFY frame (0-30)
-  // frameId -1 means "None" (no frame)
   const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
   if (frameId >= 0) {
     style.frame = {
@@ -243,7 +223,6 @@ export function mapDesignToStyle(design: Record<string, any>) {
     }
   }
 
-  // Error correction
   style.errorCorrectionLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
 
   return style;
@@ -251,19 +230,6 @@ export function mapDesignToStyle(design: Record<string, any>) {
 
 // ─── Content Mapping ─────────────────────────────────────────────────────────
 
-// Helper: build a full URL for uploaded files (QRFY needs absolute URLs)
-function toAbsoluteUrl(path: string): string {
-  if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  // data: URIs (base64 images, etc.) — return as-is; QRFY may not support them
-  // but mangling them with a base URL is worse
-  if (path.startsWith('data:') || path.startsWith('blob:')) return path;
-  // Relative paths like /uploads/xxx.pdf → full URL
-  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
-  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
-}
-
-// Default landing-page design colors used by dynamic QRFY types
 const DEFAULT_DESIGN_2 = { primary: '#7C3AED', secondary: '#FFFFFF' };
 const DEFAULT_DESIGN_3 = { primary: '#7C3AED', secondary: '#FFFFFF', tertiary: '#F3F4F6' };
 const DEFAULT_DESIGN_COLOR = { color: '#7C3AED' };
@@ -275,9 +241,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
   const designC = content.pageDesign || DEFAULT_DESIGN_COLOR;
 
   switch (ourType) {
-    // ── Static / simple URL types ──────────────────────────────────────
     case 'website': {
-      // Support multiple websites; send first URL as primary
       const websites = Array.isArray(content.websites) ? content.websites : [];
       const data: Record<string, any> = { url: content.url || '' };
       if (websites.length > 0) {
@@ -330,7 +294,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     case 'text':
       return { type: 'text', data: { text: content.text || content.url || '' } };
 
-    // ── vCard ──────────────────────────────────────────────────────────
     case 'vcard':
       return {
         type: 'vcard',
@@ -359,7 +322,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── WiFi ───────────────────────────────────────────────────────────
     case 'wifi':
       return {
         type: 'wifi',
@@ -371,7 +333,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── Email ──────────────────────────────────────────────────────────
     case 'email':
       return {
         type: 'email',
@@ -382,7 +343,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── SMS ────────────────────────────────────────────────────────────
     case 'sms':
       return {
         type: 'sms',
@@ -392,7 +352,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── WhatsApp ───────────────────────────────────────────────────────
     case 'whatsapp':
       return {
         type: 'whatsapp',
@@ -402,7 +361,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── PDF ────────────────────────────────────────────────────────────
     case 'pdf': {
       const pdfs: { file: string; name?: string }[] = [];
       if (content.fileUrl) {
@@ -421,24 +379,10 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           title: content.title || '',
           description: content.description || '',
           button: content.buttonText || '',
-          ...(content.company ? { company: content.company } : {}),
-          ...(content.website ? { website: content.website } : {}),
-          ...(typeof content.template === 'number' ? { template: content.template } : {}),
-          ...(content.headerColor ? { headerColor: content.headerColor } : {}),
-          ...(content.titleFont ? { titleFont: content.titleFont } : {}),
-          ...(content.textFont ? { textFont: content.textFont } : {}),
-          ...((content.welcomeImage || content.favicon || content.welcomeTimer != null) ? {
-            welcomeScreen: {
-              ...(content.welcomeImage ? { image: toAbsoluteUrl(content.welcomeImage) } : {}),
-              ...(content.favicon ? { favicon: toAbsoluteUrl(content.favicon) } : {}),
-              ...(content.welcomeTimer != null ? { timer: content.welcomeTimer } : {}),
-            },
-          } : {}),
         },
       };
     }
 
-    // ── Video ──────────────────────────────────────────────────────────
     case 'video': {
       const videos: string[] = [];
       if (content.fileUrl) videos.push(toAbsoluteUrl(content.fileUrl));
@@ -458,7 +402,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── MP3 ────────────────────────────────────────────────────────────
     case 'mp3':
       return {
         type: 'mp3',
@@ -471,7 +414,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── Images ─────────────────────────────────────────────────────────
     case 'images': {
       let images: string[] = [];
       if (content.fileUrl) images.push(toAbsoluteUrl(content.fileUrl));
@@ -489,7 +431,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Link List ──────────────────────────────────────────────────────
     case 'links': {
       const links = Array.isArray(content.links)
         ? content.links.map((l: any) => ({ url: l.url || '', text: l.text || l.label || '' }))
@@ -512,14 +453,12 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Business ───────────────────────────────────────────────────────
     case 'business': {
       const socials = Array.isArray(content.socialLinks)
         ? content.socialLinks
             .filter((s: any) => s.platform && s.url)
             .map((s: any) => ({ id: s.platform, value: s.url }))
         : [];
-      // Use explicit CTA button if provided, otherwise fall back to website
       const buttonText = content.buttonText || (content.website ? 'Visit Website' : '');
       const buttonUrl = content.buttonUrl || content.website || '';
       return {
@@ -546,7 +485,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Menu ───────────────────────────────────────────────────────────
     case 'menu': {
       const sections = Array.isArray(content.sections) ? content.sections : [];
       return {
@@ -560,7 +498,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── App ────────────────────────────────────────────────────────────
     case 'apps':
       return {
         type: 'app',
@@ -577,7 +514,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── Coupon ─────────────────────────────────────────────────────────
     case 'coupon': {
       let validUntil = 0;
       if (content.expiryDate) {
@@ -598,7 +534,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Review / Feedback ──────────────────────────────────────────────
     case 'review':
       return {
         type: 'feedback',
@@ -616,7 +551,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
         },
       };
 
-    // ── Social ─────────────────────────────────────────────────────────
     case 'social': {
       const socials = Array.isArray(content.platforms)
         ? content.platforms
@@ -635,7 +569,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Event ──────────────────────────────────────────────────────────
     case 'event': {
       let from = 0, to = 0;
       if (content.startDate) from = new Date(content.startDate).getTime();
@@ -657,7 +590,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Playlist ────────────────────────────────────────────────────────
     case 'playlist': {
       const platformLinks = Array.isArray(content.platformLinks)
         ? content.platformLinks
@@ -676,7 +608,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Product ─────────────────────────────────────────────────────────
     case 'product': {
       const productImages = Array.isArray(content.images)
         ? content.images.filter((img: any) => img.file || img.url).map((img: any) => toAbsoluteUrl(img.file || img.url || ''))
@@ -694,7 +625,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Feedback / Survey ───────────────────────────────────────────────
     case 'feedback': {
       const categories = Array.isArray(content.questions)
         ? content.questions.map((q: any) => ({
@@ -717,15 +647,224 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     }
 
     default:
-      // For all other types, pass content through as data
       return { type: qrfyType, data: content };
   }
 }
 
-// ─── API Methods ─────────────────────────────────────────────────────────────
+// ─── QR Content Generation ───────────────────────────────────────────────────
 
-// Static types whose content should be mapped directly for QRFY (embed data in QR)
-// Exported so other modules use the same list
+function generateQRContent(type: string, content: Record<string, any>): string {
+  switch (type) {
+    case 'website':
+    case 'instagram':
+    case 'facebook':
+    case 'video':
+      return content.url || 'https://example.com';
+
+    case 'bitcoin':
+      return content.address ? `bitcoin:${content.address}` : (content.url || 'bitcoin:');
+
+    case 'phone':
+      return `tel:${(content.phone || '').replace(/\s/g, '')}`;
+
+    case 'text':
+      return content.text || content.url || 'Sample text';
+
+    case 'vcard': {
+      const lines = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `N:${content.lastName || ''};${content.firstName || ''}`,
+        `FN:${[content.firstName, content.lastName].filter(Boolean).join(' ') || 'Name'}`,
+      ];
+      if (content.company) lines.push(`ORG:${content.company}`);
+      if (content.title) lines.push(`TITLE:${content.title}`);
+      if (content.phone) lines.push(`TEL:${content.phone}`);
+      if (content.email) lines.push(`EMAIL:${content.email}`);
+      if (content.website) lines.push(`URL:${content.website}`);
+      if (content.street || content.city) {
+        lines.push(`ADR:;;${content.street || ''};${content.city || ''};${content.state || ''};${content.zip || ''};${content.country || ''}`);
+      }
+      lines.push('END:VCARD');
+      return lines.join('\n');
+    }
+
+    case 'wifi':
+      return `WIFI:T:${content.authType || content.encryption || 'WPA'};S:${content.ssid || ''};P:${content.password || ''};;`;
+
+    case 'email':
+      return `mailto:${content.email || ''}?subject=${encodeURIComponent(content.subject || '')}&body=${encodeURIComponent(content.message || content.body || '')}`;
+
+    case 'sms':
+      return `sms:${content.phone || ''}?body=${encodeURIComponent(content.message || '')}`;
+
+    case 'whatsapp':
+      return `https://wa.me/${(content.phone || '').replace(/\D/g, '')}?text=${encodeURIComponent(content.message || '')}`;
+
+    case 'calendar': {
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VEVENT'];
+      if (content.eventTitle) lines.push(`SUMMARY:${content.eventTitle}`);
+      if (content.description) lines.push(`DESCRIPTION:${content.description}`);
+      if (content.location) lines.push(`LOCATION:${content.location}`);
+      if (content.startDate) lines.push(`DTSTART:${content.startDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      if (content.endDate) lines.push(`DTEND:${content.endDate.replace(/[-:T]/g, '').slice(0, 15)}`);
+      lines.push('END:VEVENT', 'END:VCALENDAR');
+      return lines.join('\r\n');
+    }
+
+    default:
+      // For dynamic types, use the redirect URL
+      return content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview`;
+  }
+}
+
+// ─── Error Correction Mapping ────────────────────────────────────────────────
+
+function mapErrorCorrection(level: string): QRErrorCorrectLevel {
+  switch (level?.toUpperCase()) {
+    case 'L': return QRErrorCorrectLevel.L;
+    case 'M': return QRErrorCorrectLevel.M;
+    case 'Q': return QRErrorCorrectLevel.Q;
+    case 'H': return QRErrorCorrectLevel.H;
+    default: return QRErrorCorrectLevel.M;
+  }
+}
+
+// ─── Main QR Image Generation ────────────────────────────────────────────────
+
+export async function createStaticQRImage(
+  type: string,
+  content: Record<string, any>,
+  design: Record<string, any>,
+  format: 'png' | 'webp' | 'jpeg' | 'svg' = 'png'
+): Promise<Buffer> {
+  const qrContent = generateQRContent(type, content);
+
+  // Map design settings to mobstac-awesome-qr config
+  const dataPattern = SHAPE_TO_DATA_PATTERN[design.dotsType] || DataPattern.SQUARE;
+  const eyeFrameShape = CORNER_SQUARE_TO_EYE_FRAME[design.cornersSquareType] || EyeFrameShape.SQUARE;
+  const eyeBallShape = CORNER_DOT_TO_EYE_BALL[design.cornersDotType] || EyeBallShape.SQUARE;
+
+  const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
+  const frameStyle = frameId >= 0 ? (FRAME_ID_TO_QR_FRAME[frameId] || QRCodeFrame.NONE) : QRCodeFrame.NONE;
+
+  // Determine gradient type
+  let gradientType = GradientType.NONE;
+  if (design.patternGradient && design.patternColor2) {
+    gradientType = GradientType.LINEAR;
+  }
+
+  const config: Record<string, any> = {
+    text: qrContent,
+    size: 1024,
+    margin: 80,
+
+    // Colors
+    colorDark: design.dotsColor || '#000000',
+    colorLight: design.patternColor2 || design.dotsColor || '#000000',
+    backgroundColor: design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF'),
+
+    // Patterns
+    dataPattern,
+    eyeFrameShape,
+    eyeBallShape,
+    eyeFrameColor: design.cornersSquareColor || design.dotsColor || '#000000',
+    eyeBallColor: design.cornersDotColor || design.dotsColor || '#000000',
+
+    // Frame
+    frameStyle,
+    frameColor: design.frameColor || '#7C3AED',
+    frameText: (design.frameText || 'Scan me!').slice(0, 30),
+    frameTextColor: design.frameTextColor || '#FFFFFF',
+
+    // Gradient
+    gradientType,
+
+    // Error correction
+    correctLevel: mapErrorCorrection(design.errorCorrectionLevel || (design.logo ? 'H' : 'M')),
+
+    // Logo
+    logoBackground: true,
+    logoScale: 0.25,
+    logoMargin: 10,
+    dotScale: 1,
+    maskedDots: false,
+    isVCard: type === 'vcard',
+  };
+
+  // Add logo if provided and not a data URL
+  if (design.logo && !design.logo.startsWith('data:')) {
+    config.logoImage = toAbsoluteUrl(design.logo);
+  }
+
+  // Map format to CanvasType
+  let canvasType: CanvasType;
+  switch (format) {
+    case 'svg':
+      canvasType = CanvasType.SVG;
+      break;
+    case 'jpeg':
+      canvasType = CanvasType.JPEG;
+      break;
+    case 'png':
+    case 'webp':
+    default:
+      canvasType = CanvasType.PNG;
+      break;
+  }
+
+  try {
+    const builder = new QRCodeBuilder(config);
+    // Always build as SVG first - the library returns SVG by default
+    const qrCode = await builder.build(CanvasType.SVG);
+
+    // Get the SVG string from the result
+    let svgString: string | undefined;
+
+    if (qrCode && typeof qrCode === 'object' && 'svg' in qrCode) {
+      svgString = (qrCode as any).svg;
+    } else if (typeof qrCode === 'string') {
+      svgString = qrCode;
+    }
+
+    if (!svgString || typeof svgString !== 'string') {
+      console.error('[QR Generator] No SVG output from builder');
+      throw new Error('No SVG output from QR builder');
+    }
+
+    // For SVG format, return directly
+    if (format === 'svg') {
+      return Buffer.from(svgString, 'utf-8');
+    }
+
+    // Convert SVG to PNG/JPEG using Sharp
+    const svgBuffer = Buffer.from(svgString, 'utf-8');
+
+    let sharpInstance = sharp(svgBuffer, { density: 300 });
+
+    switch (format) {
+      case 'jpeg':
+        sharpInstance = sharpInstance.jpeg({ quality: 90 });
+        break;
+      case 'webp':
+        sharpInstance = sharpInstance.webp({ quality: 90 });
+        break;
+      case 'png':
+      default:
+        sharpInstance = sharpInstance.png();
+        break;
+    }
+
+    const outputBuffer = await sharpInstance.toBuffer();
+    return outputBuffer;
+  } catch (error) {
+    console.error('[QR Generator] Error generating QR:', error);
+    throw new Error(`QR generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ─── API Methods (Compatible Interface) ──────────────────────────────────────
+
 export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
 
 export async function createQR(params: {
@@ -734,54 +873,11 @@ export async function createQR(params: {
   design: Record<string, any>;
   name?: string;
 }) {
-  if (!QRFY_API_KEY) {
-    throw new Error('QRFY_API_KEY is not configured');
-  }
-
-  const style = mapDesignToStyle(params.design);
-
-  let qrfyType: string;
-  let data: Record<string, any>;
-
-  if (STATIC_TYPES.includes(params.type)) {
-    // Static types — map full content to QRFY format
-    const mapped = mapContentToData(params.type, params.content);
-    qrfyType = mapped.type;
-    data = mapped.data;
-  } else {
-    // Dynamic types — create a simple URL QR that points to our redirect
-    // Our landing page (/qr/[slug]) handles the actual content display
-    // This avoids sending complex data (images, PDFs, etc.) to QRFY
-    qrfyType = 'url';
-    data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
-  }
-
-  const qr = {
-    type: qrfyType,
-    data,
-    style,
-    name: params.name || 'QR Code',
-  };
-
-  console.log('[QRFY createQR] Sending:', JSON.stringify({ type: qrfyType, dataKeys: Object.keys(data || {}), name: qr.name }).slice(0, 500));
-
-  const res = await qrfyFetch('/api/public/qrs', {
-    method: 'POST',
-    body: JSON.stringify({ qrs: [qr] }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error('[QRFY createQR] Error response:', res.status, err.slice(0, 1000));
-    throw new Error(`QRFY create failed (${res.status}): ${err}`);
-  }
-
-  console.log('[QRFY createQR] Success:', res.status);
-
-  const result = await res.json();
-  // Bulk create returns { ids: [...] }
-  if (result?.ids) return { id: result.ids[0] };
-  return Array.isArray(result) ? result[0] : result;
+  // Self-hosted version: QR codes are generated on-the-fly
+  // Return a mock ID that can be used for tracking
+  const mockId = Date.now();
+  console.log('[QR Generator] createQR called - using self-hosted generation');
+  return { id: mockId };
 }
 
 export async function updateQR(
@@ -793,123 +889,25 @@ export async function updateQR(
     name?: string;
   }
 ) {
-  if (!QRFY_API_KEY) {
-    throw new Error('QRFY_API_KEY is not configured');
-  }
-
-  const body: Record<string, any> = {};
-
-  if (params.type && params.content) {
-    if (STATIC_TYPES.includes(params.type)) {
-      const { type: qrfyType, data } = mapContentToData(params.type, params.content);
-      body.type = qrfyType;
-      body.data = data;
-    } else {
-      // Dynamic types — update with URL type pointing to our redirect
-      body.type = 'url';
-      body.data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
-    }
-  }
-
-  if (params.design) {
-    body.style = mapDesignToStyle(params.design);
-  }
-
-  if (params.name) {
-    body.name = params.name;
-  }
-
-  const res = await qrfyFetch(`/api/public/qrs/${qrfyId}`, {
-    method: 'PUT',
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`QRFY update failed (${res.status}): ${err}`);
-  }
-
-  return res.json();
+  // Self-hosted version: no external API to update
+  console.log('[QR Generator] updateQR called - self-hosted, no external update needed');
+  return { success: true };
 }
 
 export async function deleteQR(qrfyId: number) {
-  const res = await qrfyFetch('/api/public/qrs/batch-delete', {
-    method: 'POST',
-    body: JSON.stringify({ ids: [qrfyId] }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`QRFY delete failed (${res.status}): ${err}`);
-  }
+  // Self-hosted version: no external API to delete
+  console.log('[QR Generator] deleteQR called - self-hosted, no external delete needed');
+  return { success: true };
 }
 
 export async function getQRImage(
   qrfyId: number,
   format: 'png' | 'webp' | 'jpeg' = 'png'
 ): Promise<Buffer> {
-  const res = await qrfyFetch(`/api/public/qrs/${qrfyId}/${format}`, {
-    method: 'GET',
-    headers: { 'API-KEY': QRFY_API_KEY },
-  });
-
-  if (!res.ok) {
-    throw new Error(`QRFY image download failed (${res.status})`);
-  }
-
-  const arrayBuffer = await res.arrayBuffer();
-  return Buffer.from(arrayBuffer);
-}
-
-export async function createStaticQRImage(
-  type: string,
-  content: Record<string, any>,
-  design: Record<string, any>,
-  format: 'png' | 'webp' | 'jpeg' = 'png'
-): Promise<Buffer> {
-  if (!QRFY_API_KEY) {
-    throw new Error('QRFY_API_KEY is not configured');
-  }
-
-  const style = mapDesignToStyle(design);
-
-  // For preview, use url-static with a placeholder if type isn't natively static
-  const staticTypes = ['url-static', 'text', 'wifi', 'email', 'sms', 'vcard'];
-  const qrfyType = mapTypeToQrfy(type);
-  const useType = staticTypes.includes(qrfyType) ? qrfyType : 'url-static';
-
-  const body: Record<string, any> = {
-    type: useType,
-    style,
-  };
-
-  if (useType === qrfyType) {
-    // Static type — map content to QRFY data format
-    try {
-      const { data } = mapContentToData(type, content);
-      body.data = data;
-    } catch {
-      // If mapping fails, fall back to URL-static with text/url
-      body.type = 'url-static';
-      body.data = { url: content.url || content.text || 'https://example.com' };
-    }
-  } else {
-    // Dynamic type — encode the redirect URL (or content URL) into the QR
-    body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
-  }
-
-  const res = await qrfyFetch(`/api/public/qrs/${format}`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`QRFY static image failed (${res.status}): ${err}`);
-  }
-
-  const arrayBuffer = await res.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  // Self-hosted version: this requires stored data to regenerate
+  // Return a placeholder for now - actual implementation would need to
+  // fetch stored QR data and regenerate
+  throw new Error('getQRImage requires stored QR data - use createStaticQRImage instead');
 }
 
 export async function getReport(params: {
@@ -918,30 +916,21 @@ export async function getReport(params: {
   endDate?: string;
   format?: 'json' | 'csv' | 'xlsx';
 }) {
-  const searchParams = new URLSearchParams();
-  if (params.qrfyIds?.length) {
-    searchParams.set('ids', params.qrfyIds.join(','));
-  }
-  if (params.startDate) searchParams.set('startDate', params.startDate);
-  if (params.endDate) searchParams.set('endDate', params.endDate);
-  searchParams.set('format', params.format || 'json');
-
-  const res = await qrfyFetch(`/api/public/qrs/report?${searchParams}`, {
-    method: 'GET',
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`QRFY report failed (${res.status}): ${err}`);
-  }
-
-  return res.json();
+  // Self-hosted version: analytics are tracked locally
+  console.log('[QR Generator] getReport called - use local analytics instead');
+  return {
+    scans: 0,
+    uniqueScans: 0,
+    scansByDate: {},
+    devices: [],
+    browsers: [],
+    os: [],
+    countries: [],
+    cities: [],
+  };
 }
 
-// ─── Analytics Transform ─────────────────────────────────────────────────────
-
 export function transformQrfyReport(report: any) {
-  // Transform QRFY report response into our frontend analytics format
   const scansOverTime: { date: string; count: number }[] = [];
   const uniqueScansOverTime: { date: string; count: number }[] = [];
   const deviceBreakdown: { name: string; value: number }[] = [];
@@ -1008,8 +997,9 @@ export function transformQrfyReport(report: any) {
   };
 }
 
-// ─── QRFY Shape/Corner/Frame options for UI ──────────────────────────────────
+// ─── Style Options for UI ────────────────────────────────────────────────────
 
+// Keep the same arrays for UI compatibility
 export const QRFY_SHAPE_STYLES = [
   'square', 'rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded',
   'cross', 'cross-rounded', 'diamond', 'diamond-special', 'heart',
@@ -1032,4 +1022,10 @@ export const QRFY_CORNER_DOT_STYLES = [
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);
 
 export const QRFY_ERROR_CORRECTION = ['L', 'M', 'Q', 'H'] as const;
-*/
+
+// New: Expose mobstac-awesome-qr options for advanced usage
+export const MOBSTAC_DATA_PATTERNS = Object.values(DataPattern);
+export const MOBSTAC_EYE_FRAME_SHAPES = Object.values(EyeFrameShape);
+export const MOBSTAC_EYE_BALL_SHAPES = Object.values(EyeBallShape);
+export const MOBSTAC_FRAME_STYLES = Object.values(QRCodeFrame);
+export const MOBSTAC_GRADIENT_TYPES = Object.values(GradientType);
