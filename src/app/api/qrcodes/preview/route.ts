@@ -182,8 +182,9 @@ export async function POST(req: NextRequest) {
     }
 
     let imageBuffer: Buffer;
+    let usedFallback = false;
 
-    // Try QRFY first, fall back to local generation
+    // Try styled QR generation first, fall back to basic generation
     try {
       imageBuffer = await createStaticQRImage(
         type,
@@ -191,20 +192,39 @@ export async function POST(req: NextRequest) {
         design || {},
         'png'
       );
-    } catch (err) {
-      console.warn('QRFY preview failed, using fallback:', err);
-      imageBuffer = await generateFallbackQR(type, content || {}, design || {});
+
+      // Verify we got valid image data
+      if (!imageBuffer || imageBuffer.length < 100) {
+        throw new Error('Invalid image buffer returned');
+      }
+    } catch (err: any) {
+      console.warn('[Preview] Styled QR failed, using fallback:', err?.message || err);
+      usedFallback = true;
+
+      try {
+        imageBuffer = await generateFallbackQR(type, content || {}, design || {});
+      } catch (fallbackErr: any) {
+        console.error('[Preview] Fallback also failed:', fallbackErr?.message || fallbackErr);
+        // Return a simple error QR as last resort
+        imageBuffer = await QRCode.toBuffer('Error generating QR', {
+          errorCorrectionLevel: 'M',
+          type: 'png',
+          width: 300,
+          margin: 2,
+        });
+      }
     }
 
     return new NextResponse(new Uint8Array(imageBuffer), {
       status: 200,
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=60, s-maxage=120',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'X-QR-Fallback': usedFallback ? 'true' : 'false',
       },
     });
-  } catch (error) {
-    console.error('Error generating preview:', error);
+  } catch (error: any) {
+    console.error('[Preview] Critical error:', error?.message || error);
     return NextResponse.json({ error: 'Failed to generate preview' }, { status: 500 });
   }
 }

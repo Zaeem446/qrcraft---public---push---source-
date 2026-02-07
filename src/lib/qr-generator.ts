@@ -1,17 +1,47 @@
 // Self-hosted QR Generator using mobstac-awesome-qr
 // Replaces QRFY API with local generation
 
-import { QRCodeBuilder } from 'mobstac-awesome-qr';
-import {
-  CanvasType,
-  DataPattern,
-  EyeBallShape,
-  EyeFrameShape,
-  GradientType,
-  QRCodeFrame,
-  QRErrorCorrectLevel,
-} from 'mobstac-awesome-qr/lib/Enums';
-import sharp from 'sharp';
+// Dynamic imports to handle Vercel serverless environment
+let QRCodeBuilder: any;
+let CanvasType: any;
+let DataPattern: any;
+let EyeBallShape: any;
+let EyeFrameShape: any;
+let GradientType: any;
+let QRCodeFrame: any;
+let QRErrorCorrectLevel: any;
+let sharp: any;
+
+// Flag to track if mobstac-awesome-qr is available
+let mobstacAvailable = false;
+
+async function initMobstac() {
+  if (mobstacAvailable) return true;
+
+  try {
+    const mobstac = await import('mobstac-awesome-qr');
+    const enums = await import('mobstac-awesome-qr/lib/Enums');
+
+    QRCodeBuilder = mobstac.QRCodeBuilder;
+    CanvasType = enums.CanvasType;
+    DataPattern = enums.DataPattern;
+    EyeBallShape = enums.EyeBallShape;
+    EyeFrameShape = enums.EyeFrameShape;
+    GradientType = enums.GradientType;
+    QRCodeFrame = enums.QRCodeFrame;
+    QRErrorCorrectLevel = enums.QRErrorCorrectLevel;
+
+    const sharpModule = await import('sharp');
+    sharp = sharpModule.default;
+
+    mobstacAvailable = true;
+    return true;
+  } catch (err) {
+    console.warn('[QR Generator] mobstac-awesome-qr not available:', err);
+    mobstacAvailable = false;
+    return false;
+  }
+}
 
 // ─── Type Mapping ────────────────────────────────────────────────────────────
 // Keep same interface as before for compatibility
@@ -52,131 +82,151 @@ export function mapTypeToQrfy(ourType: string): string {
 
 // ─── Style Mapping: QRFY → mobstac-awesome-qr ─────────────────────────────────
 
-// Map QRFY shape styles to mobstac DataPattern
-const SHAPE_TO_DATA_PATTERN: Record<string, DataPattern> = {
-  // Direct mappings
-  square: DataPattern.SQUARE,
-  dots: DataPattern.CIRCLE,
-  dot: DataPattern.CIRCLE,
-  rounded: DataPattern.SMOOTH_ROUND,
-  'extra-rounded': DataPattern.SMOOTH_ROUND,
-  // Best-effort mappings
-  classy: DataPattern.KITE,
-  'classy-rounded': DataPattern.KITE,
-  cross: DataPattern.THIN_SQUARE,
-  'cross-rounded': DataPattern.THIN_SQUARE,
-  diamond: DataPattern.LEFT_DIAMOND,
-  'diamond-special': DataPattern.RIGHT_DIAMOND,
-  heart: DataPattern.CIRCLE,
-  'horizontal-rounded': DataPattern.SMOOTH_SHARP,
-  ribbon: DataPattern.SMOOTH_SHARP,
-  shake: DataPattern.CIRCLE,
-  sparkle: DataPattern.CIRCLE,
-  star: DataPattern.KITE,
-  'vertical-rounded': DataPattern.SMOOTH_SHARP,
-  x: DataPattern.THIN_SQUARE,
-  'x-rounded': DataPattern.THIN_SQUARE,
-  // Backward-compat aliases
-  'small-square': DataPattern.SQUARE,
-  'tiny-square': DataPattern.THIN_SQUARE,
-  'vertical-line': DataPattern.SMOOTH_SHARP,
-  'horizontal-line': DataPattern.SMOOTH_SHARP,
-  'random-dot': DataPattern.CIRCLE,
-  wave: DataPattern.SMOOTH_ROUND,
-  weave: DataPattern.THIN_SQUARE,
-  pentagon: DataPattern.KITE,
-  hexagon: DataPattern.KITE,
-  'zebra-horizontal': DataPattern.SMOOTH_SHARP,
-  'zebra-vertical': DataPattern.SMOOTH_SHARP,
-  'blocks-horizontal': DataPattern.THIN_SQUARE,
-  'blocks-vertical': DataPattern.THIN_SQUARE,
+// Use string keys that map to enum property names - resolved at runtime
+const SHAPE_TO_PATTERN_NAME: Record<string, string> = {
+  square: 'SQUARE',
+  dots: 'CIRCLE',
+  dot: 'CIRCLE',
+  rounded: 'SMOOTH_ROUND',
+  'extra-rounded': 'SMOOTH_ROUND',
+  classy: 'KITE',
+  'classy-rounded': 'KITE',
+  cross: 'THIN_SQUARE',
+  'cross-rounded': 'THIN_SQUARE',
+  diamond: 'LEFT_DIAMOND',
+  'diamond-special': 'RIGHT_DIAMOND',
+  heart: 'CIRCLE',
+  'horizontal-rounded': 'SMOOTH_SHARP',
+  ribbon: 'SMOOTH_SHARP',
+  shake: 'CIRCLE',
+  sparkle: 'CIRCLE',
+  star: 'KITE',
+  'vertical-rounded': 'SMOOTH_SHARP',
+  x: 'THIN_SQUARE',
+  'x-rounded': 'THIN_SQUARE',
+  'small-square': 'SQUARE',
+  'tiny-square': 'THIN_SQUARE',
+  'vertical-line': 'SMOOTH_SHARP',
+  'horizontal-line': 'SMOOTH_SHARP',
+  'random-dot': 'CIRCLE',
+  wave: 'SMOOTH_ROUND',
+  weave: 'THIN_SQUARE',
+  pentagon: 'KITE',
+  hexagon: 'KITE',
+  'zebra-horizontal': 'SMOOTH_SHARP',
+  'zebra-vertical': 'SMOOTH_SHARP',
+  'blocks-horizontal': 'THIN_SQUARE',
+  'blocks-vertical': 'THIN_SQUARE',
 };
 
-// Map QRFY corner square styles to mobstac EyeFrameShape
-const CORNER_SQUARE_TO_EYE_FRAME: Record<string, EyeFrameShape> = {
-  default: EyeFrameShape.SQUARE,
-  dot: EyeFrameShape.CIRCLE,
-  square: EyeFrameShape.SQUARE,
-  'extra-rounded': EyeFrameShape.ROUNDED,
-  shape1: EyeFrameShape.ROUNDED,
-  shape2: EyeFrameShape.LEFT_LEAF,
-  shape3: EyeFrameShape.RIGHT_LEAF,
-  shape4: EyeFrameShape.CIRCLE,
-  shape5: EyeFrameShape.ROUNDED,
-  shape6: EyeFrameShape.LEFT_LEAF,
-  shape7: EyeFrameShape.RIGHT_LEAF,
-  shape8: EyeFrameShape.CIRCLE,
-  shape9: EyeFrameShape.ROUNDED,
-  shape10: EyeFrameShape.LEFT_LEAF,
-  shape11: EyeFrameShape.RIGHT_LEAF,
-  shape12: EyeFrameShape.ROUNDED,
-  classy: EyeFrameShape.ROUNDED,
-  outpoint: EyeFrameShape.LEFT_LEAF,
-  inpoint: EyeFrameShape.RIGHT_LEAF,
-  'center-circle': EyeFrameShape.CIRCLE,
+const CORNER_SQUARE_TO_FRAME_NAME: Record<string, string> = {
+  default: 'SQUARE',
+  dot: 'CIRCLE',
+  square: 'SQUARE',
+  'extra-rounded': 'ROUNDED',
+  shape1: 'ROUNDED',
+  shape2: 'LEFT_LEAF',
+  shape3: 'RIGHT_LEAF',
+  shape4: 'CIRCLE',
+  shape5: 'ROUNDED',
+  shape6: 'LEFT_LEAF',
+  shape7: 'RIGHT_LEAF',
+  shape8: 'CIRCLE',
+  shape9: 'ROUNDED',
+  shape10: 'LEFT_LEAF',
+  shape11: 'RIGHT_LEAF',
+  shape12: 'ROUNDED',
+  classy: 'ROUNDED',
+  outpoint: 'LEFT_LEAF',
+  inpoint: 'RIGHT_LEAF',
+  'center-circle': 'CIRCLE',
 };
 
-// Map QRFY corner dot styles to mobstac EyeBallShape
-const CORNER_DOT_TO_EYE_BALL: Record<string, EyeBallShape> = {
-  default: EyeBallShape.SQUARE,
-  dot: EyeBallShape.CIRCLE,
-  square: EyeBallShape.SQUARE,
-  cross: EyeBallShape.SQUARE,
-  'cross-rounded': EyeBallShape.ROUNDED,
-  diamond: EyeBallShape.LEFT_DIAMOND,
-  dot2: EyeBallShape.CIRCLE,
-  dot3: EyeBallShape.CIRCLE,
-  dot4: EyeBallShape.CIRCLE,
-  heart: EyeBallShape.CIRCLE,
-  rounded: EyeBallShape.ROUNDED,
-  square2: EyeBallShape.SQUARE,
-  square3: EyeBallShape.SQUARE,
-  star: EyeBallShape.LEFT_DIAMOND,
-  sun: EyeBallShape.RIGHT_DIAMOND,
-  x: EyeBallShape.LEFT_DIAMOND,
-  'x-rounded': EyeBallShape.RIGHT_DIAMOND,
-  'extra-rounded': EyeBallShape.ROUNDED,
-  classy: EyeBallShape.ROUNDED,
-  outpoint: EyeBallShape.LEFT_DIAMOND,
-  inpoint: EyeBallShape.RIGHT_DIAMOND,
-  pentagon: EyeBallShape.LEFT_LEAF,
-  hexagon: EyeBallShape.RIGHT_LEAF,
+const CORNER_DOT_TO_BALL_NAME: Record<string, string> = {
+  default: 'SQUARE',
+  dot: 'CIRCLE',
+  square: 'SQUARE',
+  cross: 'SQUARE',
+  'cross-rounded': 'ROUNDED',
+  diamond: 'LEFT_DIAMOND',
+  dot2: 'CIRCLE',
+  dot3: 'CIRCLE',
+  dot4: 'CIRCLE',
+  heart: 'CIRCLE',
+  rounded: 'ROUNDED',
+  square2: 'SQUARE',
+  square3: 'SQUARE',
+  star: 'LEFT_DIAMOND',
+  sun: 'RIGHT_DIAMOND',
+  x: 'LEFT_DIAMOND',
+  'x-rounded': 'RIGHT_DIAMOND',
+  'extra-rounded': 'ROUNDED',
+  classy: 'ROUNDED',
+  outpoint: 'LEFT_DIAMOND',
+  inpoint: 'RIGHT_DIAMOND',
+  pentagon: 'LEFT_LEAF',
+  hexagon: 'RIGHT_LEAF',
 };
 
-// Map QRFY frame IDs to mobstac QRCodeFrame
-const FRAME_ID_TO_QR_FRAME: Record<number, QRCodeFrame> = {
-  0: QRCodeFrame.NONE,
-  1: QRCodeFrame.BOX_BOTTOM,
-  2: QRCodeFrame.BOX_TOP,
-  3: QRCodeFrame.BANNER_BOTTOM,
-  4: QRCodeFrame.BANNER_TOP,
-  5: QRCodeFrame.BALLOON_BOTTOM,
-  6: QRCodeFrame.BALLOON_TOP,
-  7: QRCodeFrame.CIRCULAR,
-  8: QRCodeFrame.TEXT_ONLY,
-  9: QRCodeFrame.FOCUS,
-  10: QRCodeFrame.BOX_BOTTOM,
-  11: QRCodeFrame.BOX_TOP,
-  12: QRCodeFrame.BANNER_BOTTOM,
-  13: QRCodeFrame.BANNER_TOP,
-  14: QRCodeFrame.BALLOON_BOTTOM,
-  15: QRCodeFrame.BALLOON_TOP,
-  16: QRCodeFrame.CIRCULAR,
-  17: QRCodeFrame.TEXT_ONLY,
-  18: QRCodeFrame.FOCUS,
-  19: QRCodeFrame.BOX_BOTTOM,
-  20: QRCodeFrame.BOX_TOP,
-  21: QRCodeFrame.BANNER_BOTTOM,
-  22: QRCodeFrame.BANNER_TOP,
-  23: QRCodeFrame.BALLOON_BOTTOM,
-  24: QRCodeFrame.BALLOON_TOP,
-  25: QRCodeFrame.CIRCULAR,
-  26: QRCodeFrame.TEXT_ONLY,
-  27: QRCodeFrame.FOCUS,
-  28: QRCodeFrame.BOX_BOTTOM,
-  29: QRCodeFrame.BOX_TOP,
-  30: QRCodeFrame.BANNER_BOTTOM,
+// Frame ID to frame style name - resolved at runtime
+const FRAME_ID_TO_STYLE_NAME: Record<number, string> = {
+  0: 'NONE',
+  1: 'BOX_BOTTOM',
+  2: 'BOX_TOP',
+  3: 'BANNER_BOTTOM',
+  4: 'BANNER_TOP',
+  5: 'BALLOON_BOTTOM',
+  6: 'BALLOON_TOP',
+  7: 'CIRCULAR',
+  8: 'TEXT_ONLY',
+  9: 'FOCUS',
+  10: 'BOX_BOTTOM',
+  11: 'BOX_TOP',
+  12: 'BANNER_BOTTOM',
+  13: 'BANNER_TOP',
+  14: 'BALLOON_BOTTOM',
+  15: 'BALLOON_TOP',
+  16: 'CIRCULAR',
+  17: 'TEXT_ONLY',
+  18: 'FOCUS',
+  19: 'BOX_BOTTOM',
+  20: 'BOX_TOP',
+  21: 'BANNER_BOTTOM',
+  22: 'BANNER_TOP',
+  23: 'BALLOON_BOTTOM',
+  24: 'BALLOON_TOP',
+  25: 'CIRCULAR',
+  26: 'TEXT_ONLY',
+  27: 'FOCUS',
+  28: 'BOX_BOTTOM',
+  29: 'BOX_TOP',
+  30: 'BANNER_BOTTOM',
 };
+
+// Helper functions to resolve enum values at runtime
+function getDataPattern(styleName: string): any {
+  if (!DataPattern) return 0;
+  const patternName = SHAPE_TO_PATTERN_NAME[styleName] || 'SQUARE';
+  return DataPattern[patternName] ?? DataPattern.SQUARE ?? 0;
+}
+
+function getEyeFrameShape(styleName: string): any {
+  if (!EyeFrameShape) return 0;
+  const shapeName = CORNER_SQUARE_TO_FRAME_NAME[styleName] || 'SQUARE';
+  return EyeFrameShape[shapeName] ?? EyeFrameShape.SQUARE ?? 0;
+}
+
+function getEyeBallShape(styleName: string): any {
+  if (!EyeBallShape) return 0;
+  const ballName = CORNER_DOT_TO_BALL_NAME[styleName] || 'SQUARE';
+  return EyeBallShape[ballName] ?? EyeBallShape.SQUARE ?? 0;
+}
+
+function getQRCodeFrame(frameId: number): any {
+  if (!QRCodeFrame) return 0;
+  const frameName = FRAME_ID_TO_STYLE_NAME[frameId] || 'NONE';
+  return QRCodeFrame[frameName] ?? QRCodeFrame.NONE ?? 0;
+}
 
 // ─── Design Mapping ──────────────────────────────────────────────────────────
 
@@ -720,13 +770,13 @@ function generateQRContent(type: string, content: Record<string, any>): string {
 
 // ─── Error Correction Mapping ────────────────────────────────────────────────
 
-function mapErrorCorrection(level: string): QRErrorCorrectLevel {
+function mapErrorCorrectionValue(level: string): number {
   switch (level?.toUpperCase()) {
-    case 'L': return QRErrorCorrectLevel.L;
-    case 'M': return QRErrorCorrectLevel.M;
-    case 'Q': return QRErrorCorrectLevel.Q;
-    case 'H': return QRErrorCorrectLevel.H;
-    default: return QRErrorCorrectLevel.M;
+    case 'L': return 1;
+    case 'M': return 0;
+    case 'Q': return 3;
+    case 'H': return 2;
+    default: return 0;
   }
 }
 
@@ -738,20 +788,28 @@ export async function createStaticQRImage(
   design: Record<string, any>,
   format: 'png' | 'webp' | 'jpeg' | 'svg' = 'png'
 ): Promise<Buffer> {
+  // Try to initialize mobstac-awesome-qr
+  const available = await initMobstac();
+
+  if (!available) {
+    console.warn('[QR Generator] mobstac not available, throwing to use fallback');
+    throw new Error('mobstac-awesome-qr not available in this environment');
+  }
+
   const qrContent = generateQRContent(type, content);
 
-  // Map design settings to mobstac-awesome-qr config
-  const dataPattern = SHAPE_TO_DATA_PATTERN[design.dotsType] || DataPattern.SQUARE;
-  const eyeFrameShape = CORNER_SQUARE_TO_EYE_FRAME[design.cornersSquareType] || EyeFrameShape.SQUARE;
-  const eyeBallShape = CORNER_DOT_TO_EYE_BALL[design.cornersDotType] || EyeBallShape.SQUARE;
+  // Map design settings to mobstac-awesome-qr config using runtime resolution
+  const dataPattern = getDataPattern(design.dotsType || 'square');
+  const eyeFrameShape = getEyeFrameShape(design.cornersSquareType || 'default');
+  const eyeBallShape = getEyeBallShape(design.cornersDotType || 'default');
 
   const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
-  const frameStyle = frameId >= 0 ? (FRAME_ID_TO_QR_FRAME[frameId] || QRCodeFrame.NONE) : QRCodeFrame.NONE;
+  const frameStyle = frameId >= 0 ? getQRCodeFrame(frameId) : (QRCodeFrame?.NONE ?? 0);
 
-  // Determine gradient type
-  let gradientType = GradientType.NONE;
+  // Determine gradient type - resolve at runtime
+  let gradientType = GradientType?.NONE ?? 0;
   if (design.patternGradient && design.patternColor2) {
-    gradientType = GradientType.LINEAR;
+    gradientType = GradientType?.LINEAR ?? 1;
   }
 
   const config: Record<string, any> = {
@@ -781,7 +839,7 @@ export async function createStaticQRImage(
     gradientType,
 
     // Error correction
-    correctLevel: mapErrorCorrection(design.errorCorrectionLevel || (design.logo ? 'H' : 'M')),
+    correctLevel: mapErrorCorrectionValue(design.errorCorrectionLevel || (design.logo ? 'H' : 'M')),
 
     // Logo
     logoBackground: true,
@@ -795,22 +853,6 @@ export async function createStaticQRImage(
   // Add logo if provided and not a data URL
   if (design.logo && !design.logo.startsWith('data:')) {
     config.logoImage = toAbsoluteUrl(design.logo);
-  }
-
-  // Map format to CanvasType
-  let canvasType: CanvasType;
-  switch (format) {
-    case 'svg':
-      canvasType = CanvasType.SVG;
-      break;
-    case 'jpeg':
-      canvasType = CanvasType.JPEG;
-      break;
-    case 'png':
-    case 'webp':
-    default:
-      canvasType = CanvasType.PNG;
-      break;
   }
 
   try {
@@ -1024,8 +1066,19 @@ export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);
 export const QRFY_ERROR_CORRECTION = ['L', 'M', 'Q', 'H'] as const;
 
 // New: Expose mobstac-awesome-qr options for advanced usage
-export const MOBSTAC_DATA_PATTERNS = Object.values(DataPattern);
-export const MOBSTAC_EYE_FRAME_SHAPES = Object.values(EyeFrameShape);
-export const MOBSTAC_EYE_BALL_SHAPES = Object.values(EyeBallShape);
-export const MOBSTAC_FRAME_STYLES = Object.values(QRCodeFrame);
-export const MOBSTAC_GRADIENT_TYPES = Object.values(GradientType);
+// These are functions because enums are loaded dynamically
+export function getMobstacDataPatterns() {
+  return DataPattern ? Object.values(DataPattern) : [];
+}
+export function getMobstacEyeFrameShapes() {
+  return EyeFrameShape ? Object.values(EyeFrameShape) : [];
+}
+export function getMobstacEyeBallShapes() {
+  return EyeBallShape ? Object.values(EyeBallShape) : [];
+}
+export function getMobstacFrameStyles() {
+  return QRCodeFrame ? Object.values(QRCodeFrame) : [];
+}
+export function getMobstacGradientTypes() {
+  return GradientType ? Object.values(GradientType) : [];
+}
