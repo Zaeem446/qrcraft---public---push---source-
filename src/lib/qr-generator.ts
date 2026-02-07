@@ -1,50 +1,45 @@
-// Self-hosted QR Generator using mobstac-awesome-qr
+// Self-hosted QR Generator using qr-code-styling
 // Replaces QRFY API with local generation
+// Works in both browser and Node.js (serverless) environments
 
-// Dynamic imports to handle Vercel serverless environment
-let QRCodeBuilder: any;
-let CanvasType: any;
-let DataPattern: any;
-let EyeBallShape: any;
-let EyeFrameShape: any;
-let GradientType: any;
-let QRCodeFrame: any;
-let QRErrorCorrectLevel: any;
-let sharp: any;
+// Lazy-loaded modules for server-side rendering
+let QRCodeStyling: any = null;
+let isInitialized = false;
 
-// Flag to track if mobstac-awesome-qr is available
-let mobstacAvailable = false;
-
-async function initMobstac() {
-  if (mobstacAvailable) return true;
+async function initQRCodeStyling(): Promise<boolean> {
+  if (isInitialized) return QRCodeStyling !== null;
+  isInitialized = true;
 
   try {
-    const mobstac = await import('mobstac-awesome-qr');
-    const enums = await import('mobstac-awesome-qr/lib/Enums');
+    // Dynamically import jsdom and set up polyfills
+    const { JSDOM } = await import('jsdom');
+    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+      pretendToBeVisual: true,
+    });
+    const { window: jsdomWindow } = dom;
 
-    QRCodeBuilder = mobstac.QRCodeBuilder;
-    CanvasType = enums.CanvasType;
-    DataPattern = enums.DataPattern;
-    EyeBallShape = enums.EyeBallShape;
-    EyeFrameShape = enums.EyeFrameShape;
-    GradientType = enums.GradientType;
-    QRCodeFrame = enums.QRCodeFrame;
-    QRErrorCorrectLevel = enums.QRErrorCorrectLevel;
+    // Set up global window-like environment
+    const globalAny = global as any;
+    globalAny.window = jsdomWindow;
+    globalAny.document = jsdomWindow.document;
+    globalAny.XMLSerializer = jsdomWindow.XMLSerializer;
+    globalAny.DOMParser = jsdomWindow.DOMParser;
+    globalAny.Image = jsdomWindow.Image;
+    globalAny.HTMLCanvasElement = jsdomWindow.HTMLCanvasElement;
 
-    const sharpModule = await import('sharp');
-    sharp = sharpModule.default;
+    // Now import QRCodeStyling
+    const qrModule = await import('qr-code-styling');
+    QRCodeStyling = qrModule.default;
 
-    mobstacAvailable = true;
+    console.log('[QR Generator] qr-code-styling initialized successfully');
     return true;
   } catch (err) {
-    console.warn('[QR Generator] mobstac-awesome-qr not available:', err);
-    mobstacAvailable = false;
+    console.error('[QR Generator] Failed to initialize qr-code-styling:', err);
     return false;
   }
 }
 
 // ─── Type Mapping ────────────────────────────────────────────────────────────
-// Keep same interface as before for compatibility
 
 const TYPE_MAP: Record<string, string> = {
   website: 'url',
@@ -80,153 +75,103 @@ export function mapTypeToQrfy(ourType: string): string {
   return TYPE_MAP[ourType] || 'url';
 }
 
-// ─── Style Mapping: QRFY → mobstac-awesome-qr ─────────────────────────────────
+// ─── Style Mapping ───────────────────────────────────────────────────────────
 
-// Use string keys that map to enum property names - resolved at runtime
-const SHAPE_TO_PATTERN_NAME: Record<string, string> = {
-  square: 'SQUARE',
-  dots: 'CIRCLE',
-  dot: 'CIRCLE',
-  rounded: 'SMOOTH_ROUND',
-  'extra-rounded': 'SMOOTH_ROUND',
-  classy: 'KITE',
-  'classy-rounded': 'KITE',
-  cross: 'THIN_SQUARE',
-  'cross-rounded': 'THIN_SQUARE',
-  diamond: 'LEFT_DIAMOND',
-  'diamond-special': 'RIGHT_DIAMOND',
-  heart: 'CIRCLE',
-  'horizontal-rounded': 'SMOOTH_SHARP',
-  ribbon: 'SMOOTH_SHARP',
-  shake: 'CIRCLE',
-  sparkle: 'CIRCLE',
-  star: 'KITE',
-  'vertical-rounded': 'SMOOTH_SHARP',
-  x: 'THIN_SQUARE',
-  'x-rounded': 'THIN_SQUARE',
-  'small-square': 'SQUARE',
-  'tiny-square': 'THIN_SQUARE',
-  'vertical-line': 'SMOOTH_SHARP',
-  'horizontal-line': 'SMOOTH_SHARP',
-  'random-dot': 'CIRCLE',
-  wave: 'SMOOTH_ROUND',
-  weave: 'THIN_SQUARE',
-  pentagon: 'KITE',
-  hexagon: 'KITE',
-  'zebra-horizontal': 'SMOOTH_SHARP',
-  'zebra-vertical': 'SMOOTH_SHARP',
-  'blocks-horizontal': 'THIN_SQUARE',
-  'blocks-vertical': 'THIN_SQUARE',
+// qr-code-styling dot types
+type DotType = 'square' | 'dots' | 'rounded' | 'extra-rounded' | 'classy' | 'classy-rounded';
+
+const DOTS_TYPE_MAP: Record<string, DotType> = {
+  square: 'square',
+  dots: 'dots',
+  dot: 'dots',
+  rounded: 'rounded',
+  'extra-rounded': 'extra-rounded',
+  classy: 'classy',
+  'classy-rounded': 'classy-rounded',
+  // Map other styles to closest match
+  cross: 'square',
+  'cross-rounded': 'rounded',
+  diamond: 'square',
+  'diamond-special': 'square',
+  heart: 'dots',
+  'horizontal-rounded': 'rounded',
+  ribbon: 'classy',
+  shake: 'dots',
+  sparkle: 'dots',
+  star: 'classy',
+  'vertical-rounded': 'rounded',
+  x: 'square',
+  'x-rounded': 'rounded',
+  'small-square': 'square',
+  'tiny-square': 'square',
+  'vertical-line': 'rounded',
+  'horizontal-line': 'rounded',
+  'random-dot': 'dots',
+  wave: 'rounded',
+  weave: 'square',
+  pentagon: 'classy',
+  hexagon: 'classy',
+  'zebra-horizontal': 'rounded',
+  'zebra-vertical': 'rounded',
+  'blocks-horizontal': 'square',
+  'blocks-vertical': 'square',
 };
 
-const CORNER_SQUARE_TO_FRAME_NAME: Record<string, string> = {
-  default: 'SQUARE',
-  dot: 'CIRCLE',
-  square: 'SQUARE',
-  'extra-rounded': 'ROUNDED',
-  shape1: 'ROUNDED',
-  shape2: 'LEFT_LEAF',
-  shape3: 'RIGHT_LEAF',
-  shape4: 'CIRCLE',
-  shape5: 'ROUNDED',
-  shape6: 'LEFT_LEAF',
-  shape7: 'RIGHT_LEAF',
-  shape8: 'CIRCLE',
-  shape9: 'ROUNDED',
-  shape10: 'LEFT_LEAF',
-  shape11: 'RIGHT_LEAF',
-  shape12: 'ROUNDED',
-  classy: 'ROUNDED',
-  outpoint: 'LEFT_LEAF',
-  inpoint: 'RIGHT_LEAF',
-  'center-circle': 'CIRCLE',
+// qr-code-styling corner square types
+type CornerSquareType = 'square' | 'dot' | 'extra-rounded';
+
+const CORNER_SQUARE_MAP: Record<string, CornerSquareType> = {
+  default: 'square',
+  dot: 'dot',
+  square: 'square',
+  'extra-rounded': 'extra-rounded',
+  shape1: 'extra-rounded',
+  shape2: 'dot',
+  shape3: 'dot',
+  shape4: 'dot',
+  shape5: 'extra-rounded',
+  shape6: 'dot',
+  shape7: 'dot',
+  shape8: 'dot',
+  shape9: 'extra-rounded',
+  shape10: 'dot',
+  shape11: 'dot',
+  shape12: 'extra-rounded',
+  classy: 'extra-rounded',
+  outpoint: 'dot',
+  inpoint: 'dot',
+  'center-circle': 'dot',
+  rounded: 'extra-rounded',
 };
 
-const CORNER_DOT_TO_BALL_NAME: Record<string, string> = {
-  default: 'SQUARE',
-  dot: 'CIRCLE',
-  square: 'SQUARE',
-  cross: 'SQUARE',
-  'cross-rounded': 'ROUNDED',
-  diamond: 'LEFT_DIAMOND',
-  dot2: 'CIRCLE',
-  dot3: 'CIRCLE',
-  dot4: 'CIRCLE',
-  heart: 'CIRCLE',
-  rounded: 'ROUNDED',
-  square2: 'SQUARE',
-  square3: 'SQUARE',
-  star: 'LEFT_DIAMOND',
-  sun: 'RIGHT_DIAMOND',
-  x: 'LEFT_DIAMOND',
-  'x-rounded': 'RIGHT_DIAMOND',
-  'extra-rounded': 'ROUNDED',
-  classy: 'ROUNDED',
-  outpoint: 'LEFT_DIAMOND',
-  inpoint: 'RIGHT_DIAMOND',
-  pentagon: 'LEFT_LEAF',
-  hexagon: 'RIGHT_LEAF',
+// qr-code-styling corner dot types
+type CornerDotType = 'square' | 'dot';
+
+const CORNER_DOT_MAP: Record<string, CornerDotType> = {
+  default: 'square',
+  dot: 'dot',
+  square: 'square',
+  cross: 'square',
+  'cross-rounded': 'dot',
+  diamond: 'square',
+  dot2: 'dot',
+  dot3: 'dot',
+  dot4: 'dot',
+  heart: 'dot',
+  rounded: 'dot',
+  square2: 'square',
+  square3: 'square',
+  star: 'square',
+  sun: 'dot',
+  x: 'square',
+  'x-rounded': 'dot',
+  'extra-rounded': 'dot',
+  classy: 'dot',
+  outpoint: 'square',
+  inpoint: 'square',
+  pentagon: 'dot',
+  hexagon: 'dot',
 };
-
-// Frame ID to frame style name - resolved at runtime
-const FRAME_ID_TO_STYLE_NAME: Record<number, string> = {
-  0: 'NONE',
-  1: 'BOX_BOTTOM',
-  2: 'BOX_TOP',
-  3: 'BANNER_BOTTOM',
-  4: 'BANNER_TOP',
-  5: 'BALLOON_BOTTOM',
-  6: 'BALLOON_TOP',
-  7: 'CIRCULAR',
-  8: 'TEXT_ONLY',
-  9: 'FOCUS',
-  10: 'BOX_BOTTOM',
-  11: 'BOX_TOP',
-  12: 'BANNER_BOTTOM',
-  13: 'BANNER_TOP',
-  14: 'BALLOON_BOTTOM',
-  15: 'BALLOON_TOP',
-  16: 'CIRCULAR',
-  17: 'TEXT_ONLY',
-  18: 'FOCUS',
-  19: 'BOX_BOTTOM',
-  20: 'BOX_TOP',
-  21: 'BANNER_BOTTOM',
-  22: 'BANNER_TOP',
-  23: 'BALLOON_BOTTOM',
-  24: 'BALLOON_TOP',
-  25: 'CIRCULAR',
-  26: 'TEXT_ONLY',
-  27: 'FOCUS',
-  28: 'BOX_BOTTOM',
-  29: 'BOX_TOP',
-  30: 'BANNER_BOTTOM',
-};
-
-// Helper functions to resolve enum values at runtime
-function getDataPattern(styleName: string): any {
-  if (!DataPattern) return 0;
-  const patternName = SHAPE_TO_PATTERN_NAME[styleName] || 'SQUARE';
-  return DataPattern[patternName] ?? DataPattern.SQUARE ?? 0;
-}
-
-function getEyeFrameShape(styleName: string): any {
-  if (!EyeFrameShape) return 0;
-  const shapeName = CORNER_SQUARE_TO_FRAME_NAME[styleName] || 'SQUARE';
-  return EyeFrameShape[shapeName] ?? EyeFrameShape.SQUARE ?? 0;
-}
-
-function getEyeBallShape(styleName: string): any {
-  if (!EyeBallShape) return 0;
-  const ballName = CORNER_DOT_TO_BALL_NAME[styleName] || 'SQUARE';
-  return EyeBallShape[ballName] ?? EyeBallShape.SQUARE ?? 0;
-}
-
-function getQRCodeFrame(frameId: number): any {
-  if (!QRCodeFrame) return 0;
-  const frameName = FRAME_ID_TO_STYLE_NAME[frameId] || 'NONE';
-  return QRCodeFrame[frameName] ?? QRCodeFrame.NONE ?? 0;
-}
 
 // ─── Design Mapping ──────────────────────────────────────────────────────────
 
@@ -239,7 +184,6 @@ function toAbsoluteUrl(path: string): string {
 }
 
 export function mapDesignToStyle(design: Record<string, any>) {
-  // Keep same interface for compatibility with existing code
   const style: Record<string, any> = {};
 
   if (design.logo && !design.logo.startsWith('data:')) {
@@ -763,20 +707,7 @@ function generateQRContent(type: string, content: Record<string, any>): string {
     }
 
     default:
-      // For dynamic types, use the redirect URL
       return content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview`;
-  }
-}
-
-// ─── Error Correction Mapping ────────────────────────────────────────────────
-
-function mapErrorCorrectionValue(level: string): number {
-  switch (level?.toUpperCase()) {
-    case 'L': return 1;
-    case 'M': return 0;
-    case 'Q': return 3;
-    case 'H': return 2;
-    default: return 0;
   }
 }
 
@@ -788,121 +719,180 @@ export async function createStaticQRImage(
   design: Record<string, any>,
   format: 'png' | 'webp' | 'jpeg' | 'svg' = 'png'
 ): Promise<Buffer> {
-  // Try to initialize mobstac-awesome-qr
-  const available = await initMobstac();
-
-  if (!available) {
-    console.warn('[QR Generator] mobstac not available, throwing to use fallback');
-    throw new Error('mobstac-awesome-qr not available in this environment');
+  // Initialize qr-code-styling
+  const initialized = await initQRCodeStyling();
+  if (!initialized || !QRCodeStyling) {
+    throw new Error('qr-code-styling not available');
   }
 
   const qrContent = generateQRContent(type, content);
 
-  // Map design settings to mobstac-awesome-qr config using runtime resolution
-  const dataPattern = getDataPattern(design.dotsType || 'square');
-  const eyeFrameShape = getEyeFrameShape(design.cornersSquareType || 'default');
-  const eyeBallShape = getEyeBallShape(design.cornersDotType || 'default');
+  // Map design to qr-code-styling options
+  const dotsType = DOTS_TYPE_MAP[design.dotsType] || 'square';
+  const cornerSquareType = CORNER_SQUARE_MAP[design.cornersSquareType] || 'square';
+  const cornerDotType = CORNER_DOT_MAP[design.cornersDotType] || 'square';
 
-  const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
-  const frameStyle = frameId >= 0 ? getQRCodeFrame(frameId) : (QRCodeFrame?.NONE ?? 0);
+  const dotsColor = design.dotsColor || '#000000';
+  const backgroundColor = design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF');
+  const cornersSquareColor = design.cornersSquareColor || dotsColor;
+  const cornersDotColor = design.cornersDotColor || dotsColor;
 
-  // Determine gradient type - resolve at runtime
-  let gradientType = GradientType?.NONE ?? 0;
-  if (design.patternGradient && design.patternColor2) {
-    gradientType = GradientType?.LINEAR ?? 1;
-  }
+  // Error correction level
+  const errorCorrectionMap: Record<string, 'L' | 'M' | 'Q' | 'H'> = {
+    L: 'L', M: 'M', Q: 'Q', H: 'H'
+  };
+  const errorCorrectionLevel = errorCorrectionMap[design.errorCorrectionLevel?.toUpperCase()] || (design.logo ? 'H' : 'M');
 
-  const config: Record<string, any> = {
-    text: qrContent,
-    size: 1024,
-    margin: 80,
-
-    // Colors
-    colorDark: design.dotsColor || '#000000',
-    colorLight: design.patternColor2 || design.dotsColor || '#000000',
-    backgroundColor: design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF'),
-
-    // Patterns
-    dataPattern,
-    eyeFrameShape,
-    eyeBallShape,
-    eyeFrameColor: design.cornersSquareColor || design.dotsColor || '#000000',
-    eyeBallColor: design.cornersDotColor || design.dotsColor || '#000000',
-
-    // Frame
-    frameStyle,
-    frameColor: design.frameColor || '#7C3AED',
-    frameText: (design.frameText || 'Scan me!').slice(0, 30),
-    frameTextColor: design.frameTextColor || '#FFFFFF',
-
-    // Gradient
-    gradientType,
-
-    // Error correction
-    correctLevel: mapErrorCorrectionValue(design.errorCorrectionLevel || (design.logo ? 'H' : 'M')),
-
-    // Logo
-    logoBackground: true,
-    logoScale: 0.25,
-    logoMargin: 10,
-    dotScale: 1,
-    maskedDots: false,
-    isVCard: type === 'vcard',
+  // Build QR code options
+  const qrOptions: any = {
+    width: 1024,
+    height: 1024,
+    margin: 40,
+    data: qrContent,
+    dotsOptions: {
+      type: dotsType,
+      color: dotsColor,
+    },
+    cornersSquareOptions: {
+      type: cornerSquareType,
+      color: cornersSquareColor,
+    },
+    cornersDotOptions: {
+      type: cornerDotType,
+      color: cornersDotColor,
+    },
+    backgroundOptions: {
+      color: backgroundColor,
+    },
+    qrOptions: {
+      errorCorrectionLevel,
+    },
   };
 
-  // Add logo if provided and not a data URL
-  if (design.logo && !design.logo.startsWith('data:')) {
-    config.logoImage = toAbsoluteUrl(design.logo);
+  // Add logo if provided
+  if (design.logo) {
+    const logoUrl = design.logo.startsWith('data:') ? design.logo : toAbsoluteUrl(design.logo);
+    qrOptions.image = logoUrl;
+    qrOptions.imageOptions = {
+      crossOrigin: 'anonymous',
+      margin: 10,
+      imageSize: 0.4,
+      hideBackgroundDots: true,
+    };
+  }
+
+  // Add gradient support
+  if (design.patternGradient && design.patternColor2) {
+    qrOptions.dotsOptions.gradient = {
+      type: 'linear',
+      rotation: 45,
+      colorStops: [
+        { offset: 0, color: dotsColor },
+        { offset: 1, color: design.patternColor2 },
+      ],
+    };
   }
 
   try {
-    const builder = new QRCodeBuilder(config);
-    // Always build as SVG first - the library returns SVG by default
-    const qrCode = await builder.build(CanvasType.SVG);
+    const qrCode = new QRCodeStyling(qrOptions);
 
-    // Get the SVG string from the result
-    let svgString: string | undefined;
+    // Get SVG data
+    const svgData = await qrCode.getRawData('svg');
 
-    if (qrCode && typeof qrCode === 'object' && 'svg' in qrCode) {
-      svgString = (qrCode as any).svg;
-    } else if (typeof qrCode === 'string') {
-      svgString = qrCode;
+    if (!svgData) {
+      throw new Error('Failed to generate QR code SVG');
     }
 
-    if (!svgString || typeof svgString !== 'string') {
-      console.error('[QR Generator] No SVG output from builder');
-      throw new Error('No SVG output from QR builder');
+    let svgString: string;
+    if (svgData instanceof Blob) {
+      svgString = await svgData.text();
+    } else if (Buffer.isBuffer(svgData)) {
+      svgString = svgData.toString('utf-8');
+    } else if (typeof svgData === 'string') {
+      svgString = svgData;
+    } else {
+      throw new Error('Unexpected SVG data type');
     }
 
-    // For SVG format, return directly
+    // Handle frame if specified
+    const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
+    if (frameId > 0) {
+      svgString = addFrameToSvg(svgString, design);
+    }
+
+    // Return SVG directly if requested
     if (format === 'svg') {
       return Buffer.from(svgString, 'utf-8');
     }
 
-    // Convert SVG to PNG/JPEG using Sharp
-    const svgBuffer = Buffer.from(svgString, 'utf-8');
+    // Convert SVG to PNG using sharp
+    const sharp = (await import('sharp')).default;
+    const pngBuffer = await sharp(Buffer.from(svgString))
+      .resize(1024, 1024, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+      .png()
+      .toBuffer();
 
-    let sharpInstance = sharp(svgBuffer, { density: 300 });
-
-    switch (format) {
-      case 'jpeg':
-        sharpInstance = sharpInstance.jpeg({ quality: 90 });
-        break;
-      case 'webp':
-        sharpInstance = sharpInstance.webp({ quality: 90 });
-        break;
-      case 'png':
-      default:
-        sharpInstance = sharpInstance.png();
-        break;
+    if (format === 'png') {
+      return pngBuffer;
     }
 
-    const outputBuffer = await sharpInstance.toBuffer();
-    return outputBuffer;
+    // Convert to other formats
+    if (format === 'jpeg') {
+      return await sharp(pngBuffer).jpeg({ quality: 90 }).toBuffer();
+    }
+    if (format === 'webp') {
+      return await sharp(pngBuffer).webp({ quality: 90 }).toBuffer();
+    }
+
+    return pngBuffer;
   } catch (error) {
-    console.error('[QR Generator] Error generating QR:', error);
+    console.error('[QR Generator] Error:', error);
     throw new Error(`QR generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+// ─── Frame Support ───────────────────────────────────────────────────────────
+
+function addFrameToSvg(svgString: string, design: Record<string, any>): string {
+  const frameColor = design.frameColor || '#7C3AED';
+  const frameText = (design.frameText || 'Scan me!').slice(0, 30);
+  const frameTextColor = design.frameTextColor || '#FFFFFF';
+
+  // Parse existing SVG dimensions
+  const viewBoxMatch = svgString.match(/viewBox="([^"]+)"/);
+  const widthMatch = svgString.match(/width="(\d+)"/);
+  const heightMatch = svgString.match(/height="(\d+)"/);
+
+  const originalWidth = widthMatch ? parseInt(widthMatch[1]) : 1024;
+  const originalHeight = heightMatch ? parseInt(heightMatch[1]) : 1024;
+
+  // Frame dimensions
+  const frameHeight = 100;
+  const framePadding = 30;
+  const newHeight = originalHeight + frameHeight + framePadding;
+  const cornerRadius = 20;
+
+  // Create new SVG with frame
+  const framedSvg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${originalWidth}" height="${newHeight}" viewBox="0 0 ${originalWidth} ${newHeight}">
+  <!-- Frame background -->
+  <rect x="0" y="${originalHeight + framePadding/2}" width="${originalWidth}" height="${frameHeight}" rx="${cornerRadius}" ry="${cornerRadius}" fill="${frameColor}"/>
+
+  <!-- Original QR code -->
+  <g transform="translate(0, 0)">
+    ${svgString.replace(/<\?xml[^>]*\?>/, '').replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')}
+  </g>
+
+  <!-- Frame text -->
+  <text x="${originalWidth / 2}" y="${originalHeight + framePadding/2 + frameHeight/2 + 10}"
+        text-anchor="middle"
+        font-family="Arial, sans-serif"
+        font-size="36"
+        font-weight="bold"
+        fill="${frameTextColor}">${frameText}</text>
+</svg>`;
+
+  return framedSvg;
 }
 
 // ─── API Methods (Compatible Interface) ──────────────────────────────────────
@@ -915,8 +905,6 @@ export async function createQR(params: {
   design: Record<string, any>;
   name?: string;
 }) {
-  // Self-hosted version: QR codes are generated on-the-fly
-  // Return a mock ID that can be used for tracking
   const mockId = Date.now();
   console.log('[QR Generator] createQR called - using self-hosted generation');
   return { id: mockId };
@@ -931,13 +919,11 @@ export async function updateQR(
     name?: string;
   }
 ) {
-  // Self-hosted version: no external API to update
   console.log('[QR Generator] updateQR called - self-hosted, no external update needed');
   return { success: true };
 }
 
 export async function deleteQR(qrfyId: number) {
-  // Self-hosted version: no external API to delete
   console.log('[QR Generator] deleteQR called - self-hosted, no external delete needed');
   return { success: true };
 }
@@ -946,9 +932,6 @@ export async function getQRImage(
   qrfyId: number,
   format: 'png' | 'webp' | 'jpeg' = 'png'
 ): Promise<Buffer> {
-  // Self-hosted version: this requires stored data to regenerate
-  // Return a placeholder for now - actual implementation would need to
-  // fetch stored QR data and regenerate
   throw new Error('getQRImage requires stored QR data - use createStaticQRImage instead');
 }
 
@@ -958,7 +941,6 @@ export async function getReport(params: {
   endDate?: string;
   format?: 'json' | 'csv' | 'xlsx';
 }) {
-  // Self-hosted version: analytics are tracked locally
   console.log('[QR Generator] getReport called - use local analytics instead');
   return {
     scans: 0,
@@ -1041,7 +1023,6 @@ export function transformQrfyReport(report: any) {
 
 // ─── Style Options for UI ────────────────────────────────────────────────────
 
-// Keep the same arrays for UI compatibility
 export const QRFY_SHAPE_STYLES = [
   'square', 'rounded', 'dots', 'classy', 'classy-rounded', 'extra-rounded',
   'cross', 'cross-rounded', 'diamond', 'diamond-special', 'heart',
@@ -1064,21 +1045,3 @@ export const QRFY_CORNER_DOT_STYLES = [
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);
 
 export const QRFY_ERROR_CORRECTION = ['L', 'M', 'Q', 'H'] as const;
-
-// New: Expose mobstac-awesome-qr options for advanced usage
-// These are functions because enums are loaded dynamically
-export function getMobstacDataPatterns() {
-  return DataPattern ? Object.values(DataPattern) : [];
-}
-export function getMobstacEyeFrameShapes() {
-  return EyeFrameShape ? Object.values(EyeFrameShape) : [];
-}
-export function getMobstacEyeBallShapes() {
-  return EyeBallShape ? Object.values(EyeBallShape) : [];
-}
-export function getMobstacFrameStyles() {
-  return QRCodeFrame ? Object.values(QRCodeFrame) : [];
-}
-export function getMobstacGradientTypes() {
-  return GradientType ? Object.values(GradientType) : [];
-}
