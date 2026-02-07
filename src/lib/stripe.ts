@@ -4,10 +4,25 @@ const stripeKey = process.env.STRIPE_SECRET_KEY;
 
 export const stripe = stripeKey
   ? new Stripe(stripeKey, {
-      apiVersion: '2026-01-28.clover',
       typescript: true,
     })
   : (null as unknown as Stripe);
+
+// Helper to calculate subscription end date based on interval
+export function getSubscriptionEndDate(interval: string): Date {
+  const now = new Date();
+  switch (interval) {
+    case 'monthly':
+      return new Date(now.setMonth(now.getMonth() + 1));
+    case 'quarterly':
+      return new Date(now.setMonth(now.getMonth() + 3));
+    case 'annually':
+    case 'yearly':
+      return new Date(now.setFullYear(now.getFullYear() + 1));
+    default:
+      return new Date(now.setMonth(now.getMonth() + 1));
+  }
+}
 
 export const PRICE_IDS: Record<string, string> = {
   // Single plan with 3 billing intervals

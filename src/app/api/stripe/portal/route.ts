@@ -5,6 +5,10 @@ import prisma from '@/lib/db';
 
 export async function POST() {
   try {
+    if (!stripe) {
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    }
+
     const authUser = await getAuthUser();
     if (!authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
