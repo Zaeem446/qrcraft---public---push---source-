@@ -228,7 +228,7 @@ function toAbsoluteUrl(path: string): string {
   // but mangling them with a base URL is worse
   if (path.startsWith('data:') || path.startsWith('blob:')) return path;
   // Relative paths like /uploads/xxx.pdf → full URL
-  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+  const base = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
   return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
@@ -722,7 +722,7 @@ export async function createQR(params: {
     // Our landing page (/qr/[slug]) handles the actual content display
     // This avoids sending complex data (images, PDFs, etc.) to QRFY
     qrfyType = 'url';
-    data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
+    data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
   const qr = {
@@ -776,7 +776,7 @@ export async function updateQR(
     } else {
       // Dynamic types — update with URL type pointing to our redirect
       body.type = 'url';
-      body.data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
+      body.data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
     }
   }
 
@@ -864,7 +864,7 @@ export async function createStaticQRImage(
     }
   } else {
     // Dynamic type — encode the redirect URL (or content URL) into the QR
-    body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app'}/preview` };
+    body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {

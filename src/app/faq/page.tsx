@@ -264,7 +264,7 @@ export default function FAQPage() {
           <h3 className="text-xl font-bold text-gray-900 mb-2">Still have questions?</h3>
           <p className="text-gray-600 mb-6">Can't find what you're looking for? Get in touch with our support team.</p>
           <div className="flex gap-4 justify-center">
-            <a href="mailto:support@qrcraft.com" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25">
+            <a href="mailto:support@qr-craft.online" className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-500/25">
               Contact Support
             </a>
             <Link href="/pricing" className="inline-flex items-center px-6 py-3 border-2 border-gray-200 text-gray-700 font-semibold rounded-xl hover:border-blue-400 hover:text-blue-600 transition-all">

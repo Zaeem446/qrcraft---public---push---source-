@@ -14,7 +14,7 @@ export default function AdminSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     // Email Settings
-    supportEmail: 'support@qrcraft.com',
+    supportEmail: 'support@qr-craft.online',
     notifyOnNewUser: true,
     notifyOnNewSubscription: true,
     notifyOnCancellation: true,

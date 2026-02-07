@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     // Generate slug first so we can use it in the QRFY redirect URL
     const slug = nanoid(8);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
 
     // Create QR on QRFY
     let qrfyId: number | null = null;

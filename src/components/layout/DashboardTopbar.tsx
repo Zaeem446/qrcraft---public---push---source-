@@ -27,7 +27,7 @@ const mainNav = [
 ];
 
 const footerNav = [
-  { href: 'mailto:support@qrcraft.com', label: 'Contact us', icon: ChatBubbleLeftRightIcon, external: true },
+  { href: 'mailto:support@qr-craft.online', label: 'Contact us', icon: ChatBubbleLeftRightIcon, external: true },
   { href: '/faq', label: 'FAQs', icon: QuestionMarkCircleIcon },
 ];
 

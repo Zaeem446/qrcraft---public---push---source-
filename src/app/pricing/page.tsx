@@ -21,7 +21,7 @@ const billingOptions: {
 ];
 
 const pricingFAQ = [
-  { q: "Do you refund unused subscriptions?", a: "We offer a full refund within 30 days of your initial purchase if you're not satisfied with the service. Contact support@qrcraft.com to request a refund." },
+  { q: "Do you refund unused subscriptions?", a: "We offer a full refund within 30 days of your initial purchase if you're not satisfied with the service. Contact support@qr-craft.online to request a refund." },
   { q: "What are my payment options?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely through Stripe with industry-standard encryption." },
   { q: "Can I cancel my subscription anytime?", a: "Yes, you can easily cancel your subscription from your dashboard. Your plan will remain active until the end of your current billing period." },
   { q: "Can I change my billing cycle later?", a: "You can switch between monthly, quarterly, and annual billing at any time. Changes take effect at the next billing cycle." },

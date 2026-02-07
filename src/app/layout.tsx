@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   title: 'QRCraft - Dynamic QR Code Generator',
   description: 'Create, customize, and track dynamic QR codes with powerful analytics. Start your free 14-day trial today.',
   keywords: ['QR code', 'QR generator', 'dynamic QR', 'QR analytics', 'QR code maker'],
+  metadataBase: new URL('https://qr-craft.online'),
 };
 
 export default function RootLayout({

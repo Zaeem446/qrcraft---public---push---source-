@@ -36,7 +36,7 @@ const sections = [
   },
   {
     title: "8. Refund Policy",
-    content: "We offer a full refund within 30 days of your initial purchase if you are not satisfied with the Service. To request a refund, contact support@qrcraft.com. Refunds are processed to the original payment method within 5-10 business days. Users who have violated these terms are not eligible for refunds."
+    content: "We offer a full refund within 30 days of your initial purchase if you are not satisfied with the Service. To request a refund, contact support@qr-craft.online. Refunds are processed to the original payment method within 5-10 business days. Users who have violated these terms are not eligible for refunds."
   },
   {
     title: "9. Prohibited Activities",
@@ -72,7 +72,7 @@ const sections = [
   },
   {
     title: "17. Contact Us",
-    content: "If you have any questions about these Terms and Conditions, please contact us at legal@qrcraft.com."
+    content: "If you have any questions about these Terms and Conditions, please contact us at legal@qr-craft.online."
   },
 ];
 
@@ -125,7 +125,7 @@ export default function TermsPage() {
         <div className="mt-12 pt-8 border-t border-gray-200 flex gap-4">
           <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Privacy Policy</Link>
           <Link href="/faq" className="text-blue-600 hover:text-blue-700 font-medium text-sm">FAQ</Link>
-          <a href="mailto:legal@qrcraft.com" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Legal</a>
+          <a href="mailto:legal@qr-craft.online" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Legal</a>
         </div>
       </div>
 

@@ -214,7 +214,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-xs text-gray-400 text-center mt-auto pt-8">
-          2024 &copy; QRCraft - &apos;QR Code&apos; is a trademark of DENSO WAVE INCORPORATED
+          2026 &copy; QRCraft - &apos;QR Code&apos; is a trademark of DENSO WAVE INCORPORATED
         </p>
       </div>
 

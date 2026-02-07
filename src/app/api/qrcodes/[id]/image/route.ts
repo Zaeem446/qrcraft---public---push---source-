@@ -58,7 +58,7 @@ function getQRDataString(qrcode: { type: string; slug: string | null; content: a
     return contentToString(type, content);
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
   if (qrcode.slug) {
     return `${baseUrl}/r/${qrcode.slug}`;
   }
@@ -86,7 +86,7 @@ function getContentForQRFY(qrcode: { type: string; slug: string | null; content:
 
   // For dynamic types, override URL with the redirect URL so the QR encodes
   // the tracking redirect, not a placeholder
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
   const redirectUrl = qrcode.slug ? `${baseUrl}/r/${qrcode.slug}` : (content.url || `${baseUrl}/preview`);
 
   return { ...content, url: redirectUrl };

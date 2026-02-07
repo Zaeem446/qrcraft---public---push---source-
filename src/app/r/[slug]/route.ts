@@ -49,13 +49,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       },
     });
     if (!qrcode || !qrcode.isActive) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
       return NextResponse.redirect(`${baseUrl}/qr-expired`);
     }
 
     // Check if user has active subscription or trial
     if (!isSubscriptionActive(qrcode.user)) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
       return NextResponse.redirect(`${baseUrl}/qr-expired`);
     }
 
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     }
 
     // For non-URL types, redirect to a landing page
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qrcraft-public-push-source.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
     return NextResponse.redirect(`${baseUrl}/qr/${slug}`);
   } catch (error) {
     console.error('Redirect error:', error);

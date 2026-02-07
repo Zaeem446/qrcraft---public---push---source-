@@ -36,7 +36,7 @@ const sections = [
   },
   {
     title: "8. Your Rights",
-    content: "You have the right to: (a) access, correct, or delete your personal data through your account settings; (b) export your data in a portable format; (c) withdraw consent for data processing at any time; (d) object to processing of your personal data; (e) lodge a complaint with a data protection authority. To exercise these rights, contact us at privacy@qrcraft.com or manage your data through your dashboard Settings page."
+    content: "You have the right to: (a) access, correct, or delete your personal data through your account settings; (b) export your data in a portable format; (c) withdraw consent for data processing at any time; (d) object to processing of your personal data; (e) lodge a complaint with a data protection authority. To exercise these rights, contact us at privacy@qr-craft.online or manage your data through your dashboard Settings page."
   },
   {
     title: "9. Children's Privacy",
@@ -52,7 +52,7 @@ const sections = [
   },
   {
     title: "12. Contact Us",
-    content: "If you have any questions about this Privacy Policy or our data practices, please contact us at privacy@qrcraft.com."
+    content: "If you have any questions about this Privacy Policy or our data practices, please contact us at privacy@qr-craft.online."
   },
 ];
 
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
         <div className="mt-12 pt-8 border-t border-gray-200 flex gap-4">
           <Link href="/terms" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Terms of Service</Link>
           <Link href="/faq" className="text-blue-600 hover:text-blue-700 font-medium text-sm">FAQ</Link>
-          <a href="mailto:privacy@qrcraft.com" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Privacy Team</a>
+          <a href="mailto:privacy@qr-craft.online" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Privacy Team</a>
         </div>
       </div>
 
