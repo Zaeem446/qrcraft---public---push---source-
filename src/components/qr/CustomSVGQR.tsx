@@ -80,6 +80,7 @@ function contentToString(type: string, content: Record<string, any>): string {
 }
 
 // ─── Pattern Rendering Functions ─────────────────────────────────────────────
+// SIGNIFICANTLY LARGER patterns for visibility
 
 function renderDotPattern(
   style: string,
@@ -89,49 +90,50 @@ function renderDotPattern(
   color: string,
   key: string
 ): React.ReactNode {
-  const r = cellSize * 0.4;
+  // Base radius - LARGE for visibility
+  const r = cellSize * 0.48;
   const half = cellSize / 2;
   const x = cx - half;
   const y = cy - half;
 
   switch (style) {
     case "square":
-      // Full square - fills almost entire cell
-      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} fill={color} />;
+      // FULL square - almost no gap
+      return <rect key={key} x={x + 0.3} y={y + 0.3} width={cellSize - 0.6} height={cellSize - 0.6} fill={color} />;
 
     case "rounded":
-      // Rounded square - clearly rounded corners
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} rx={cellSize * 0.35} ry={cellSize * 0.35} fill={color} />;
+      // Rounded square - VERY rounded corners (40% radius)
+      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} rx={cellSize * 0.4} ry={cellSize * 0.4} fill={color} />;
 
     case "dots":
-      // Small circles - visibly smaller than cells
-      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.32} fill={color} />;
+      // LARGE circles - clear circular shape
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.42} fill={color} />;
 
     case "classy":
-      // Smaller square with gap - creates visible spacing
-      return <rect key={key} x={x + cellSize * 0.15} y={y + cellSize * 0.15} width={cellSize * 0.7} height={cellSize * 0.7} fill={color} />;
+      // Smaller SHARP squares with visible gaps
+      return <rect key={key} x={x + cellSize * 0.18} y={y + cellSize * 0.18} width={cellSize * 0.64} height={cellSize * 0.64} fill={color} />;
 
     case "classy-rounded":
-      // Smaller rounded square with gap
-      return <rect key={key} x={x + cellSize * 0.12} y={y + cellSize * 0.12} width={cellSize * 0.76} height={cellSize * 0.76} rx={cellSize * 0.2} fill={color} />;
+      // Smaller ROUNDED squares with gaps - more rounded than classy
+      return <rect key={key} x={x + cellSize * 0.15} y={y + cellSize * 0.15} width={cellSize * 0.7} height={cellSize * 0.7} rx={cellSize * 0.25} ry={cellSize * 0.25} fill={color} />;
 
     case "extra-rounded":
-      // Large circles - almost touching
-      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.45} fill={color} />;
+      // VERY LARGE circles - almost touching
+      return <circle key={key} cx={cx} cy={cy} r={cellSize * 0.48} fill={color} />;
 
     case "cross":
       return (
         <g key={key}>
-          <rect x={cx - r * 0.25} y={cy - r} width={r * 0.5} height={r * 2} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.25} width={r * 2} height={r * 0.5} fill={color} />
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} fill={color} />
         </g>
       );
 
     case "cross-rounded":
       return (
         <g key={key}>
-          <rect x={cx - r * 0.25} y={cy - r} width={r * 0.5} height={r * 2} rx={r * 0.12} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.25} width={r * 2} height={r * 0.5} rx={r * 0.12} fill={color} />
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} rx={r * 0.15} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} rx={r * 0.15} fill={color} />
         </g>
       );
 
@@ -143,33 +145,36 @@ function renderDotPattern(
     case "diamond-special":
       return (
         <g key={key}>
-          <polygon points={`${cx},${cy - r * 0.9} ${cx + r * 0.9},${cy} ${cx},${cy + r * 0.9} ${cx - r * 0.9},${cy}`} fill={color} />
-          <circle cx={cx} cy={cy} r={r * 0.2} fill="white" />
+          <polygon points={`${cx},${cy - r * 0.95} ${cx + r * 0.95},${cy} ${cx},${cy + r * 0.95} ${cx - r * 0.95},${cy}`} fill={color} />
+          <circle cx={cx} cy={cy} r={r * 0.25} fill="white" />
         </g>
       );
 
-    case "heart":
+    case "heart": {
+      // LARGER heart
+      const hr = r * 1.1;
       return (
-        <path key={key} d={`M${cx} ${cy + r * 0.5} C${cx - r * 1.1} ${cy - r * 0.2} ${cx - r * 0.5} ${cy - r * 0.9} ${cx} ${cy - r * 0.35} C${cx + r * 0.5} ${cy - r * 0.9} ${cx + r * 1.1} ${cy - r * 0.2} ${cx} ${cy + r * 0.5}Z`} fill={color} />
+        <path key={key} d={`M${cx} ${cy + hr * 0.6} C${cx - hr * 1.2} ${cy - hr * 0.1} ${cx - hr * 0.6} ${cy - hr * 0.95} ${cx} ${cy - hr * 0.3} C${cx + hr * 0.6} ${cy - hr * 0.95} ${cx + hr * 1.2} ${cy - hr * 0.1} ${cx} ${cy + hr * 0.6}Z`} fill={color} />
       );
+    }
 
     case "horizontal-rounded":
-      return <rect key={key} x={x} y={cy - r * 0.4} width={cellSize} height={r * 0.8} rx={r * 0.4} fill={color} />;
+      return <rect key={key} x={x} y={cy - r * 0.45} width={cellSize} height={r * 0.9} rx={r * 0.45} fill={color} />;
 
     case "vertical-rounded":
-      return <rect key={key} x={cx - r * 0.4} y={y} width={r * 0.8} height={cellSize} rx={r * 0.4} fill={color} />;
+      return <rect key={key} x={cx - r * 0.45} y={y} width={r * 0.9} height={cellSize} rx={r * 0.45} fill={color} />;
 
     case "ribbon":
       return (
         <g key={key}>
-          <rect x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize * 0.35} rx={1} fill={color} />
-          <rect x={x + 1} y={y + cellSize * 0.55} width={cellSize - 2} height={cellSize * 0.35} rx={1} fill={color} />
+          <rect x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize * 0.4} rx={1} fill={color} />
+          <rect x={x + 0.5} y={y + cellSize * 0.5} width={cellSize - 1} height={cellSize * 0.4} rx={1} fill={color} />
         </g>
       );
 
     case "shake": {
-      const offset = Math.random() > 0.5 ? 1 : -1;
-      return <rect key={key} x={x + 1 + offset} y={y + 1 - offset} width={cellSize - 2} height={cellSize - 2} fill={color} />;
+      const offset = Math.random() > 0.5 ? 1.5 : -1.5;
+      return <rect key={key} x={x + 0.5 + offset} y={y + 0.5 - offset} width={cellSize - 1} height={cellSize - 1} fill={color} />;
     }
 
     case "sparkle": {
@@ -197,25 +202,26 @@ function renderDotPattern(
     case "x":
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.15} width={r * 2} height={r * 0.3} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.15} width={r * 2} height={r * 0.3} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
     case "x-rounded":
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.15} width={r * 2} height={r * 0.3} rx={r * 0.08} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.15} width={r * 2} height={r * 0.3} rx={r * 0.08} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
     default:
-      return <rect key={key} x={x + 1} y={y + 1} width={cellSize - 2} height={cellSize - 2} fill={color} />;
+      return <rect key={key} x={x + 0.5} y={y + 0.5} width={cellSize - 1} height={cellSize - 1} fill={color} />;
   }
 }
 
 // ─── Corner Square Rendering (outer ring only) ───────────────────────────────
+// For shapes with double borders (6, 9, 10), don't render inner ring - let corner dot fill that space
 
 function renderCornerSquare(
   style: string,
@@ -223,10 +229,8 @@ function renderCornerSquare(
   cy: number,
   size: number,
   outerColor: string,
-  _innerColor: string, // Unused - inner dot rendered separately
   key: string
 ): React.ReactNode {
-  const outerSize = size;
   const strokeWidth = size * 0.14;
   const x = cx - size / 2;
   const y = cy - size / 2;
@@ -234,7 +238,7 @@ function renderCornerSquare(
   switch (style) {
     case "square":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "dot":
@@ -244,17 +248,17 @@ function renderCornerSquare(
 
     case "extra-rounded":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape1":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.05} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape2":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape3": {
@@ -271,46 +275,39 @@ function renderCornerSquare(
 
     case "shape5":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.18} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
+    // FIXED: shape6, shape9, shape10 - Only render outer ring, inner ring is removed
+    // The corner dot will fill the center space
     case "shape6":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.28} stroke={outerColor} strokeWidth={strokeWidth * 0.6} fill="none" />
-        </g>
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape7":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape8":
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape9":
       return (
-        <g key={key}>
-          <rect x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <rect x={cx - size * 0.25} y={cy - size * 0.25} width={size * 0.5} height={size * 0.5} rx={size * 0.06} stroke={outerColor} strokeWidth={strokeWidth * 0.6} fill="none" />
-        </g>
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.12} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape10":
       return (
-        <g key={key}>
-          <circle cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth * 0.8} fill="none" />
-          <circle cx={cx} cy={cy} r={size * 0.25} stroke={outerColor} strokeWidth={strokeWidth * 0.6} fill="none" />
-        </g>
+        <circle key={key} cx={cx} cy={cy} r={size / 2 - strokeWidth / 2} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape11":
       return (
-        <rect key={key} x={x} y={y + size * 0.1} width={outerSize} height={outerSize * 0.8} rx={size * 0.4} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y + size * 0.1} width={size} height={size * 0.8} rx={size * 0.4} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
 
     case "shape12": {
@@ -320,14 +317,15 @@ function renderCornerSquare(
       );
     }
 
-    default: // "default"
+    default:
       return (
-        <rect key={key} x={x} y={y} width={outerSize} height={outerSize} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
+        <rect key={key} x={x} y={y} width={size} height={size} rx={size * 0.1} stroke={outerColor} strokeWidth={strokeWidth} fill="none" />
       );
   }
 }
 
 // ─── Corner Dot Rendering ────────────────────────────────────────────────────
+// LARGER dots for better visibility
 
 function renderCornerDot(
   style: string,
@@ -350,16 +348,16 @@ function renderCornerDot(
     case "cross":
       return (
         <g key={key}>
-          <rect x={cx - r * 0.25} y={cy - r} width={r * 0.5} height={size} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.25} width={size} height={r * 0.5} fill={color} />
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={size} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.3} width={size} height={r * 0.6} fill={color} />
         </g>
       );
 
     case "cross-rounded":
       return (
         <g key={key}>
-          <rect x={cx - r * 0.25} y={cy - r} width={r * 0.5} height={size} rx={r * 0.25} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.25} width={size} height={r * 0.5} rx={r * 0.25} fill={color} />
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={size} rx={r * 0.3} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.3} width={size} height={r * 0.6} rx={r * 0.3} fill={color} />
         </g>
       );
 
@@ -369,16 +367,16 @@ function renderCornerDot(
     case "dot2":
       return (
         <g key={key}>
-          <circle cx={cx} cy={cy} r={r * 0.85} fill={color} />
-          <circle cx={cx} cy={cy} r={r * 0.35} fill={bgColor} />
+          <circle cx={cx} cy={cy} r={r * 0.9} fill={color} />
+          <circle cx={cx} cy={cy} r={r * 0.4} fill={bgColor} />
         </g>
       );
 
     case "dot3":
       return (
         <g key={key}>
-          <circle cx={cx} cy={cy} r={r} stroke={color} strokeWidth={r * 0.35} fill="none" />
-          <circle cx={cx} cy={cy} r={r * 0.3} fill={color} />
+          <circle cx={cx} cy={cy} r={r * 0.95} stroke={color} strokeWidth={r * 0.35} fill="none" />
+          <circle cx={cx} cy={cy} r={r * 0.35} fill={color} />
         </g>
       );
 
@@ -386,27 +384,29 @@ function renderCornerDot(
       return (
         <g key={key}>
           <circle cx={cx} cy={cy} r={r} fill={color} />
-          <circle cx={cx} cy={cy} r={r * 0.55} fill={bgColor} />
-          <circle cx={cx} cy={cy} r={r * 0.28} fill={color} />
+          <circle cx={cx} cy={cy} r={r * 0.6} fill={bgColor} />
+          <circle cx={cx} cy={cy} r={r * 0.32} fill={color} />
         </g>
       );
 
-    case "heart":
+    case "heart": {
+      const hr = r * 1.1;
       return (
-        <path key={key} d={`M${cx} ${cy + r * 0.7} C${cx - r * 1.5} ${cy - r * 0.2} ${cx - r * 0.7} ${cy - r} ${cx} ${cy - r * 0.4} C${cx + r * 0.7} ${cy - r} ${cx + r * 1.5} ${cy - r * 0.2} ${cx} ${cy + r * 0.7}Z`} fill={color} />
+        <path key={key} d={`M${cx} ${cy + hr * 0.7} C${cx - hr * 1.4} ${cy - hr * 0.1} ${cx - hr * 0.7} ${cy - hr} ${cx} ${cy - hr * 0.35} C${cx + hr * 0.7} ${cy - hr} ${cx + hr * 1.4} ${cy - hr * 0.1} ${cx} ${cy + hr * 0.7}Z`} fill={color} />
       );
+    }
 
     case "rounded":
       return <rect key={key} x={cx - r} y={cy - r} width={size} height={size} rx={r * 0.4} fill={color} />;
 
     case "square2":
-      return <rect key={key} x={cx - r * 0.85} y={cy - r * 0.85} width={size * 0.85} height={size * 0.85} stroke={color} strokeWidth={r * 0.3} fill="none" />;
+      return <rect key={key} x={cx - r * 0.85} y={cy - r * 0.85} width={size * 0.85} height={size * 0.85} stroke={color} strokeWidth={r * 0.35} fill="none" />;
 
     case "square3":
       return (
         <g key={key}>
-          <rect x={cx - r * 0.85} y={cy - r * 0.85} width={size * 0.85} height={size * 0.85} rx={r * 0.15} stroke={color} strokeWidth={r * 0.25} fill="none" />
-          <rect x={cx - r * 0.3} y={cy - r * 0.3} width={r * 0.6} height={r * 0.6} rx={r * 0.1} fill={color} />
+          <rect x={cx - r * 0.85} y={cy - r * 0.85} width={size * 0.85} height={size * 0.85} rx={r * 0.15} stroke={color} strokeWidth={r * 0.3} fill="none" />
+          <rect x={cx - r * 0.35} y={cy - r * 0.35} width={r * 0.7} height={r * 0.7} rx={r * 0.1} fill={color} />
         </g>
       );
 
@@ -425,11 +425,11 @@ function renderCornerDot(
       const rays = [];
       for (let i = 0; i < 8; i++) {
         const angle = (Math.PI / 4) * i;
-        const x1 = cx + Math.cos(angle) * r * 0.55;
-        const y1 = cy + Math.sin(angle) * r * 0.55;
-        const x2 = cx + Math.cos(angle) * r * 0.9;
-        const y2 = cy + Math.sin(angle) * r * 0.9;
-        rays.push(<line key={`ray-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={r * 0.2} strokeLinecap="round" />);
+        const x1 = cx + Math.cos(angle) * r * 0.5;
+        const y1 = cy + Math.sin(angle) * r * 0.5;
+        const x2 = cx + Math.cos(angle) * r * 0.95;
+        const y2 = cy + Math.sin(angle) * r * 0.95;
+        rays.push(<line key={`ray-${i}`} x1={x1} y1={y1} x2={x2} y2={y2} stroke={color} strokeWidth={r * 0.22} strokeLinecap="round" />);
       }
       return (
         <g key={key}>
@@ -442,21 +442,21 @@ function renderCornerDot(
     case "x":
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.15} width={size} height={r * 0.3} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.15} width={size} height={r * 0.3} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={size} height={r * 0.4} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={size} height={r * 0.4} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
     case "x-rounded":
       return (
         <g key={key}>
-          <rect x={cx - r} y={cy - r * 0.15} width={size} height={r * 0.3} rx={r * 0.15} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
-          <rect x={cx - r} y={cy - r * 0.15} width={size} height={r * 0.3} rx={r * 0.15} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={size} height={r * 0.4} rx={r * 0.2} transform={`rotate(45 ${cx} ${cy})`} fill={color} />
+          <rect x={cx - r} y={cy - r * 0.2} width={size} height={r * 0.4} rx={r * 0.2} transform={`rotate(-45 ${cx} ${cy})`} fill={color} />
         </g>
       );
 
-    default: // "default"
-      return <rect key={key} x={cx - r} y={cy - r} width={size} height={size} rx={r * 0.2} fill={color} />;
+    default:
+      return <rect key={key} x={cx - r} y={cy - r} width={size} height={size} rx={r * 0.25} fill={color} />;
   }
 }
 
@@ -464,13 +464,122 @@ function renderCornerDot(
 
 function isFinderPattern(row: number, col: number, size: number): boolean {
   const finderSize = 7;
-  // Top-left
   if (row < finderSize && col < finderSize) return true;
-  // Top-right
   if (row < finderSize && col >= size - finderSize) return true;
-  // Bottom-left
   if (row >= size - finderSize && col < finderSize) return true;
   return false;
+}
+
+// ─── Frame Component ─────────────────────────────────────────────────────────
+
+interface FrameProps {
+  frameId: number;
+  frameColor: string;
+  frameBgColor: string;
+  frameText: string;
+  frameTextColor: string;
+  fontSize: number;
+  children: React.ReactNode;
+}
+
+function QRFrame({ frameId, frameColor, frameBgColor, frameText, frameTextColor, fontSize, children }: FrameProps) {
+  // No frame
+  if (frameId < 0) {
+    return <div className="p-3 bg-white rounded-xl shadow-sm">{children}</div>;
+  }
+
+  // Compute frame text size - scale with fontSize prop
+  const textSize = Math.max(10, Math.min(18, fontSize / 3));
+
+  // Frame 0: Video Player style
+  if (frameId === 0) {
+    return (
+      <div className="relative rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: frameBgColor }}>
+        <div className="p-3 pb-10">{children}</div>
+        <div className="absolute bottom-0 left-0 right-0 py-2 px-3 flex items-center gap-2" style={{ backgroundColor: frameColor }}>
+          <div className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
+            <div className="w-0 h-0 border-l-[6px] border-l-white border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5" />
+          </div>
+          <span className="text-xs font-medium truncate" style={{ color: frameTextColor }}>{frameText}</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Frame styles by ID
+  const frameConfig: Record<number, { textPosition: "top" | "bottom" | "both"; borderRadius: string; dashed?: boolean; double?: boolean }> = {
+    1: { textPosition: "bottom", borderRadius: "8px" },
+    2: { textPosition: "top", borderRadius: "8px" },
+    3: { textPosition: "both", borderRadius: "8px" },
+    4: { textPosition: "bottom", borderRadius: "16px" },
+    5: { textPosition: "top", borderRadius: "16px" },
+    6: { textPosition: "both", borderRadius: "16px" },
+    7: { textPosition: "bottom", borderRadius: "8px" },
+    8: { textPosition: "both", borderRadius: "8px" },
+    9: { textPosition: "bottom", borderRadius: "8px", dashed: true },
+    10: { textPosition: "bottom", borderRadius: "16px", dashed: true },
+    11: { textPosition: "bottom", borderRadius: "8px", dashed: true },
+    12: { textPosition: "top", borderRadius: "16px", dashed: true },
+    13: { textPosition: "bottom", borderRadius: "8px", double: true },
+    14: { textPosition: "bottom", borderRadius: "16px", double: true },
+    15: { textPosition: "top", borderRadius: "8px" },
+    16: { textPosition: "bottom", borderRadius: "12px" },
+    17: { textPosition: "bottom", borderRadius: "8px" },
+    18: { textPosition: "bottom", borderRadius: "8px" },
+    19: { textPosition: "bottom", borderRadius: "12px" },
+    20: { textPosition: "bottom", borderRadius: "8px" },
+    21: { textPosition: "bottom", borderRadius: "10px" },
+    22: { textPosition: "bottom", borderRadius: "8px" },
+    23: { textPosition: "bottom", borderRadius: "8px" },
+    24: { textPosition: "bottom", borderRadius: "8px" },
+    25: { textPosition: "bottom", borderRadius: "10px" },
+    26: { textPosition: "bottom", borderRadius: "12px" },
+    27: { textPosition: "bottom", borderRadius: "50%" },
+    28: { textPosition: "bottom", borderRadius: "8px" },
+    29: { textPosition: "bottom", borderRadius: "8px", dashed: true },
+    30: { textPosition: "bottom", borderRadius: "16px" },
+  };
+
+  const config = frameConfig[frameId] || { textPosition: "bottom", borderRadius: "8px" };
+  const { textPosition, borderRadius, dashed, double } = config;
+
+  const textStyle = {
+    backgroundColor: frameBgColor,
+    color: frameTextColor,
+    fontSize: `${textSize}px`,
+    padding: "8px 16px",
+    fontWeight: 600,
+    textAlign: "center" as const,
+  };
+
+  const borderStyle = dashed
+    ? `2px dashed ${frameColor}`
+    : double
+      ? `3px double ${frameColor}`
+      : `2px solid ${frameColor}`;
+
+  return (
+    <div
+      className="overflow-hidden shadow-sm"
+      style={{
+        borderRadius,
+        border: borderStyle,
+        backgroundColor: "#FFFFFF",
+      }}
+    >
+      {(textPosition === "top" || textPosition === "both") && (
+        <div style={{ ...textStyle, borderTopLeftRadius: borderRadius, borderTopRightRadius: borderRadius }}>
+          {frameText}
+        </div>
+      )}
+      <div className="p-3">{children}</div>
+      {(textPosition === "bottom" || textPosition === "both") && (
+        <div style={{ ...textStyle, borderBottomLeftRadius: borderRadius, borderBottomRightRadius: borderRadius }}>
+          {frameText}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ─── Main Component ──────────────────────────────────────────────────────────
@@ -497,6 +606,14 @@ export default function CustomSVGQR({
   const cornersDotType = design?.cornersDotType || "default";
   const cornersDotColor = design?.cornersDotColor || dotsColor;
   const errorCorrectionLevel = design?.errorCorrectionLevel || (design?.logo ? "H" : "M");
+
+  // Frame options
+  const frameId = typeof design?.frameId === "number" ? design.frameId : -1;
+  const frameColor = design?.frameColor || "#7C3AED";
+  const frameBgColor = design?.frameBackgroundColor || frameColor;
+  const frameText = (design?.frameText || "Scan me!").slice(0, 30);
+  const frameTextColor = design?.frameTextColor || "#FFFFFF";
+  const fontSize = design?.frameFontSize || 42;
 
   // Generate QR matrix
   useEffect(() => {
@@ -559,14 +676,15 @@ export default function CustomSVGQR({
     // Finder pattern positions
     const finderSize = 7 * cellSize;
     const finderCenters = [
-      { x: margin + finderSize / 2, y: margin + finderSize / 2 }, // Top-left
-      { x: margin + (matrixSize - 3.5) * cellSize, y: margin + finderSize / 2 }, // Top-right
-      { x: margin + finderSize / 2, y: margin + (matrixSize - 3.5) * cellSize }, // Bottom-left
+      { x: margin + finderSize / 2, y: margin + finderSize / 2 },
+      { x: margin + (matrixSize - 3.5) * cellSize, y: margin + finderSize / 2 },
+      { x: margin + finderSize / 2, y: margin + (matrixSize - 3.5) * cellSize },
     ];
 
-    // Render finder patterns (corner squares + corner dots separately)
-    // Inner dot should be about 3/7 of the finder size (3 cells out of 7)
-    const cornerDotSize = finderSize * 0.50; // Slightly larger for better visibility of different styles
+    // Corner dot size - approximately 3 cells (3/7 of finder = ~43%)
+    // Made slightly larger for visibility
+    const cornerDotSize = finderSize * 0.45;
+
     finderCenters.forEach((center, idx) => {
       // Render outer corner square
       elements.push(
@@ -576,11 +694,10 @@ export default function CustomSVGQR({
           center.y,
           finderSize,
           cornersSquareColor,
-          cornersDotColor,
           `corner-${idx}`
         )
       );
-      // Render inner corner dot with separate style
+      // Render inner corner dot
       elements.push(
         renderCornerDot(
           cornersDotType,
@@ -597,160 +714,61 @@ export default function CustomSVGQR({
     return elements;
   }, [qrMatrix, size, dotsType, dotsColor, cornersSquareType, cornersSquareColor, cornersDotType, cornersDotColor, backgroundColor]);
 
-  // Frame rendering
-  const frameId = typeof design?.frameId === "number" ? design.frameId : -1;
-  const hasFrame = frameId >= 0;
-  const frameColor = design?.frameColor || "#7C3AED";
-  const frameBgColor = design?.frameBackgroundColor || frameColor;
-  const frameText = (design?.frameText || "Scan me!").slice(0, 30);
-  const frameTextColor = design?.frameTextColor || "#FFFFFF";
-  const fontSize = design?.frameFontSize || 14;
+  const qrCodeSvg = (
+    <svg
+      ref={svgRef}
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ display: "block" }}
+    >
+      <rect x="0" y="0" width={size} height={size} fill={backgroundColor} />
 
-  // Frame style determination
-  const getFrameStyle = (id: number) => {
-    const textTop = [2, 5, 12, 15].includes(id);
-    const textBoth = [3, 6, 8].includes(id);
-    const isRounded = [4, 5, 6, 7, 10, 12, 14, 16, 30].includes(id);
-    const isDashed = [9, 10, 11, 12, 29].includes(id);
-    const isPill = [7, 8].includes(id);
-    return { textTop, textBoth, isRounded, isDashed, isPill };
-  };
+      {design?.logo && (
+        <defs>
+          <clipPath id="logo-clip">
+            <rect x={size * 0.35} y={size * 0.35} width={size * 0.3} height={size * 0.3} rx={size * 0.02} />
+          </clipPath>
+        </defs>
+      )}
 
-  const frameStyle = getFrameStyle(frameId);
-  const getBorderRadius = () => {
-    if (frameStyle.isRounded) return "16px";
-    if (frameStyle.isPill) return "24px";
-    return "8px";
-  };
+      {svgContent}
+
+      {design?.logo && (
+        <g>
+          <rect x={size * 0.33} y={size * 0.33} width={size * 0.34} height={size * 0.34} fill={backgroundColor} rx={size * 0.02} />
+          <image
+            href={design.logo}
+            x={size * 0.35}
+            y={size * 0.35}
+            width={size * 0.3}
+            height={size * 0.3}
+            preserveAspectRatio="xMidYMid slice"
+            clipPath="url(#logo-clip)"
+          />
+        </g>
+      )}
+    </svg>
+  );
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div
-        className="relative overflow-hidden shadow-sm"
-        style={{
-          backgroundColor: backgroundColor === "transparent" ? "#f9fafb" : backgroundColor,
-          padding: hasFrame ? "12px 12px 0 12px" : "12px",
-          borderRadius: hasFrame ? getBorderRadius() : "12px",
-          border: hasFrame && frameStyle.isDashed ? `2px dashed ${frameColor}` : "none",
-        }}
+    <div className="flex flex-col items-center justify-center relative">
+      <QRFrame
+        frameId={frameId}
+        frameColor={frameColor}
+        frameBgColor={frameBgColor}
+        frameText={frameText}
+        frameTextColor={frameTextColor}
+        fontSize={fontSize}
       >
-        {/* Top frame (renders for textTop OR textBoth) */}
-        {hasFrame && (frameStyle.textTop || frameStyle.textBoth) && (
-          <div
-            className="py-2 px-4 text-center font-bold -mx-3 -mt-3 mb-3"
-            style={{
-              backgroundColor: frameBgColor,
-              color: frameTextColor,
-              marginLeft: "-12px",
-              marginRight: "-12px",
-              marginTop: "-12px",
-              borderTopLeftRadius: getBorderRadius(),
-              borderTopRightRadius: getBorderRadius(),
-              fontSize: `${Math.max(10, fontSize / 3)}px`,
-            }}
-          >
-            {frameText}
-          </div>
-        )}
+        {qrCodeSvg}
+      </QRFrame>
 
-        {/* QR Code SVG */}
-        <svg
-          ref={svgRef}
-          width={size}
-          height={size}
-          viewBox={`0 0 ${size} ${size}`}
-          style={{ display: "block" }}
-        >
-          {/* Background */}
-          <rect x="0" y="0" width={size} height={size} fill={backgroundColor} />
-
-          {/* Logo support */}
-          {design?.logo && (
-            <defs>
-              <clipPath id="logo-clip">
-                <rect x={size * 0.35} y={size * 0.35} width={size * 0.3} height={size * 0.3} rx={size * 0.02} />
-              </clipPath>
-            </defs>
-          )}
-
-          {/* QR modules */}
-          {svgContent}
-
-          {/* Logo */}
-          {design?.logo && (
-            <g>
-              <rect x={size * 0.33} y={size * 0.33} width={size * 0.34} height={size * 0.34} fill={backgroundColor} rx={size * 0.02} />
-              <image
-                href={design.logo}
-                x={size * 0.35}
-                y={size * 0.35}
-                width={size * 0.3}
-                height={size * 0.3}
-                preserveAspectRatio="xMidYMid slice"
-                clipPath="url(#logo-clip)"
-              />
-            </g>
-          )}
-        </svg>
-
-        {/* Video player frame (frame 0) */}
-        {frameId === 0 && (
-          <div
-            className="absolute bottom-0 left-0 right-0 py-2 px-3 flex items-center gap-2"
-            style={{ backgroundColor: `${frameColor}dd`, borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}
-          >
-            <div className="w-5 h-5 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
-              <div className="w-0 h-0 border-l-[6px] border-l-white border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5" />
-            </div>
-            <span className="text-xs font-medium truncate" style={{ color: frameTextColor }}>{frameText}</span>
-          </div>
-        )}
-
-        {/* Bottom frame (only when NOT textTop and NOT textBoth, since textBoth has its own bottom section) */}
-        {hasFrame && frameId !== 0 && !frameStyle.textTop && !frameStyle.textBoth && (
-          <div
-            className="mt-3 py-2.5 px-4 text-center font-bold"
-            style={{
-              backgroundColor: frameBgColor,
-              color: frameTextColor,
-              marginLeft: "-12px",
-              marginRight: "-12px",
-              marginBottom: "0",
-              borderBottomLeftRadius: getBorderRadius(),
-              borderBottomRightRadius: getBorderRadius(),
-              fontSize: `${Math.max(10, fontSize / 3)}px`,
-            }}
-          >
-            {frameText}
-          </div>
-        )}
-
-        {/* Both top and bottom */}
-        {hasFrame && frameStyle.textBoth && (
-          <div
-            className="mt-3 py-2 px-4 text-center font-medium"
-            style={{
-              backgroundColor: frameBgColor,
-              color: frameTextColor,
-              marginLeft: "-12px",
-              marginRight: "-12px",
-              marginBottom: "0",
-              borderBottomLeftRadius: getBorderRadius(),
-              borderBottomRightRadius: getBorderRadius(),
-              fontSize: `${Math.max(9, fontSize / 4)}px`,
-            }}
-          >
-            {frameText}
-          </div>
-        )}
-
-        {/* Loading overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-            <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-      </div>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl">
+          <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   );
 }
@@ -772,7 +790,6 @@ export async function downloadCustomQR(
     a.click();
     URL.revokeObjectURL(url);
   } else {
-    // Convert SVG to PNG using canvas
     const svgData = new XMLSerializer().serializeToString(svgElement);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -780,7 +797,7 @@ export async function downloadCustomQR(
 
     return new Promise((resolve, reject) => {
       img.onload = () => {
-        canvas.width = img.width * 2; // 2x for better quality
+        canvas.width = img.width * 2;
         canvas.height = img.height * 2;
         ctx?.scale(2, 2);
         ctx?.drawImage(img, 0, 0);
