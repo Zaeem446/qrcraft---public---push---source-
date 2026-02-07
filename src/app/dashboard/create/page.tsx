@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
@@ -15,18 +15,17 @@ import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
 import dynamic from "next/dynamic";
-import type QRCodeStyling from "qr-code-styling";
 
-// Dynamic import with SSR disabled - qr-code-styling needs browser APIs
-const StyledQRPreview = dynamic(
-  () => import("@/components/qr/StyledQRPreview").then(mod => mod.default),
+// Dynamic import with SSR disabled - CustomSVGQR uses browser APIs
+const CustomSVGQR = dynamic(
+  () => import("@/components/qr/CustomSVGQR").then(mod => mod.default),
   { ssr: false, loading: () => <div className="w-[220px] h-[220px] bg-gray-100 animate-pulse rounded-xl" /> }
 );
 
 // Import download function separately
-const downloadQRCodeFn = async (qrCode: QRCodeStyling, name: string, format: "png" | "svg") => {
-  const { downloadQRCode } = await import("@/components/qr/StyledQRPreview");
-  return downloadQRCode(qrCode, name, format);
+const downloadQRCodeFn = async (svgElement: SVGSVGElement, name: string, format: "png" | "svg") => {
+  const { downloadCustomQR } = await import("@/components/qr/CustomSVGQR");
+  return downloadCustomQR(svgElement, name, format);
 };
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -73,13 +72,13 @@ export default function CreateQRPage() {
   });
   const [saving, setSaving] = useState(false);
   const [createdQr, setCreatedQr] = useState<{ id: string } | null>(null);
-  const qrCodeInstanceRef = useRef<QRCodeStyling | null>(null);
+  const qrSvgRef = useRef<SVGSVGElement | null>(null);
 
   const activePreview = hoveredType || qrType || "";
 
-  // Handle QR code ready - store the instance for downloads
-  const handleQRReady = useCallback((qrCode: QRCodeStyling) => {
-    qrCodeInstanceRef.current = qrCode;
+  // Handle QR code ready - store the SVG element for downloads
+  const handleQRReady = useCallback((svgElement: SVGSVGElement | null) => {
+    qrSvgRef.current = svgElement;
   }, []);
 
   const handleSave = async () => {
@@ -105,12 +104,12 @@ export default function CreateQRPage() {
   };
 
   const downloadQr = async (format: "png" | "svg") => {
-    if (!qrCodeInstanceRef.current) {
+    if (!qrSvgRef.current) {
       toast.error("QR code not ready");
       return;
     }
     try {
-      await downloadQRCodeFn(qrCodeInstanceRef.current, name || "qrcode", format);
+      await downloadQRCodeFn(qrSvgRef.current, name || "qrcode", format);
     } catch {
       toast.error("Download failed");
     }
@@ -308,7 +307,7 @@ export default function CreateQRPage() {
                 <div className="relative inline-block mb-8">
                   <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
                   <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <StyledQRPreview
+                    <CustomSVGQR
                       content={content}
                       type={qrType}
                       design={design}
@@ -377,7 +376,7 @@ export default function CreateQRPage() {
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
                 <div className="flex items-center justify-center">
                   {qrType ? (
-                    <StyledQRPreview
+                    <CustomSVGQR
                       content={content}
                       type={qrType}
                       design={design}
@@ -403,7 +402,7 @@ export default function CreateQRPage() {
                 ) : step === 4 && createdQr ? (
                   <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
                     <div className="bg-white rounded-2xl p-4 shadow-lg">
-                      <StyledQRPreview content={content} type={qrType} design={design} size={160} />
+                      <CustomSVGQR content={content} type={qrType} design={design} size={160} />
                     </div>
                   </div>
                 ) : qrType ? (

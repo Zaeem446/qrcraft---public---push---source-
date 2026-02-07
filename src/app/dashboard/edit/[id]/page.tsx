@@ -13,17 +13,16 @@ import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
 import dynamic from "next/dynamic";
-import type QRCodeStyling from "qr-code-styling";
 
-// Dynamic import with SSR disabled
-const StyledQRPreview = dynamic(
-  () => import("@/components/qr/StyledQRPreview").then(mod => mod.default),
+// Dynamic import with SSR disabled - CustomSVGQR uses browser APIs
+const CustomSVGQR = dynamic(
+  () => import("@/components/qr/CustomSVGQR").then(mod => mod.default),
   { ssr: false, loading: () => <div className="w-[180px] h-[180px] bg-gray-100 animate-pulse rounded-xl" /> }
 );
 
-const downloadQRCodeFn = async (qrCode: QRCodeStyling, name: string, format: "png" | "svg") => {
-  const { downloadQRCode } = await import("@/components/qr/StyledQRPreview");
-  return downloadQRCode(qrCode, name, format);
+const downloadQRCodeFn = async (svgElement: SVGSVGElement, name: string, format: "png" | "svg") => {
+  const { downloadCustomQR } = await import("@/components/qr/CustomSVGQR");
+  return downloadCustomQR(svgElement, name, format);
 };
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
@@ -37,7 +36,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
-  const qrCodeInstanceRef = useRef<QRCodeStyling | null>(null);
+  const qrSvgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     fetch(`/api/qrcodes/${id}`)
@@ -53,8 +52,8 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleQRReady = useCallback((qrCode: QRCodeStyling) => {
-    qrCodeInstanceRef.current = qrCode;
+  const handleQRReady = useCallback((svgElement: SVGSVGElement | null) => {
+    qrSvgRef.current = svgElement;
   }, []);
 
   const handleSave = async () => {
@@ -78,13 +77,13 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   };
 
   const handleDownload = async (format: "png" | "webp" | "jpeg") => {
-    if (!qrCodeInstanceRef.current) {
+    if (!qrSvgRef.current) {
       toast.error("QR code not ready");
       return;
     }
     try {
-      // Note: qr-code-styling only supports png and svg natively
-      await downloadQRCodeFn(qrCodeInstanceRef.current, name || "qrcode", "png");
+      // CustomSVGQR supports png and svg
+      await downloadQRCodeFn(qrSvgRef.current, name || "qrcode", "png");
     } catch {
       toast.error("Download failed");
     }
@@ -165,7 +164,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
                 <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex flex-col items-center justify-center p-4">
                   {qrType ? (
                     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                      <StyledQRPreview
+                      <CustomSVGQR
                         content={content}
                         type={qrType}
                         design={design}
