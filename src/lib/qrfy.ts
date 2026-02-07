@@ -1,6 +1,6 @@
-// QR Code Generator — Self-hosted using mobstac-awesome-qr
-// Replaces QRFY API with local generation
-// Original QRFY code preserved below for reference
+// QR Code Generator — Self-hosted (client-side qr-code-styling)
+// Server-side is just stubs, actual QR generation happens in browser
+// Original QRFY code preserved below for reference/rollback
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SELF-HOSTED IMPLEMENTATION (Active)
