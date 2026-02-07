@@ -219,8 +219,10 @@ export async function createQR(params: {
   design: Record<string, any>;
   name?: string;
 }) {
-  const mockId = Date.now();
-  console.log('[QR Generator] createQR called - using self-hosted generation');
+  // Generate a unique ID using timestamp + random to avoid collisions
+  // Use modulo to keep it within safe integer range for PostgreSQL
+  const mockId = Math.floor((Date.now() % 1000000000) + Math.random() * 100000);
+  console.log('[QR Generator] createQR called - using self-hosted generation, mockId:', mockId);
   return { id: mockId };
 }
 
