@@ -10,17 +10,34 @@ interface CustomSVGQRProps {
   type: string;
   design: Record<string, any>;
   size?: number;
+  slug?: string; // When provided, dynamic types will encode redirect URL for tracking
   onReady?: (svgElement: SVGSVGElement | null) => void;
 }
 
+// ─── Static Types (encode raw content directly) ─────────────────────────────
+// These types encode their content directly into the QR code (no tracking)
+const STATIC_TYPES = new Set([
+  "vcard", "wifi", "email", "sms", "phone", "text", "bitcoin", "calendar", "whatsapp"
+]);
+
 // ─── Content to String Conversion ────────────────────────────────────────────
 
-function contentToString(type: string, content: Record<string, any>): string {
+function contentToString(type: string, content: Record<string, any>, slug?: string): string {
+  // For dynamic types with a slug, use the redirect URL for tracking
+  // This allows scans to be recorded before redirecting to the actual content
+  if (slug && !STATIC_TYPES.has(type)) {
+    const baseUrl = typeof window !== 'undefined'
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online');
+    return `${baseUrl}/r/${slug}`;
+  }
+
   switch (type) {
     case "website":
     case "video":
     case "instagram":
     case "facebook":
+      // When no slug (preview mode), show content URL or placeholder
       return content?.url || "https://example.com";
 
     case "vcard": {
@@ -822,13 +839,14 @@ export default function CustomSVGQR({
   type,
   design,
   size = 200,
+  slug,
   onReady,
 }: CustomSVGQRProps) {
   const [qrMatrix, setQrMatrix] = useState<boolean[][] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const qrValue = contentToString(type, content);
+  const qrValue = contentToString(type, content, slug);
 
   // Design options
   const dotsType = design?.dotsType || "square";

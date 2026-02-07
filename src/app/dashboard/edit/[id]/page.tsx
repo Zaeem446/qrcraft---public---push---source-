@@ -33,6 +33,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [content, setContent] = useState<Record<string, any>>({});
   const [design, setDesign] = useState<Record<string, any>>({});
   const [qrType, setQrType] = useState("");
+  const [slug, setSlug] = useState("");
   const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
@@ -46,6 +47,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         setContent(data.content);
         setDesign(data.design || {});
         setQrType(data.type);
+        setSlug(data.slug || "");
         setQrfyId(data.qrfyId || null);
       })
       .catch(() => toast.error("Failed to load QR code"))
@@ -169,6 +171,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
                         type={qrType}
                         design={design}
                         size={180}
+                        slug={slug}
                         onReady={handleQRReady}
                       />
                     </div>

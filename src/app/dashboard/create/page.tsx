@@ -71,7 +71,7 @@ export default function CreateQRPage() {
     errorCorrectionLevel: "H",
   });
   const [saving, setSaving] = useState(false);
-  const [createdQr, setCreatedQr] = useState<{ id: string } | null>(null);
+  const [createdQr, setCreatedQr] = useState<{ id: string; slug: string } | null>(null);
   const qrSvgRef = useRef<SVGSVGElement | null>(null);
 
   const activePreview = hoveredType || qrType || "";
@@ -93,7 +93,7 @@ export default function CreateQRPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success("QR code created!");
-        setCreatedQr({ id: data.id });
+        setCreatedQr({ id: data.id, slug: data.slug });
         setStep(4);
       } else {
         const d = await res.json();
@@ -312,6 +312,7 @@ export default function CreateQRPage() {
                       type={qrType}
                       design={design}
                       size={256}
+                      slug={createdQr.slug}
                       onReady={handleQRReady}
                     />
                   </div>
@@ -402,7 +403,7 @@ export default function CreateQRPage() {
                 ) : step === 4 && createdQr ? (
                   <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
                     <div className="bg-white rounded-2xl p-4 shadow-lg">
-                      <CustomSVGQR content={content} type={qrType} design={design} size={160} />
+                      <CustomSVGQR content={content} type={qrType} design={design} size={160} slug={createdQr.slug} />
                     </div>
                   </div>
                 ) : qrType ? (
