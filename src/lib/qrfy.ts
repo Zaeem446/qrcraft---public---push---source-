@@ -1,36 +1,6 @@
-// QR Code Generator — Self-hosted (client-side qr-code-styling)
-// Server-side is just stubs, actual QR generation happens in browser
-// Original QRFY code preserved below for reference/rollback
+// QRFY API Client — Server-side only
+// Docs reference: https://qrfy.com API
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SELF-HOSTED IMPLEMENTATION (Active)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export {
-  mapTypeToQrfy,
-  mapDesignToStyle,
-  mapContentToData,
-  createQR,
-  updateQR,
-  deleteQR,
-  getQRImage,
-  createStaticQRImage,
-  getReport,
-  transformQrfyReport,
-  STATIC_TYPES,
-  QRFY_SHAPE_STYLES,
-  QRFY_CORNER_SQUARE_STYLES,
-  QRFY_CORNER_DOT_STYLES,
-  QRFY_FRAME_IDS,
-  QRFY_ERROR_CORRECTION,
-} from './qr-generator';
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// ORIGINAL QRFY API CODE (Preserved for rollback if needed)
-// To restore: delete the export block above and uncomment everything below
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/*
 const QRFY_API_URL = process.env.QRFY_API_URL || 'https://qrfy.com';
 const QRFY_API_KEY = process.env.QRFY_API_KEY || '';
 
@@ -44,9 +14,8 @@ async function qrfyFetch(path: string, options: RequestInit = {}) {
     },
   });
   return res;
-}*/
+}
 
-/*
 // ─── Type Mapping ────────────────────────────────────────────────────────────
 
 const TYPE_MAP: Record<string, string> = {
@@ -1032,4 +1001,3 @@ export const QRFY_CORNER_DOT_STYLES = [
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);
 
 export const QRFY_ERROR_CORRECTION = ['L', 'M', 'Q', 'H'] as const;
-*/

@@ -59,8 +59,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       return NextResponse.redirect(`${baseUrl}/qr-expired`);
     }
 
-    // Track scans locally for legacy (non-QRFY) QR codes
-    if (!qrcode.qrfyId) {
+    // Track all scans locally (QRFY is no longer used - we're self-hosted now)
+    {
       const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || '127.0.0.1';
       const userAgent = req.headers.get('user-agent') || '';
       const parser = new UAParser(userAgent);

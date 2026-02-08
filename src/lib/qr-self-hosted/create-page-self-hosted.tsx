@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
@@ -14,7 +14,19 @@ import ContentForms from "@/components/qr/ContentForms";
 import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
-import InstantQRPreview from "@/components/qr/InstantQRPreview";
+import dynamic from "next/dynamic";
+
+// Dynamic import with SSR disabled - CustomSVGQR uses browser APIs
+const CustomSVGQR = dynamic(
+  () => import("@/components/qr/CustomSVGQR").then(mod => mod.default),
+  { ssr: false, loading: () => <div className="w-[220px] h-[220px] bg-gray-100 animate-pulse rounded-xl" /> }
+);
+
+// Import download function separately
+const downloadQRCodeFn = async (svgElement: SVGSVGElement, name: string, format: "png" | "svg") => {
+  const { downloadCustomQR } = await import("@/components/qr/CustomSVGQR");
+  return downloadCustomQR(svgElement, name, format);
+};
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
@@ -59,61 +71,14 @@ export default function CreateQRPage() {
     errorCorrectionLevel: "H",
   });
   const [saving, setSaving] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [createdQr, setCreatedQr] = useState<{ id: string; imageUrl: string } | null>(null);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const [createdQr, setCreatedQr] = useState<{ id: string; slug: string } | null>(null);
+  const qrSvgRef = useRef<SVGSVGElement | null>(null);
 
   const activePreview = hoveredType || qrType || "";
 
-  // Fetch QR preview from QRFY via our API
-  const fetchPreview = useCallback(async () => {
-    if (!qrType) return;
-
-    // Abort any previous in-flight request to prevent race conditions
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-
-    setPreviewLoading(true);
-    try {
-      const res = await fetch("/api/qrcodes/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: qrType, content, design }),
-        signal: abortControllerRef.current.signal,
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        setPreviewUrl(prev => {
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
-      }
-    } catch (err) {
-      // Ignore abort errors - they're expected when user changes design quickly
-      if (err instanceof Error && err.name === 'AbortError') return;
-      console.error("Preview fetch error:", err);
-    }
-    setPreviewLoading(false);
-  }, [qrType, content, design]);
-
-  // Debounced preview refresh
-  useEffect(() => {
-    if (step >= 2 && qrType) {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchPreview(), 400);
-      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-    }
-  }, [step, design, qrType, content, fetchPreview]);
-
-  // Cleanup preview URL on unmount
-  useEffect(() => {
-    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Handle QR code ready - store the SVG element for downloads
+  const handleQRReady = useCallback((svgElement: SVGSVGElement | null) => {
+    qrSvgRef.current = svgElement;
   }, []);
 
   const handleSave = async () => {
@@ -128,7 +93,7 @@ export default function CreateQRPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success("QR code created!");
-        setCreatedQr({ id: data.id, imageUrl: previewUrl || "" });
+        setCreatedQr({ id: data.id, slug: data.slug });
         setStep(4);
       } else {
         const d = await res.json();
@@ -139,28 +104,12 @@ export default function CreateQRPage() {
   };
 
   const downloadQr = async (format: "png" | "svg") => {
-    if (!createdQr?.imageUrl) return;
+    if (!qrSvgRef.current) {
+      toast.error("QR code not ready");
+      return;
+    }
     try {
-      if (format === "svg") {
-        const res = await fetch("/api/qrcodes/preview", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: qrType, content, design, format: "svg" }),
-        });
-        if (!res.ok) throw new Error("Failed to generate SVG");
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${name || "qrcode"}.svg`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        const a = document.createElement("a");
-        a.href = createdQr.imageUrl;
-        a.download = `${name || "qrcode"}.png`;
-        a.click();
-      }
+      await downloadQRCodeFn(qrSvgRef.current, name || "qrcode", format);
     } catch {
       toast.error("Download failed");
     }
@@ -355,19 +304,19 @@ export default function CreateQRPage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">QR Code Created!</h2>
                 <p className="text-gray-500 mb-8">Your QR code &ldquo;{name}&rdquo; is ready to use. Download it below.</p>
 
-                {createdQr.imageUrl ? (
-                  <div className="relative inline-block mb-8">
-                    <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
-                    <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                      <img src={createdQr.imageUrl} alt="Your QR Code" className="w-64 h-64 mx-auto" />
-                    </div>
+                <div className="relative inline-block mb-8">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
+                  <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                    <CustomSVGQR
+                      content={content}
+                      type={qrType}
+                      design={design}
+                      size={256}
+                      slug={createdQr.slug}
+                      onReady={handleQRReady}
+                    />
                   </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-2xl p-8 mb-8 inline-block">
-                    <QrCodeIcon className="h-32 w-32 mx-auto text-gray-300" />
-                    <p className="text-xs text-gray-400 mt-3">QR code preview unavailable</p>
-                  </div>
-                )}
+                </div>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <button onClick={() => downloadQr("png")}
@@ -427,24 +376,14 @@ export default function CreateQRPage() {
             {step >= 2 && step < 4 && previewTab === "qrcode" && (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
                 <div className="flex items-center justify-center">
-                  {previewUrl ? (
-                    <div className="relative">
-                      <img src={previewUrl} alt="QR Preview" className="w-[220px] h-[220px] object-contain" />
-                      {previewLoading && (
-                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
-                          <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                      )}
-                    </div>
-                  ) : qrType ? (
-                    <div className="relative">
-                      <InstantQRPreview content={content} type={qrType} design={design} size={220} />
-                      {previewLoading && (
-                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
-                          <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                      )}
-                    </div>
+                  {qrType ? (
+                    <CustomSVGQR
+                      content={content}
+                      type={qrType}
+                      design={design}
+                      size={220}
+                      onReady={handleQRReady}
+                    />
                   ) : (
                     <div className="text-center text-gray-400">
                       <QrCodeIcon className="h-20 w-20 mx-auto text-gray-200" />
@@ -452,9 +391,7 @@ export default function CreateQRPage() {
                     </div>
                   )}
                 </div>
-                {previewUrl && (
-                  <p className="text-center text-[10px] text-gray-400 mt-3">Live preview from QRFY</p>
-                )}
+                <p className="text-center text-[10px] text-gray-400 mt-3">Live styled preview</p>
               </div>
             )}
 
@@ -463,10 +400,10 @@ export default function CreateQRPage() {
               <PhoneMockup>
                 {step === 1 ? (
                   activePreview ? renderPreviewForType(activePreview) : <DefaultPhonePreview />
-                ) : step === 4 && createdQr?.imageUrl ? (
+                ) : step === 4 && createdQr ? (
                   <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex items-center justify-center p-6">
                     <div className="bg-white rounded-2xl p-4 shadow-lg">
-                      <img src={createdQr.imageUrl} alt="QR Code" className="w-full max-w-[180px]" />
+                      <CustomSVGQR content={content} type={qrType} design={design} size={160} slug={createdQr.slug} />
                     </div>
                   </div>
                 ) : qrType ? (

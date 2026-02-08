@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
 import { getAuthUser } from '@/lib/clerk-auth';
 import prisma from '@/lib/db';
-import { createQR, STATIC_TYPES } from '@/lib/qrfy';
 
 export async function GET(req: NextRequest) {
   try {
@@ -61,44 +60,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, type, and content are required' }, { status: 400 });
     }
 
-    // Generate slug first so we can use it in the QRFY redirect URL
+    // Generate unique slug for this QR code
     const slug = nanoid(8);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
 
-    // Create QR on QRFY
-    let qrfyId: number | null = null;
-    let qrfyError: string | null = null;
-
-    // For dynamic types, override URL to point to our redirect so QRFY encodes the tracking URL
-    const qrfyContent = STATIC_TYPES.includes(type)
-      ? content
-      : { ...content, url: `${baseUrl}/r/${slug}` };
-
-    try {
-      const qrfyResult = await createQR({ type, content: qrfyContent, design: design || {}, name });
-      qrfyId = qrfyResult?.id ?? null;
-    } catch (err: any) {
-      qrfyError = err?.message || String(err);
-      console.error('QRFY create error:', qrfyError);
-      // Continue without QRFY — QR will be stored locally only
-    }
-
+    // Self-hosted: QR generation happens client-side, we just store the data
     const qrcode = await prisma.qRCode.create({
       data: {
         userId: user.id,
         name,
         type,
         slug,
-        qrfyId,
+        // qrfyId is null since we're self-hosted now
         content,
         design: design || {},
       },
     });
 
-    return NextResponse.json({
-      ...qrcode,
-      ...(qrfyError ? { _qrfyError: qrfyError } : {}),
-    }, { status: 201 });
+    return NextResponse.json(qrcode, { status: 201 });
   } catch (error) {
     console.error('Error creating QR code:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
