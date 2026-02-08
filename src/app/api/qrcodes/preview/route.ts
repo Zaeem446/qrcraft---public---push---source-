@@ -3,16 +3,26 @@ import { getAuthUser } from '@/lib/clerk-auth';
 import { createStaticQRImage } from '@/lib/qrfy';
 import QRCode from 'qrcode';
 
+// Normalize URL to ensure it has a protocol
+function normalizeUrl(url: string | undefined | null): string {
+  if (!url || typeof url !== 'string') return 'https://example.com';
+  const trimmed = url.trim();
+  if (!trimmed) return 'https://example.com';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 // Convert content object to a string suitable for QR encoding
 function contentToString(type: string, content: Record<string, any>): string {
   switch (type) {
     case 'website':
     case 'instagram':
     case 'facebook':
-      return content.url || 'https://example.com';
+      return normalizeUrl(content.url);
 
     case 'video':
-      return content.url || content.fileUrl || 'https://example.com';
+      return normalizeUrl(content.url || content.fileUrl);
 
     case 'bitcoin':
       return content.address ? `bitcoin:${content.address}` : content.url || 'bitcoin:';

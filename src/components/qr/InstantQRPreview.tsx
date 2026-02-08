@@ -10,6 +10,16 @@ interface InstantQRPreviewProps {
   size?: number;
 }
 
+// Normalize URL to ensure it has a protocol
+function normalizeUrl(url: string | undefined | null): string {
+  if (!url || typeof url !== 'string') return 'https://example.com';
+  const trimmed = url.trim();
+  if (!trimmed) return 'https://example.com';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 // Convert content to a string for QR encoding
 function contentToString(type: string, content: Record<string, any>): string {
   switch (type) {
@@ -17,7 +27,7 @@ function contentToString(type: string, content: Record<string, any>): string {
     case "video":
     case "instagram":
     case "facebook":
-      return content?.url || "https://example.com";
+      return normalizeUrl(content?.url);
     case "vcard":
       const vcard = [
         "BEGIN:VCARD",
@@ -49,7 +59,7 @@ function contentToString(type: string, content: Record<string, any>): string {
       return `bitcoin:${content?.address || ""}?amount=${content?.amount || 0}`;
     default:
       // For dynamic types, use a placeholder URL
-      return content?.url || "https://qrcraft.app/qr/preview";
+      return normalizeUrl(content?.url) || "https://qrcraft.app/qr/preview";
   }
 }
 

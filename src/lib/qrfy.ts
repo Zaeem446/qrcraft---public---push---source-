@@ -4,6 +4,19 @@
 const QRFY_API_URL = process.env.QRFY_API_URL || 'https://qrfy.com';
 const QRFY_API_KEY = process.env.QRFY_API_KEY || '';
 
+// Normalize URL to ensure it has a protocol (QRFY requires valid URLs)
+function normalizeUrl(url: string | undefined | null): string {
+  if (!url || typeof url !== 'string') return 'https://example.com';
+  const trimmed = url.trim();
+  if (!trimmed) return 'https://example.com';
+  // Already has protocol
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  // Has other protocol (mailto:, tel:, etc.) - return as is
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  // Add https:// prefix
+  return `https://${trimmed}`;
+}
+
 async function qrfyFetch(path: string, options: RequestInit = {}) {
   const res = await fetch(`${QRFY_API_URL}${path}`, {
     ...options,
@@ -250,11 +263,11 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     case 'website': {
       // Support multiple websites; send first URL as primary
       const websites = Array.isArray(content.websites) ? content.websites : [];
-      const data: Record<string, any> = { url: content.url || '' };
+      const data: Record<string, any> = { url: normalizeUrl(content.url) };
       if (websites.length > 0) {
         data.websites = websites.filter((w: any) => w.url).map((w: any) => ({
           name: w.name || '',
-          url: w.url || '',
+          url: normalizeUrl(w.url),
           description: w.description || '',
         }));
       }
@@ -263,7 +276,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     }
     case 'instagram':
     case 'facebook':
-      return { type: qrfyType, data: { url: content.url || '' } };
+      return { type: qrfyType, data: { url: normalizeUrl(content.url) } };
 
     case 'bitcoin':
       return {
@@ -460,9 +473,9 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
     case 'video': {
       const videos: string[] = [];
       if (content.fileUrl) videos.push(toAbsoluteUrl(content.fileUrl));
-      if (content.url) videos.push(content.url);
+      if (content.url) videos.push(normalizeUrl(content.url));
       if (Array.isArray(content.videos)) {
-        for (const v of content.videos) videos.push(typeof v === 'string' ? v : v.url || v.file || '');
+        for (const v of content.videos) videos.push(normalizeUrl(typeof v === 'string' ? v : v.url || v.file || ''));
       }
       return {
         type: 'video',
@@ -782,7 +795,7 @@ export async function createQR(params: CreateQRParams) {
     // Our landing page (/qr/[slug]) handles the actual content display
     // This avoids sending complex data (images, PDFs, etc.) to QRFY
     qrfyType = 'url';
-    data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
+    data = { url: normalizeUrl(params.content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
   const qr: Record<string, any> = {
@@ -872,7 +885,7 @@ export async function updateQR(qrfyId: number, params: UpdateQRParams) {
     } else {
       // Dynamic types — update with URL type pointing to our redirect
       body.type = 'url';
-      body.data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
+      body.data = { url: normalizeUrl(params.content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
     }
   }
 
@@ -983,15 +996,17 @@ export async function createStaticQRImage(
     // Static type — map content to QRFY data format
     try {
       const { data } = mapContentToData(type, content);
+      // Normalize any URLs in the data
+      if (data.url) data.url = normalizeUrl(data.url);
       body.data = data;
     } catch {
       // If mapping fails, fall back to URL-static with text/url
       body.type = 'url-static';
-      body.data = { url: content.url || content.text || 'https://example.com' };
+      body.data = { url: normalizeUrl(content.url || content.text) };
     }
   } else {
     // Dynamic type — encode the redirect URL (or content URL) into the QR
-    body.data = { url: content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
+    body.data = { url: normalizeUrl(content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {
