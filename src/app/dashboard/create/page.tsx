@@ -464,8 +464,7 @@ export default function CreateQRPage() {
                   )}
                 </div>
                 {previewUrl && (
-                  <p className="text-center text-[10px] text-gray-400 mt-3">Live preview from QRFY</p>
-                )}
+                                  )}
               </div>
             )}
 
