@@ -12,12 +12,14 @@ import {
   ChatBubbleLeftRightIcon,
   QuestionMarkCircleIcon,
   ClockIcon,
+  FolderIcon,
 } from '@heroicons/react/24/outline';
 
 const mainNav = [
   { href: '/dashboard/create', label: 'Create QR Code', icon: PlusCircleIcon },
   { href: '/dashboard/analytics', label: 'Analytics', icon: ChartBarIcon },
   { href: '/dashboard', label: 'My QR Codes', icon: QrCodeIcon, exact: true },
+  { href: '/dashboard/folders', label: 'Folders', icon: FolderIcon },
   { href: '/dashboard/account', label: 'My Account', icon: UserCircleIcon },
   { href: '/dashboard/billing', label: 'Billing', icon: CreditCardIcon },
 ];

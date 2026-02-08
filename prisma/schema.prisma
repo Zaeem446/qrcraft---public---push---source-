@@ -60,29 +60,67 @@ model User {
   qrcodes             QRCode[]
   scans               Scan[]
   verificationTokens  VerificationToken[]
+  folders             Folder[]
 
   @@map("users")
 }
 
-model QRCode {
-  id              String    @id @default(cuid())
-  userId          String
-  name            String
-  type            String
-  slug            String?   @unique
-  qrfyId          Int?      @unique
-  content         Json
-  design          Json      @default("{}")
-  scanCount       Int       @default(0)
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+model Folder {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  color     String?  @default("#7C3AED")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  scans           Scan[]
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  qrcodes   QRCode[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@map("folders")
+}
+
+model QRCode {
+  id                  String    @id @default(cuid())
+  userId              String
+  name                String
+  type                String
+  slug                String?   @unique
+  qrfyId              Int?      @unique
+  content             Json
+  design              Json      @default("{}")
+  scanCount           Int       @default(0)
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  // P1 Features: Password Protection
+  accessPassword      String?   // Hashed password for protected QR codes
+
+  // P1 Features: Scan Limits
+  scanLimit           Int?      // null = unlimited, 0 = disabled, >0 = limit
+
+  // P1 Features: Folder Organization
+  folderId            String?
+
+  // P1 Features: Third-party Analytics
+  googleAnalyticsId   String?   // e.g., "G-ABCDEFGHIJ"
+  facebookPixelId     String?   // e.g., "12345678910"
+  googleTagManagerId  String?   // e.g., "GTM-ABCDEFGHIJ"
+
+  // P2 Features
+  isFavorite          Boolean   @default(false)
+  hostname            String?   // Custom subdomain/hostname
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder              Folder?   @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  scans               Scan[]
 
   @@index([userId])
   @@index([slug])
+  @@index([folderId])
+  @@index([isFavorite])
   @@map("qrcodes")
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { nanoid } from 'nanoid';
+import bcrypt from 'bcryptjs';
 import { getAuthUser } from '@/lib/clerk-auth';
 import prisma from '@/lib/db';
 import { createQR, STATIC_TYPES } from '@/lib/qrfy';
@@ -16,6 +17,9 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const search = searchParams.get('search') || '';
     const type = searchParams.get('type') || '';
+    const folderId = searchParams.get('folderId') || '';
+    const favorite = searchParams.get('favorite');
+    const status = searchParams.get('status');
 
     const where: any = { userId: user.id };
     if (search) {
@@ -23,6 +27,20 @@ export async function GET(req: NextRequest) {
     }
     if (type) {
       where.type = type;
+    }
+    // P1: Filter by folder
+    if (folderId) {
+      where.folderId = folderId === 'none' ? null : folderId;
+    }
+    // P2: Filter by favorite
+    if (favorite === 'true') {
+      where.isFavorite = true;
+    }
+    // P2: Filter by status
+    if (status === 'active') {
+      where.isActive = true;
+    } else if (status === 'inactive') {
+      where.isActive = false;
     }
 
     const [total, qrcodes] = await Promise.all([
@@ -32,6 +50,11 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
+        include: {
+          folder: {
+            select: { id: true, name: true, color: true },
+          },
+        },
       }),
     ]);
 
@@ -55,15 +78,45 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, type, content, design } = body;
+    const {
+      name,
+      type,
+      content,
+      design,
+      // P1 Features
+      password,           // Plain text password (will be hashed)
+      scanLimit,          // null = unlimited, number = limit
+      folderId,           // Local folder ID
+      googleAnalyticsId,
+      facebookPixelId,
+      googleTagManagerId,
+      // P2 Features
+      hostname,
+    } = body;
 
     if (!name || !type || !content) {
       return NextResponse.json({ error: 'Name, type, and content are required' }, { status: 400 });
     }
 
+    // P1: Validate folder exists and belongs to user
+    if (folderId) {
+      const folder = await prisma.folder.findFirst({
+        where: { id: folderId, userId: user.id },
+      });
+      if (!folder) {
+        return NextResponse.json({ error: 'Folder not found' }, { status: 404 });
+      }
+    }
+
     // Generate slug first so we can use it in the QRFY redirect URL
     const slug = nanoid(8);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
+
+    // P1: Hash password if provided
+    let hashedPassword: string | null = null;
+    if (password && typeof password === 'string' && password.trim()) {
+      hashedPassword = await bcrypt.hash(password.trim(), 10);
+    }
 
     // Create QR on QRFY
     let qrfyId: number | null = null;
@@ -75,7 +128,20 @@ export async function POST(req: NextRequest) {
       : { ...content, url: `${baseUrl}/r/${slug}` };
 
     try {
-      const qrfyResult = await createQR({ type, content: qrfyContent, design: design || {}, name });
+      const qrfyResult = await createQR({
+        type,
+        content: qrfyContent,
+        design: design || {},
+        name,
+        // P1 Features
+        accessPassword: !!hashedPassword,
+        scanLimit: scanLimit ?? undefined,
+        googleAnalyticsId: googleAnalyticsId || undefined,
+        facebookPixelId: facebookPixelId || undefined,
+        googleTagManagerId: googleTagManagerId || undefined,
+        // P2/P3 Features
+        hostname: hostname || undefined,
+      });
       qrfyId = qrfyResult?.id ?? null;
     } catch (err: any) {
       qrfyError = err?.message || String(err);
@@ -92,11 +158,27 @@ export async function POST(req: NextRequest) {
         qrfyId,
         content,
         design: design || {},
+        // P1 Features
+        accessPassword: hashedPassword,
+        scanLimit: scanLimit ?? null,
+        folderId: folderId || null,
+        googleAnalyticsId: googleAnalyticsId || null,
+        facebookPixelId: facebookPixelId || null,
+        googleTagManagerId: googleTagManagerId || null,
+        // P2/P3 Features
+        hostname: hostname || null,
+      },
+      include: {
+        folder: {
+          select: { id: true, name: true, color: true },
+        },
       },
     });
 
     return NextResponse.json({
       ...qrcode,
+      // Don't expose hashed password
+      accessPassword: !!qrcode.accessPassword,
       ...(qrfyError ? { _qrfyError: qrfyError } : {}),
     }, { status: 201 });
   } catch (error) {

@@ -21,6 +21,7 @@ async function qrfyFetch(path: string, options: RequestInit = {}) {
 const TYPE_MAP: Record<string, string> = {
   website: 'url',
   vcard: 'vcard',
+  'vcard-plus': 'vcard-plus',  // P2: Extended vCard
   wifi: 'wifi',
   email: 'email',
   sms: 'sms',
@@ -46,6 +47,7 @@ const TYPE_MAP: Record<string, string> = {
   playlist: 'link-list',
   product: 'business',
   feedback: 'feedback',
+  barcode: 'barcode',  // P2: Barcode support
 };
 
 export function mapTypeToQrfy(ourType: string): string {
@@ -325,6 +327,53 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
           ...(Array.isArray(content.socials) && content.socials.length ? {
             socials: content.socials.filter((s: any) => s.platform && s.url).map((s: any) => ({ id: s.platform, value: s.url })),
           } : {}),
+        },
+      };
+
+    // ── vCard Plus (Extended vCard) ────────────────────────────────────
+    case 'vcard-plus': {
+      const socials = Array.isArray(content.socials)
+        ? content.socials.filter((s: any) => s.platform && s.url).map((s: any) => ({ id: s.platform, value: s.url }))
+        : [];
+      return {
+        type: 'vcard-plus',
+        data: {
+          design: { primary: design2.primary, secondary: design2.secondary },
+          firstName: content.firstName || '',
+          lastName: content.lastName || '',
+          phone: content.phone || '',
+          email: content.email || '',
+          company: content.company || content.org || '',
+          title: content.title || content.jobTitle || '',
+          url: content.website || '',
+          description: content.description || content.bio || '',
+          street: content.street || '',
+          city: content.city || '',
+          state: content.state || '',
+          zip: content.zip || '',
+          country: content.country || '',
+          ...(content.photo ? { photo: toAbsoluteUrl(content.photo) } : {}),
+          ...(content.cover ? { cover: toAbsoluteUrl(content.cover) } : {}),
+          ...(content.mobilePhone ? { mobilePhone: content.mobilePhone } : {}),
+          ...(content.workPhone ? { workPhone: content.workPhone } : {}),
+          ...(content.fax ? { fax: content.fax } : {}),
+          ...(content.birthday ? { birthday: content.birthday } : {}),
+          ...(socials.length ? { socials } : {}),
+          ...(content.buttonUrl ? { button: { text: content.buttonText || 'Contact', url: content.buttonUrl } } : {}),
+        },
+      };
+    }
+
+    // ── Barcode ────────────────────────────────────────────────────────
+    case 'barcode':
+      return {
+        type: 'barcode',
+        data: {
+          value: content.value || content.code || '',
+          format: content.format || 'CODE128', // EAN13, EAN8, UPC, CODE128, CODE39, ITF14, etc.
+          displayValue: content.displayValue !== false,
+          ...(content.width ? { width: content.width } : {}),
+          ...(content.height ? { height: content.height } : {}),
         },
       };
 
@@ -695,14 +744,25 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
 
 // Static types whose content should be mapped directly for QRFY (embed data in QR)
 // Exported so other modules use the same list
-export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
+export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard', 'barcode'];
 
-export async function createQR(params: {
+export interface CreateQRParams {
   type: string;
   content: Record<string, any>;
   design: Record<string, any>;
   name?: string;
-}) {
+  // P1 Features
+  accessPassword?: boolean;  // Whether password protection is enabled
+  scanLimit?: number | null; // null = unlimited
+  folderId?: number;         // QRFY folder ID
+  googleAnalyticsId?: string;
+  facebookPixelId?: string;
+  googleTagManagerId?: string;
+  // P2 Features
+  hostname?: string;
+}
+
+export async function createQR(params: CreateQRParams) {
   if (!QRFY_API_KEY) {
     throw new Error('QRFY_API_KEY is not configured');
   }
@@ -725,18 +785,44 @@ export async function createQR(params: {
     data = { url: params.content.url || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
-  const qr = {
+  const qr: Record<string, any> = {
     type: qrfyType,
     data,
     style,
     name: params.name || 'QR Code',
   };
 
+  // P1 Features: Add optional fields if provided
+  if (params.accessPassword !== undefined) {
+    qr.accessPassword = params.accessPassword;
+  }
+  if (params.scanLimit !== undefined && params.scanLimit !== null) {
+    qr.scanLimit = params.scanLimit;
+  }
+  if (params.googleAnalyticsId) {
+    qr.googleAnalyticsId = params.googleAnalyticsId;
+  }
+  if (params.facebookPixelId) {
+    qr.facebookPixelId = params.facebookPixelId;
+  }
+  if (params.googleTagManagerId) {
+    qr.googleTagManagerId = params.googleTagManagerId;
+  }
+  if (params.hostname) {
+    qr.hostname = params.hostname;
+  }
+
+  // Build the bulk create payload
+  const payload: Record<string, any> = { qrs: [qr] };
+  if (params.folderId) {
+    payload.folder = params.folderId;
+  }
+
   console.log('[QRFY createQR] Sending:', JSON.stringify({ type: qrfyType, dataKeys: Object.keys(data || {}), name: qr.name }).slice(0, 500));
 
   const res = await qrfyFetch('/api/public/qrs', {
     method: 'POST',
-    body: JSON.stringify({ qrs: [qr] }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -753,15 +839,25 @@ export async function createQR(params: {
   return Array.isArray(result) ? result[0] : result;
 }
 
-export async function updateQR(
-  qrfyId: number,
-  params: {
-    type?: string;
-    content?: Record<string, any>;
-    design?: Record<string, any>;
-    name?: string;
-  }
-) {
+export interface UpdateQRParams {
+  type?: string;
+  content?: Record<string, any>;
+  design?: Record<string, any>;
+  name?: string;
+  // P1 Features
+  accessPassword?: boolean;
+  scanLimit?: number | null;
+  folderId?: number | null;  // null to remove from folder
+  googleAnalyticsId?: string | null;
+  facebookPixelId?: string | null;
+  googleTagManagerId?: string | null;
+  // P2 Features
+  status?: boolean;  // isActive
+  favorite?: boolean;
+  hostname?: string | null;
+}
+
+export async function updateQR(qrfyId: number, params: UpdateQRParams) {
   if (!QRFY_API_KEY) {
     throw new Error('QRFY_API_KEY is not configured');
   }
@@ -786,6 +882,37 @@ export async function updateQR(
 
   if (params.name) {
     body.name = params.name;
+  }
+
+  // P1 Features
+  if (params.accessPassword !== undefined) {
+    body.accessPassword = params.accessPassword;
+  }
+  if (params.scanLimit !== undefined) {
+    body.scanLimit = params.scanLimit;
+  }
+  if (params.folderId !== undefined) {
+    body.folder = params.folderId ? { id: params.folderId } : null;
+  }
+  if (params.googleAnalyticsId !== undefined) {
+    body.googleAnalyticsId = params.googleAnalyticsId || null;
+  }
+  if (params.facebookPixelId !== undefined) {
+    body.facebookPixelId = params.facebookPixelId || null;
+  }
+  if (params.googleTagManagerId !== undefined) {
+    body.googleTagManagerId = params.googleTagManagerId || null;
+  }
+
+  // P2 Features
+  if (params.status !== undefined) {
+    body.status = params.status;
+  }
+  if (params.favorite !== undefined) {
+    body.favorite = params.favorite;
+  }
+  if (params.hostname !== undefined) {
+    body.hostname = params.hostname || null;
   }
 
   const res = await qrfyFetch(`/api/public/qrs/${qrfyId}`, {
@@ -883,17 +1010,51 @@ export async function createStaticQRImage(
 
 export async function getReport(params: {
   qrfyIds?: number[];
-  startDate?: string;
-  endDate?: string;
+  startDate?: string;  // ISO date string (YYYY-MM-DD)
+  endDate?: string;    // ISO date string (YYYY-MM-DD)
   format?: 'json' | 'csv' | 'xlsx';
+  type?: 'detailed' | 'totals';
+  grouping?: 'daily' | 'monthly' | 'yearly';
+  folderIds?: number[];
 }) {
   const searchParams = new URLSearchParams();
-  if (params.qrfyIds?.length) {
-    searchParams.set('ids', params.qrfyIds.join(','));
+
+  // QRFY expects Unix timestamps for 'from' and 'to' parameters
+  if (params.startDate) {
+    const fromTimestamp = Math.floor(new Date(params.startDate).getTime() / 1000);
+    searchParams.set('from', String(fromTimestamp));
   }
-  if (params.startDate) searchParams.set('startDate', params.startDate);
-  if (params.endDate) searchParams.set('endDate', params.endDate);
+  if (params.endDate) {
+    const toTimestamp = Math.floor(new Date(params.endDate + 'T23:59:59').getTime() / 1000);
+    searchParams.set('to', String(toTimestamp));
+  }
+
+  // QRFY expects ids[] as array parameter format
+  if (params.qrfyIds?.length) {
+    for (const id of params.qrfyIds) {
+      searchParams.append('ids[]', String(id));
+    }
+  }
+
+  // QRFY expects folders[] as array parameter format
+  if (params.folderIds?.length) {
+    for (const id of params.folderIds) {
+      searchParams.append('folders[]', String(id));
+    }
+  }
+
+  // Format is required
   searchParams.set('format', params.format || 'json');
+
+  // Optional: report type (detailed shows per-QR breakdown, totals shows aggregated)
+  if (params.type) {
+    searchParams.set('type', params.type);
+  }
+
+  // Optional: grouping for totals report
+  if (params.grouping) {
+    searchParams.set('grouping', params.grouping);
+  }
 
   const res = await qrfyFetch(`/api/public/qrs/report?${searchParams}`, {
     method: 'GET',
@@ -904,76 +1065,181 @@ export async function getReport(params: {
     throw new Error(`QRFY report failed (${res.status}): ${err}`);
   }
 
+  // For non-JSON formats, return the raw response for file download
+  if (params.format === 'csv' || params.format === 'xlsx') {
+    return res;
+  }
+
   return res.json();
 }
 
 // ─── Analytics Transform ─────────────────────────────────────────────────────
 
-export function transformQrfyReport(report: any) {
-  // Transform QRFY report response into our frontend analytics format
-  const scansOverTime: { date: string; count: number }[] = [];
-  const uniqueScansOverTime: { date: string; count: number }[] = [];
-  const deviceBreakdown: { name: string; value: number }[] = [];
-  const browserBreakdown: { name: string; value: number }[] = [];
-  const osBreakdown: { name: string; value: number }[] = [];
-  const locationBreakdown: { name: string; value: number }[] = [];
-  const cityBreakdown: { name: string; value: number }[] = [];
-  let totalScans = 0;
-  let uniqueScans = 0;
+// Helper to safely extract numeric value
+function safeNumber(val: any): number {
+  if (typeof val === 'number' && !isNaN(val)) return val;
+  if (typeof val === 'string') {
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  }
+  return 0;
+}
 
-  if (report?.scans) {
-    totalScans = typeof report.scans === 'number' ? report.scans : 0;
+// Helper to extract breakdown data from various QRFY response shapes
+function extractBreakdown(
+  data: any,
+  nameKeys: string[],
+  valueKeys: string[]
+): { name: string; value: number }[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((item: any) => {
+      // Try multiple possible key names for flexibility
+      let name = 'Unknown';
+      for (const key of nameKeys) {
+        if (item[key]) {
+          name = String(item[key]);
+          break;
+        }
+      }
+
+      let value = 0;
+      for (const key of valueKeys) {
+        if (item[key] !== undefined) {
+          value = safeNumber(item[key]);
+          break;
+        }
+      }
+
+      return { name, value };
+    })
+    .filter((item) => item.value > 0);
+}
+
+// Helper to extract date series from various QRFY response shapes
+function extractDateSeries(
+  data: any,
+  dateKey: string = 'date',
+  countKey: string = 'count'
+): { date: string; count: number }[] {
+  // Handle object format: { "2024-01-15": 10, "2024-01-16": 20 }
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    return Object.entries(data)
+      .map(([date, count]) => ({
+        date,
+        count: safeNumber(count),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  if (report?.uniqueScans) {
-    uniqueScans = typeof report.uniqueScans === 'number' ? report.uniqueScans : 0;
+  // Handle array format: [{ date: "2024-01-15", count: 10 }, ...]
+  if (Array.isArray(data)) {
+    return data
+      .map((item: any) => ({
+        date: item[dateKey] || item.day || item.month || item.year || 'Unknown',
+        count: safeNumber(item[countKey] || item.scans || item.value || item.total),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 
-  if (report?.scansByDate && typeof report.scansByDate === 'object') {
-    for (const [date, count] of Object.entries(report.scansByDate)) {
-      scansOverTime.push({ date, count: Number(count) });
-    }
+  return [];
+}
+
+export interface QrfyReportData {
+  totalScans: number;
+  uniqueScans: number;
+  scansOverTime: { date: string; count: number }[];
+  uniqueScansOverTime: { date: string; count: number }[];
+  deviceBreakdown: { name: string; value: number }[];
+  browserBreakdown: { name: string; value: number }[];
+  osBreakdown: { name: string; value: number }[];
+  locationBreakdown: { name: string; value: number }[];
+  cityBreakdown: { name: string; value: number }[];
+  rawResponse?: any; // For debugging
+}
+
+export function transformQrfyReport(report: any): QrfyReportData {
+  // Handle null/undefined/empty response
+  if (!report || typeof report !== 'object') {
+    console.warn('[QRFY Report] Empty or invalid report response:', report);
+    return {
+      totalScans: 0,
+      uniqueScans: 0,
+      scansOverTime: [],
+      uniqueScansOverTime: [],
+      deviceBreakdown: [],
+      browserBreakdown: [],
+      osBreakdown: [],
+      locationBreakdown: [],
+      cityBreakdown: [],
+      rawResponse: report,
+    };
   }
 
-  if (report?.uniqueScansByDate && typeof report.uniqueScansByDate === 'object') {
-    for (const [date, count] of Object.entries(report.uniqueScansByDate)) {
-      uniqueScansOverTime.push({ date, count: Number(count) });
-    }
+  // Log the raw response structure for debugging (in development)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[QRFY Report] Raw response keys:', Object.keys(report));
   }
 
-  if (Array.isArray(report?.devices)) {
-    for (const d of report.devices) {
-      deviceBreakdown.push({ name: d.name || d.device || 'Unknown', value: Number(d.count || d.value || 0) });
-    }
-  }
+  // Extract totals - try multiple possible field names
+  const totalScans = safeNumber(
+    report.scans ?? report.totalScans ?? report.total_scans ?? report.scanCount ?? 0
+  );
+  const uniqueScans = safeNumber(
+    report.uniqueScans ?? report.unique_scans ?? report.uniqueVisitors ?? report.unique ?? 0
+  );
 
-  if (Array.isArray(report?.browsers)) {
-    for (const b of report.browsers) {
-      browserBreakdown.push({ name: b.name || b.browser || 'Unknown', value: Number(b.count || b.value || 0) });
-    }
-  }
+  // Extract time series data
+  const scansOverTime = extractDateSeries(
+    report.scansByDate ?? report.scans_by_date ?? report.daily ?? report.timeline ?? report.dates
+  );
+  const uniqueScansOverTime = extractDateSeries(
+    report.uniqueScansByDate ?? report.unique_scans_by_date ?? report.uniqueDaily ?? report.uniqueTimeline
+  );
 
-  if (Array.isArray(report?.os)) {
-    for (const o of report.os) {
-      osBreakdown.push({ name: o.name || o.os || 'Unknown', value: Number(o.count || o.value || 0) });
-    }
-  }
+  // Extract breakdown data with multiple possible field names
+  const deviceBreakdown = extractBreakdown(
+    report.devices ?? report.device ?? report.deviceTypes,
+    ['name', 'device', 'deviceType', 'type'],
+    ['count', 'value', 'scans', 'total']
+  );
 
-  if (Array.isArray(report?.countries)) {
-    for (const l of report.countries) {
-      locationBreakdown.push({ name: l.name || l.country || 'Unknown', value: Number(l.count || l.value || 0) });
-    }
-  }
+  const browserBreakdown = extractBreakdown(
+    report.browsers ?? report.browser ?? report.browserTypes,
+    ['name', 'browser', 'browserName', 'type'],
+    ['count', 'value', 'scans', 'total']
+  );
 
-  if (Array.isArray(report?.cities)) {
-    for (const c of report.cities) {
-      cityBreakdown.push({ name: c.name || c.city || 'Unknown', value: Number(c.count || c.value || 0) });
-    }
-  }
+  const osBreakdown = extractBreakdown(
+    report.os ?? report.operatingSystems ?? report.platforms,
+    ['name', 'os', 'operatingSystem', 'platform', 'type'],
+    ['count', 'value', 'scans', 'total']
+  );
+
+  const locationBreakdown = extractBreakdown(
+    report.countries ?? report.locations ?? report.geo ?? report.geography,
+    ['name', 'country', 'countryName', 'location', 'region'],
+    ['count', 'value', 'scans', 'total']
+  );
+
+  const cityBreakdown = extractBreakdown(
+    report.cities ?? report.city,
+    ['name', 'city', 'cityName'],
+    ['count', 'value', 'scans', 'total']
+  );
 
   return {
-    totalScans, uniqueScans, scansOverTime, uniqueScansOverTime,
-    deviceBreakdown, browserBreakdown, osBreakdown, locationBreakdown, cityBreakdown,
+    totalScans,
+    uniqueScans,
+    scansOverTime,
+    uniqueScansOverTime,
+    deviceBreakdown,
+    browserBreakdown,
+    osBreakdown,
+    locationBreakdown,
+    cityBreakdown,
+    rawResponse: process.env.NODE_ENV === 'development' ? report : undefined,
   };
 }
 

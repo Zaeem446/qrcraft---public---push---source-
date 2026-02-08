@@ -149,9 +149,29 @@ function contentToString(type: string, content: Record<string, any>): string {
 }
 
 // Fallback: generate QR with node `qrcode` package
-async function generateFallbackQR(type: string, content: Record<string, any>, design: Record<string, any>): Promise<Buffer> {
+async function generateFallbackQR(
+  type: string,
+  content: Record<string, any>,
+  design: Record<string, any>,
+  format: 'png' | 'svg' = 'png'
+): Promise<Buffer | string> {
   const text = contentToString(type, content);
   const errorLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
+
+  if (format === 'svg') {
+    // Generate SVG string
+    const svg = await QRCode.toString(text, {
+      type: 'svg',
+      errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
+      width: 600,
+      margin: 2,
+      color: {
+        dark: design.dotsColor || '#000000',
+        light: design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF'),
+      },
+    });
+    return svg;
+  }
 
   const buffer = await QRCode.toBuffer(text, {
     errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
@@ -175,12 +195,41 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { type, content, design } = body;
+    const { type, content, design, format = 'png' } = body;
 
     if (!type) {
       return NextResponse.json({ error: 'Type is required' }, { status: 400 });
     }
 
+    // SVG format: always use local generation (QRFY doesn't support SVG)
+    if (format === 'svg') {
+      try {
+        const svg = await generateFallbackQR(type, content || {}, design || {}, 'svg');
+        return new NextResponse(svg as string, {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/svg+xml',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'X-QR-Fallback': 'true',
+          },
+        });
+      } catch (err: any) {
+        console.error('[Preview] SVG generation failed:', err?.message || err);
+        // Return a simple error SVG
+        const errorSvg = await QRCode.toString('Error generating QR', {
+          type: 'svg',
+          errorCorrectionLevel: 'M',
+          width: 300,
+          margin: 2,
+        });
+        return new NextResponse(errorSvg, {
+          status: 200,
+          headers: { 'Content-Type': 'image/svg+xml' },
+        });
+      }
+    }
+
+    // PNG format: try QRFY first, fallback to local
     let imageBuffer: Buffer;
     let usedFallback = false;
 
@@ -202,7 +251,7 @@ export async function POST(req: NextRequest) {
       usedFallback = true;
 
       try {
-        imageBuffer = await generateFallbackQR(type, content || {}, design || {});
+        imageBuffer = await generateFallbackQR(type, content || {}, design || {}, 'png') as Buffer;
       } catch (fallbackErr: any) {
         console.error('[Preview] Fallback also failed:', fallbackErr?.message || fallbackErr);
         // Return a simple error QR as last resort

@@ -12,7 +12,14 @@ import {
   FunnelIcon,
   ArrowsUpDownIcon,
   EyeIcon,
+  StarIcon,
+  FolderIcon,
+  DocumentDuplicateIcon,
+  StopIcon,
+  PlayIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Spinner from '@/components/ui/Spinner';
@@ -30,7 +37,16 @@ interface QRCodeItem {
   content: Record<string, any>;
   scanCount: number;
   isActive: boolean;
+  isFavorite: boolean;
+  folderId: string | null;
   createdAt: string;
+}
+
+interface Folder {
+  id: string;
+  name: string;
+  color: string;
+  qrCount?: number;
 }
 
 export default function DashboardPage() {
@@ -49,6 +65,13 @@ export default function DashboardPage() {
   const [previewModal, setPreviewModal] = useState<QRCodeItem | null>(null);
   const [previewTab, setPreviewTab] = useState<'preview' | 'qrcode'>('preview');
 
+  // New state for folders, favorites, and bulk selection
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const [favoriteFilter, setFavoriteFilter] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
   const fetchQRCodes = async () => {
     try {
       const params = new URLSearchParams({ page: page.toString(), limit: '12', search });
@@ -65,6 +88,16 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchQRCodes().then(() => setLoading(false));
   }, [page, search]);
+
+  // Fetch folders
+  useEffect(() => {
+    fetch('/api/folders')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setFolders(data);
+      })
+      .catch(console.error);
+  }, []);
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
@@ -87,12 +120,99 @@ export default function DashboardPage() {
     return QR_TYPES.find((t) => t.id === typeId)?.name || typeId;
   };
 
+  // Toggle favorite
+  const handleToggleFavorite = async (id: string) => {
+    try {
+      const res = await fetch(`/api/qrcodes/${id}/favorite`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setQrcodes(prev => prev.map(qr => qr.id === id ? { ...qr, isFavorite: data.isFavorite } : qr));
+      }
+    } catch {
+      toast.error('Failed to update favorite');
+    }
+  };
+
+  // Toggle status
+  const handleToggleStatus = async (id: string) => {
+    try {
+      const res = await fetch(`/api/qrcodes/${id}/toggle-status`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setQrcodes(prev => prev.map(qr => qr.id === id ? { ...qr, isActive: data.isActive } : qr));
+        toast.success(data.isActive ? 'QR code activated' : 'QR code deactivated');
+      }
+    } catch {
+      toast.error('Failed to toggle status');
+    }
+  };
+
+  // Duplicate QR code
+  const handleDuplicate = async (id: string) => {
+    try {
+      const res = await fetch(`/api/qrcodes/${id}/duplicate`, { method: 'POST' });
+      if (res.ok) {
+        toast.success('QR code duplicated');
+        fetchQRCodes();
+      } else {
+        toast.error('Failed to duplicate');
+      }
+    } catch {
+      toast.error('Something went wrong');
+    }
+  };
+
+  // Bulk operations
+  const handleBulkAction = async (action: string, data?: Record<string, any>) => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch('/api/qrcodes/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ids: Array.from(selectedIds), data }),
+      });
+      if (res.ok) {
+        toast.success(`Bulk ${action} completed`);
+        setSelectedIds(new Set());
+        fetchQRCodes();
+      } else {
+        toast.error('Bulk operation failed');
+      }
+    } catch {
+      toast.error('Something went wrong');
+    }
+    setBulkLoading(false);
+  };
+
+  // Toggle selection
+  const toggleSelection = (id: string) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
+
+  // Select all visible
+  const selectAll = () => {
+    if (selectedIds.size === filteredQRCodes.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredQRCodes.map(qr => qr.id)));
+    }
+  };
+
   // Client-side filtering and sorting
   const filteredQRCodes = qrcodes
     .filter((qr) => {
       if (statusFilter === 'active' && !qr.isActive) return false;
       if (statusFilter === 'inactive' && qr.isActive) return false;
       if (typeFilter !== 'all' && qr.type !== typeFilter) return false;
+      if (favoriteFilter && !qr.isFavorite) return false;
+      if (folderFilter && qr.folderId !== folderFilter) return false;
+      if (folderFilter === 'none' && qr.folderId !== null) return false;
       return true;
     })
     .sort((a, b) => {
@@ -144,6 +264,17 @@ export default function DashboardPage() {
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-gray-900 placeholder-gray-400"
             />
           </div>
+
+          {/* Favorites toggle */}
+          <button
+            onClick={() => setFavoriteFilter(!favoriteFilter)}
+            className={`flex items-center gap-2 px-4 py-2 text-sm rounded-lg border transition-colors ${
+              favoriteFilter ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {favoriteFilter ? <StarIconSolid className="h-4 w-4" /> : <StarIcon className="h-4 w-4" />}
+            Favorites
+          </button>
 
           {/* Filter toggle */}
           <button
@@ -200,9 +331,95 @@ export default function DashboardPage() {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="text-xs font-medium text-gray-500 mb-1 block">Folder</label>
+              <select
+                value={folderFilter || ''}
+                onChange={(e) => setFolderFilter(e.target.value || null)}
+                className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 bg-white"
+              >
+                <option value="">All Folders</option>
+                <option value="none">No Folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
       </div>
+
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={selectAll}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-violet-700 hover:bg-violet-100 rounded-lg transition-colors"
+            >
+              <CheckIcon className="h-4 w-4" />
+              {selectedIds.size === filteredQRCodes.length ? 'Deselect All' : 'Select All'}
+            </button>
+            <span className="text-sm text-violet-600">
+              {selectedIds.size} selected
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleBulkAction('toggle-active', { isActive: true })}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <PlayIcon className="h-4 w-4" />
+              Activate
+            </button>
+            <button
+              onClick={() => handleBulkAction('toggle-active', { isActive: false })}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <StopIcon className="h-4 w-4" />
+              Deactivate
+            </button>
+            <button
+              onClick={() => handleBulkAction('toggle-favorite', { isFavorite: true })}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <StarIconSolid className="h-4 w-4" />
+              Favorite
+            </button>
+            {folders.length > 0 && (
+              <select
+                onChange={(e) => {
+                  if (e.target.value) handleBulkAction('move-to-folder', { folderId: e.target.value === 'none' ? null : e.target.value });
+                  e.target.value = '';
+                }}
+                disabled={bulkLoading}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50"
+              >
+                <option value="">Move to folder...</option>
+                <option value="none">No Folder</option>
+                {folders.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            )}
+            <button
+              onClick={() => {
+                if (confirm(`Delete ${selectedIds.size} QR codes? This cannot be undone.`)) {
+                  handleBulkAction('delete');
+                }
+              }}
+              disabled={bulkLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <TrashIcon className="h-4 w-4" />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* QR Code List */}
       {filteredQRCodes.length === 0 ? (
@@ -232,9 +449,21 @@ export default function DashboardPage() {
           {filteredQRCodes.map((qr) => (
             <div
               key={qr.id}
-              className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center justify-between hover:shadow-lg hover:border-violet-200 hover:-translate-y-0.5 transition-all duration-300"
+              className={`bg-white rounded-2xl border p-5 flex items-center justify-between hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 ${
+                selectedIds.has(qr.id) ? 'border-violet-300 bg-violet-50/30' : 'border-gray-100 hover:border-violet-200'
+              }`}
             >
               <div className="flex items-center gap-4 min-w-0">
+                {/* Selection checkbox */}
+                <button
+                  onClick={() => toggleSelection(qr.id)}
+                  className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    selectedIds.has(qr.id) ? 'border-violet-500 bg-violet-500' : 'border-gray-300 hover:border-violet-400'
+                  }`}
+                >
+                  {selectedIds.has(qr.id) && <CheckIcon className="h-3 w-3 text-white" />}
+                </button>
+
                 <div className="w-14 h-14 bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden border border-violet-100/50 shadow-sm">
                   <img
                     src={`/api/qrcodes/${qr.id}/image?format=webp`}
@@ -250,11 +479,17 @@ export default function DashboardPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-medium text-gray-900 truncate">{qr.name}</h3>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                      qr.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                    {qr.isFavorite && (
+                      <StarIconSolid className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                    )}
+                    <button
+                      onClick={() => handleToggleStatus(qr.id)}
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium cursor-pointer transition-colors ${
+                        qr.isActive ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      }`}
+                    >
                       {qr.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                    </button>
                   </div>
                   <div className="flex items-center gap-3 text-sm text-gray-500 mt-0.5">
                     <span className="inline-flex items-center gap-1">
@@ -262,11 +497,29 @@ export default function DashboardPage() {
                       {getTypeName(qr.type)}
                     </span>
                     <span>{formatNumber(qr.scanCount)} scans</span>
+                    {qr.folderId && folders.find(f => f.id === qr.folderId) && (
+                      <span className="inline-flex items-center gap-1">
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: folders.find(f => f.id === qr.folderId)?.color || '#7C3AED' }}
+                        />
+                        {folders.find(f => f.id === qr.folderId)?.name}
+                      </span>
+                    )}
                     <span className="hidden sm:inline text-gray-400">{formatDate(qr.createdAt)}</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
+                <button
+                  onClick={() => handleToggleFavorite(qr.id)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    qr.isFavorite ? 'text-amber-500 hover:bg-amber-50' : 'text-gray-400 hover:text-amber-500 hover:bg-amber-50'
+                  }`}
+                  title={qr.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  {qr.isFavorite ? <StarIconSolid className="h-4.5 w-4.5" /> : <StarIcon className="h-4.5 w-4.5" />}
+                </button>
                 <button
                   onClick={() => { setPreviewModal(qr); setPreviewTab('preview'); }}
                   className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
@@ -284,6 +537,13 @@ export default function DashboardPage() {
                     <PencilIcon className="h-4.5 w-4.5" />
                   </button>
                 </Link>
+                <button
+                  onClick={() => handleDuplicate(qr.id)}
+                  className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                  title="Duplicate"
+                >
+                  <DocumentDuplicateIcon className="h-4.5 w-4.5" />
+                </button>
                 <button
                   onClick={() => setDeleteModal(qr.id)}
                   className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"

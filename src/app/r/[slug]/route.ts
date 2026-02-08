@@ -34,6 +34,7 @@ function isSubscriptionActive(user: {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
 
     const qrcode = await prisma.qRCode.findUnique({
       where: { slug },
@@ -49,14 +50,28 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       },
     });
     if (!qrcode || !qrcode.isActive) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
       return NextResponse.redirect(`${baseUrl}/qr-expired`);
     }
 
     // Check if user has active subscription or trial
     if (!isSubscriptionActive(qrcode.user)) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
       return NextResponse.redirect(`${baseUrl}/qr-expired`);
+    }
+
+    // P1: Check scan limit
+    if (qrcode.scanLimit !== null && qrcode.scanLimit > 0) {
+      if (qrcode.scanCount >= qrcode.scanLimit) {
+        return NextResponse.redirect(`${baseUrl}/qr-expired?reason=limit`);
+      }
+    }
+
+    // P1: Check password protection - redirect to verification page
+    if (qrcode.accessPassword) {
+      // Check for valid session cookie
+      const sessionCookie = req.cookies.get(`qr_access_${slug}`)?.value;
+      if (sessionCookie !== 'verified') {
+        return NextResponse.redirect(`${baseUrl}/qr/${slug}/verify`);
+      }
     }
 
     // Track scans locally for legacy (non-QRFY) QR codes
@@ -111,7 +126,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     }
 
     // For non-URL types, redirect to a landing page
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online';
     return NextResponse.redirect(`${baseUrl}/qr/${slug}`);
   } catch (error) {
     console.error('Redirect error:', error);

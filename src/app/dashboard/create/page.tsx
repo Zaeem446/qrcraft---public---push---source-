@@ -15,6 +15,7 @@ import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
 import InstantQRPreview from "@/components/qr/InstantQRPreview";
+import AdvancedSettings from "@/components/qr/AdvancedSettings";
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
@@ -64,6 +65,14 @@ export default function CreateQRPage() {
   const [createdQr, setCreatedQr] = useState<{ id: string; imageUrl: string } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Advanced Settings State
+  const [password, setPassword] = useState("");
+  const [scanLimit, setScanLimit] = useState<number | null>(null);
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const [googleAnalyticsId, setGoogleAnalyticsId] = useState("");
+  const [facebookPixelId, setFacebookPixelId] = useState("");
+  const [googleTagManagerId, setGoogleTagManagerId] = useState("");
 
   const activePreview = hoveredType || qrType || "";
 
@@ -123,7 +132,19 @@ export default function CreateQRPage() {
       const res = await fetch("/api/qrcodes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, type: qrType, content, design }),
+        body: JSON.stringify({
+          name,
+          type: qrType,
+          content,
+          design,
+          // Advanced Settings
+          password: password || undefined,
+          scanLimit,
+          folderId: folderId || undefined,
+          googleAnalyticsId: googleAnalyticsId || undefined,
+          facebookPixelId: facebookPixelId || undefined,
+          googleTagManagerId: googleTagManagerId || undefined,
+        }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -277,31 +298,21 @@ export default function CreateQRPage() {
                 </div>
               </div>
 
-              {/* Password & Folder placeholders */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <LockClosedIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600">Password Protection</p>
-                      <p className="text-xs text-gray-400">Coming soon</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl p-5 opacity-60">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <FolderIcon className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600">Organize in Folder</p>
-                      <p className="text-xs text-gray-400">Coming soon</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Advanced Settings - Password, Scan Limit, Folder, Analytics */}
+              <AdvancedSettings
+                password={password}
+                setPassword={setPassword}
+                scanLimit={scanLimit}
+                setScanLimit={setScanLimit}
+                folderId={folderId}
+                setFolderId={setFolderId}
+                googleAnalyticsId={googleAnalyticsId}
+                setGoogleAnalyticsId={setGoogleAnalyticsId}
+                facebookPixelId={facebookPixelId}
+                setFacebookPixelId={setFacebookPixelId}
+                googleTagManagerId={googleTagManagerId}
+                setGoogleTagManagerId={setGoogleTagManagerId}
+              />
 
               <div className="flex items-center justify-between pt-6">
                 <button onClick={() => setStep(1)} className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all">

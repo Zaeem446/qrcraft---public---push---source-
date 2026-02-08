@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
 import InstantQRPreview from "@/components/qr/InstantQRPreview";
+import AdvancedSettings from "@/components/qr/AdvancedSettings";
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -30,6 +31,16 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // Advanced settings state
+  const [password, setPassword] = useState("");
+  const [hasExistingPassword, setHasExistingPassword] = useState(false);
+  const [removePassword, setRemovePassword] = useState(false);
+  const [scanLimit, setScanLimit] = useState<number | null>(null);
+  const [folderId, setFolderId] = useState<string | null>(null);
+  const [googleAnalyticsId, setGoogleAnalyticsId] = useState("");
+  const [facebookPixelId, setFacebookPixelId] = useState("");
+  const [googleTagManagerId, setGoogleTagManagerId] = useState("");
+
   useEffect(() => {
     fetch(`/api/qrcodes/${id}`)
       .then((r) => r.json())
@@ -39,6 +50,13 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
         setDesign(data.design || {});
         setQrType(data.type);
         setQrfyId(data.qrfyId || null);
+        // Load advanced settings
+        setHasExistingPassword(!!data.accessPassword);
+        setScanLimit(data.scanLimit ?? null);
+        setFolderId(data.folderId || null);
+        setGoogleAnalyticsId(data.googleAnalyticsId || "");
+        setFacebookPixelId(data.facebookPixelId || "");
+        setGoogleTagManagerId(data.googleTagManagerId || "");
       })
       .catch(() => toast.error("Failed to load QR code"))
       .finally(() => setLoading(false));
@@ -105,10 +123,28 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const handleSave = async () => {
     setSaving(true);
     try {
+      const payload: Record<string, any> = {
+        name,
+        content,
+        design,
+        scanLimit,
+        folderId,
+        googleAnalyticsId: googleAnalyticsId || null,
+        facebookPixelId: facebookPixelId || null,
+        googleTagManagerId: googleTagManagerId || null,
+      };
+
+      // Handle password changes
+      if (removePassword) {
+        payload.removePassword = true;
+      } else if (password) {
+        payload.password = password;
+      }
+
       const res = await fetch(`/api/qrcodes/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, content, design }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         toast.success("QR code updated!");
@@ -179,6 +215,26 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Design</h2>
             <DesignOptions design={design} setDesign={setDesign} />
           </div>
+
+          {/* Advanced Settings */}
+          <AdvancedSettings
+            password={password}
+            setPassword={setPassword}
+            hasExistingPassword={hasExistingPassword}
+            removePassword={removePassword}
+            setRemovePassword={setRemovePassword}
+            scanLimit={scanLimit}
+            setScanLimit={setScanLimit}
+            folderId={folderId}
+            setFolderId={setFolderId}
+            googleAnalyticsId={googleAnalyticsId}
+            setGoogleAnalyticsId={setGoogleAnalyticsId}
+            facebookPixelId={facebookPixelId}
+            setFacebookPixelId={setFacebookPixelId}
+            googleTagManagerId={googleTagManagerId}
+            setGoogleTagManagerId={setGoogleTagManagerId}
+            isEditMode={true}
+          />
 
           {/* Download section */}
           <Card>

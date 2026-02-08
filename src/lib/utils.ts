@@ -26,6 +26,7 @@ export function getBaseUrl(): string {
 export const DYNAMIC_QR_TYPES = [
   { id: 'website', name: 'Website URL', icon: 'GlobeAltIcon', description: 'Link to any website or webpage', qrfyType: 'url' },
   { id: 'vcard', name: 'vCard', icon: 'UserIcon', description: 'Share contact information', qrfyType: 'vcard' },
+  { id: 'vcard-plus', name: 'vCard Plus', icon: 'UserIcon', description: 'Extended contact card with more fields', qrfyType: 'vcard-plus' },
   { id: 'pdf', name: 'PDF', icon: 'DocumentIcon', description: 'Share a PDF document', qrfyType: 'pdf' },
   { id: 'video', name: 'Video', icon: 'VideoCameraIcon', description: 'Link to a video', qrfyType: 'video' },
   { id: 'mp3', name: 'MP3', icon: 'MusicalNoteIcon', description: 'Share audio file', qrfyType: 'mp3' },
@@ -55,6 +56,7 @@ export const STATIC_QR_TYPES = [
   { id: 'bitcoin', name: 'Bitcoin', icon: 'CurrencyDollarIcon', description: 'Cryptocurrency payment', qrfyType: 'url-static' },
   { id: 'phone', name: 'Phone Call', icon: 'PhoneIcon', description: 'Initiate a phone call', qrfyType: 'url-static' },
   { id: 'calendar', name: 'Calendar Event', icon: 'CalendarDaysIcon', description: 'Add event to calendar', qrfyType: 'url-static' },
+  { id: 'barcode', name: 'Barcode', icon: 'QrCodeIcon', description: 'Generate EAN/UPC barcode', qrfyType: 'barcode' },
 ] as const;
 
 // Combined for backward compatibility
