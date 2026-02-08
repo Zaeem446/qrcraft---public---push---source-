@@ -160,30 +160,37 @@ export default function CreateQRPage() {
   };
 
   const downloadQr = async (format: "png" | "svg") => {
-    if (!createdQr?.imageUrl) return;
+    if (!createdQr?.id) return;
     try {
-      if (format === "svg") {
-        const res = await fetch("/api/qrcodes/preview", {
+      // Always fetch from the image API for best quality
+      const res = await fetch(`/api/qrcodes/${createdQr.id}/image?format=${format}`);
+      if (!res.ok) {
+        // If styled image fails, try preview API as fallback
+        const fallbackRes = await fetch("/api/qrcodes/preview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: qrType, content, design, format: "svg" }),
+          body: JSON.stringify({ type: qrType, content, design, format: format === "svg" ? "svg" : "png" }),
         });
-        if (!res.ok) throw new Error("Failed to generate SVG");
-        const blob = await res.blob();
+        if (!fallbackRes.ok) throw new Error("Download failed");
+        const blob = await fallbackRes.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${name || "qrcode"}.svg`;
+        a.download = `${name || "qrcode"}.${format}`;
         a.click();
         URL.revokeObjectURL(url);
-      } else {
-        const a = document.createElement("a");
-        a.href = createdQr.imageUrl;
-        a.download = `${name || "qrcode"}.png`;
-        a.click();
+        return;
       }
-    } catch {
-      toast.error("Download failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${name || "qrcode"}.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+      toast.error("Download failed. Please try again.");
     }
   };
 
@@ -366,11 +373,21 @@ export default function CreateQRPage() {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">QR Code Created!</h2>
                 <p className="text-gray-500 mb-8">Your QR code &ldquo;{name}&rdquo; is ready to use. Download it below.</p>
 
-                {createdQr.imageUrl ? (
+                {createdQr.id ? (
                   <div className="relative inline-block mb-8">
                     <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
                     <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                      <img src={createdQr.imageUrl} alt="Your QR Code" className="w-64 h-64 mx-auto" />
+                      <img
+                        src={`/api/qrcodes/${createdQr.id}/image?format=png`}
+                        alt="Your QR Code"
+                        className="w-64 h-64 mx-auto object-contain"
+                        onError={(e) => {
+                          // Fallback to preview URL if API fails
+                          if (createdQr.imageUrl) {
+                            (e.target as HTMLImageElement).src = createdQr.imageUrl;
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 ) : (
