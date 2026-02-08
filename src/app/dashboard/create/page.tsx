@@ -440,7 +440,15 @@ export default function CreateQRPage() {
                 <div className="flex items-center justify-center">
                   {previewUrl ? (
                     <div className="relative">
-                      <img src={previewUrl} alt="QR Preview" className="w-[220px] h-[220px] object-contain" />
+                      <img
+                        src={previewUrl}
+                        alt="QR Preview"
+                        className="w-[220px] h-[220px] object-contain"
+                        onError={() => {
+                          // If API image fails to load, clear it to show InstantQRPreview fallback
+                          setPreviewUrl(null);
+                        }}
+                      />
                       {previewLoading && (
                         <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
                           <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
@@ -463,8 +471,6 @@ export default function CreateQRPage() {
                     </div>
                   )}
                 </div>
-                {previewUrl && (
-                                  )}
               </div>
             )}
 

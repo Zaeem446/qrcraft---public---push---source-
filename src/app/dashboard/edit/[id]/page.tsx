@@ -273,7 +273,12 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
                   {previewUrl ? (
                     <div className="relative">
                       <div className="bg-white rounded-2xl p-4 shadow-lg">
-                        <img src={previewUrl} alt="QR Preview" className="w-[180px] h-[180px] object-contain" />
+                        <img
+                          src={previewUrl}
+                          alt="QR Preview"
+                          className="w-[180px] h-[180px] object-contain"
+                          onError={() => setPreviewUrl(null)}
+                        />
                       </div>
                       {previewLoading && (
                         <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
