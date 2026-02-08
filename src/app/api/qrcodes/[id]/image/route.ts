@@ -8,6 +8,7 @@ const CONTENT_TYPES: Record<string, string> = {
   png: 'image/png',
   webp: 'image/webp',
   jpeg: 'image/jpeg',
+  svg: 'image/svg+xml',
 };
 
 // Convert content to a QR-encodable string (last resort fallback)
@@ -101,10 +102,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const format = (searchParams.get('format') || 'png') as 'png' | 'webp' | 'jpeg';
+    const format = (searchParams.get('format') || 'png') as 'png' | 'webp' | 'jpeg' | 'svg';
 
     if (!CONTENT_TYPES[format]) {
-      return NextResponse.json({ error: 'Invalid format. Use png, webp, or jpeg.' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid format. Use png, webp, jpeg, or svg.' }, { status: 400 });
     }
 
     const qrcode = await prisma.qRCode.findFirst({
@@ -115,9 +116,36 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'QR code not found' }, { status: 404 });
     }
 
-    let imageBuffer: Buffer | null = null;
     const content = qrcode.content as Record<string, any>;
     const design = (qrcode.design as Record<string, any>) || {};
+
+    // SVG format: generate locally (QRFY doesn't support SVG export)
+    if (format === 'svg') {
+      const text = getQRDataString(qrcode);
+      const errorLevel = design.errorCorrectionLevel || (design.logo ? 'H' : 'M');
+
+      const svg = await QRCode.toString(text, {
+        type: 'svg',
+        errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
+        width: 600,
+        margin: 2,
+        color: {
+          dark: design.dotsColor || '#000000',
+          light: design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF'),
+        },
+      });
+
+      return new NextResponse(svg, {
+        status: 200,
+        headers: {
+          'Content-Type': 'image/svg+xml',
+          'Content-Disposition': `inline; filename="${qrcode.name || 'qrcode'}.svg"`,
+          'Cache-Control': 'public, max-age=300, s-maxage=600',
+        },
+      });
+    }
+
+    let imageBuffer: Buffer | null = null;
 
     // 1) Try QRFY stored image (if QR was created on QRFY)
     if (qrcode.qrfyId) {
