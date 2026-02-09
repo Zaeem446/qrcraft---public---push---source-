@@ -133,4 +133,4 @@ export const PLANS = {
 
 export type PlanType = keyof typeof PLANS;
 
-export const TRIAL_DAYS = 14;
+export const TRIAL_DAYS = 7;

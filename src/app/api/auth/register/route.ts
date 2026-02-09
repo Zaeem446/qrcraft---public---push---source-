@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 import prisma from '@/lib/db';
 import { sendVerificationEmail } from '@/lib/email';
+import { TRIAL_DAYS } from '@/lib/utils';
 
 async function getGeoFromIP(ip: string) {
   try {
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
         city: geo.city,
         plan: 'free',
         subscriptionStatus: 'trialing',
-        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
       },
     });
 

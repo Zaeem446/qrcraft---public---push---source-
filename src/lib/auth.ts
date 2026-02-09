@@ -6,6 +6,7 @@ import LinkedInProvider from 'next-auth/providers/linkedin';
 import bcrypt from 'bcryptjs';
 import prisma from './db';
 import { AuthProvider } from '@prisma/client';
+import { TRIAL_DAYS } from './utils';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -73,7 +74,7 @@ export const authOptions: NextAuthOptions = {
               provider: account.provider as AuthProvider,
               emailVerified: true,
               plan: 'free',
-              trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+              trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
               subscriptionStatus: 'trialing',
             },
           });

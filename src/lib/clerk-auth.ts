@@ -2,6 +2,7 @@ import { auth, currentUser } from '@clerk/nextjs/server';
 import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import prisma from './db';
+import { TRIAL_DAYS } from './utils';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.NEXTAUTH_SECRET || 'your-secret-key'
@@ -75,7 +76,7 @@ async function getClerkUser() {
             provider: 'google', // Social login
             emailVerified: true,
             plan: 'free',
-            trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+            trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
             subscriptionStatus: 'trialing',
           },
         });

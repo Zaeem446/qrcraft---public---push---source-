@@ -49,7 +49,7 @@ model User {
   isAdmin             Boolean             @default(false)
   isDisabled          Boolean             @default(false)
   plan                Plan                @default(free)
-  trialEndsAt         DateTime            @default(dbgenerated("NOW() + INTERVAL '14 days'"))
+  trialEndsAt         DateTime            @default(dbgenerated("NOW() + INTERVAL '7 days'"))
   subscriptionEndsAt  DateTime?
   stripeCustomerId    String?             @unique
   stripeSubscriptionId String?
