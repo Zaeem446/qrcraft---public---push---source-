@@ -140,6 +140,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success(`Trial extended by ${days} days`);
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to extend trial');
       }
     } catch {
       toast.error('Failed to extend trial');
@@ -165,6 +168,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success('Subscription activated for 30 days');
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to activate subscription');
       }
     } catch {
       toast.error('Failed to activate subscription');
@@ -186,6 +192,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success('Subscription expired');
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to expire subscription');
       }
     } catch {
       toast.error('Failed to expire subscription');
@@ -212,6 +221,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success('Trial date updated');
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to update trial date');
       }
     } catch {
       toast.error('Failed to update trial date');
@@ -242,6 +254,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success(isPast ? 'Subscription expired' : 'Subscription date updated');
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to update subscription date');
       }
     } catch {
       toast.error('Failed to update subscription date');
@@ -261,6 +276,9 @@ export default function AdminUserDetailPage() {
       if (res.ok) {
         toast.success(user.isDisabled ? 'User enabled' : 'User disabled');
         fetchUser();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Failed to update user');
       }
     } catch {
       toast.error('Something went wrong');
