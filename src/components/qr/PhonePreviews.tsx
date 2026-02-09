@@ -65,96 +65,45 @@ export function PdfPreview({ content }: { content: Record<string, any> }) {
   const fileUrl = content?.fileUrl;
   const fileName = content?.fileName || (fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : null);
   const pdfs: { file: string; name?: string }[] = Array.isArray(content?.pdfs) ? content.pdfs : [];
+  const pdfSource = fileUrl || (pdfs.length > 0 ? pdfs[0].file : null);
   const pdfCount = pdfs.length || (fileUrl ? 1 : 0);
-  const tpl = getLayout(content);
 
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      {tpl.header && (
-        <div className="px-4 py-4 text-center" style={{ backgroundColor: primary }}>
-          <div className="w-14 h-14 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
-            <DocumentIcon className="h-8 w-8 text-white" />
-          </div>
-          <p className="text-white text-sm font-bold truncate">{title}</p>
-          <p className="text-white/70 text-[10px] mt-0.5 truncate">{description}</p>
+      {/* Header */}
+      <div className="px-3 py-2 flex items-center gap-2" style={{ backgroundColor: primary }}>
+        <DocumentIcon className="h-5 w-5 text-white" />
+        <div className="min-w-0 flex-1">
+          <p className="text-white text-xs font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[9px] truncate">{fileName || description}</p>
         </div>
-      )}
-      {!tpl.header && (
-        <div className="px-4 pt-4 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: primary }}>
-            <DocumentIcon className="h-6 w-6 text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">{title}</p>
-            <p className="text-xs text-gray-500 truncate">{description}</p>
-          </div>
-        </div>
-      )}
-      <div className="flex-1 p-4">
-        {/* Show uploaded PDF preview */}
-        {(fileUrl || pdfs.length > 0) ? (
-          <div className="space-y-3">
-            {/* Main PDF file card */}
-            <div className="bg-white rounded-xl border-2 border-dashed p-4 flex items-center gap-3" style={{ borderColor: primary + "40" }}>
-              <div className="w-12 h-14 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary + "15" }}>
-                <DocumentIcon className="h-7 w-7" style={{ color: primary }} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-gray-900 truncate">
-                  {fileName || pdfs[0]?.name || "document.pdf"}
-                </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">PDF Document</p>
-                {pdfCount > 1 && (
-                  <p className="text-[10px] mt-1" style={{ color: primary }}>+{pdfCount - 1} more file{pdfCount > 2 ? 's' : ''}</p>
-                )}
-              </div>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: primary }}>
-                <ArrowRightIcon className="h-4 w-4 text-white" />
-              </div>
-            </div>
-
-            {/* Additional PDFs if any */}
-            {pdfs.length > 1 && tpl.split && (
-              <div className="grid grid-cols-2 gap-2">
-                {pdfs.slice(1, 3).map((pdf, i) => (
-                  <div key={i} className="rounded-lg p-2 flex items-center gap-2" style={{ backgroundColor: primary + "10" }}>
-                    <DocumentIcon className="h-4 w-4 flex-shrink-0" style={{ color: primary }} />
-                    <span className="text-[10px] text-gray-600 truncate">{pdf.name || `File ${i + 2}`}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Placeholder when no PDF uploaded */
-          tpl.split ? (
-            <div className="grid grid-cols-2 gap-2 h-full">
-              <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
-                <div className="h-3 bg-gray-200 rounded-full w-full" />
-                <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-                <div className="h-3 bg-gray-100 rounded-full w-4/5" />
-              </div>
-              <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
-                <div className="h-3 bg-gray-200 rounded-full w-full" />
-                <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-                <div className="h-3 bg-gray-200 rounded-full w-full" />
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border-2 border-dashed p-6 text-center" style={{ borderColor: primary + "30" }}>
-              <DocumentIcon className="h-10 w-10 mx-auto mb-2" style={{ color: primary + "50" }} />
-              <p className="text-xs text-gray-400">Upload a PDF to preview</p>
-            </div>
-          )
+        {pdfCount > 1 && (
+          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[9px] text-white">{pdfCount}</span>
         )}
       </div>
-      {tpl.button && (
-        <div className="p-3">
-          <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
-            <span className="text-white text-xs font-semibold">{buttonText}</span>
+
+      {/* PDF Viewer */}
+      <div className="flex-1 bg-gray-100 relative overflow-hidden">
+        {pdfSource ? (
+          <iframe
+            src={`${pdfSource}#toolbar=0&navpanes=0&scrollbar=0`}
+            className="w-full h-full border-0"
+            title="PDF Preview"
+          />
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center p-4">
+            <DocumentIcon className="h-12 w-12 text-gray-300 mb-2" />
+            <p className="text-xs text-gray-400 text-center">Upload a PDF to preview</p>
           </div>
+        )}
+      </div>
+
+      {/* Footer button */}
+      <div className="p-2">
+        <div className="rounded-lg py-2 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-semibold">{buttonText}</span>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -372,88 +321,86 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
   const primary = pd.primary || pd.color || "#DC2626";
   const secondary = pd.secondary || "#0F172A";
   const title = content?.title || "Product Launch Video";
-  const description = content?.description || "1,234 views";
+  const description = content?.description || "Video";
   const fileUrl = content?.fileUrl;
   const url = content?.url;
   const videos: string[] = Array.isArray(content?.videos) ? content.videos : [];
-  const hasVideo = fileUrl || url || videos.length > 0;
-  const videoCount = videos.length || (fileUrl ? 1 : url ? 1 : 0);
-  const tpl = getLayout(content);
-
-  // Extract video source for display
   const videoSource = fileUrl || url || (videos.length > 0 ? videos[0] : null);
+  const videoCount = videos.length || (fileUrl ? 1 : url ? 1 : 0);
+
+  // Detect video type
   const isYouTube = videoSource?.includes('youtube.com') || videoSource?.includes('youtu.be');
   const isVimeo = videoSource?.includes('vimeo.com');
 
+  // Extract YouTube video ID
+  const getYouTubeId = (videoUrl: string): string | null => {
+    const match = videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // Extract Vimeo video ID
+  const getVimeoId = (videoUrl: string): string | null => {
+    const match = videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const youtubeId = videoSource && isYouTube ? getYouTubeId(videoSource) : null;
+  const vimeoId = videoSource && isVimeo ? getVimeoId(videoSource) : null;
+
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      {tpl.header && (
-        <div className="px-4 py-3" style={{ backgroundColor: primary }}>
+      {/* Header */}
+      <div className="px-3 py-2 flex items-center gap-2" style={{ backgroundColor: primary }}>
+        <VideoCameraIcon className="h-4 w-4 text-white" />
+        <div className="min-w-0 flex-1">
           <p className="text-white text-xs font-bold truncate">{title}</p>
-          <p className="text-white/60 text-[10px] truncate">{description}</p>
         </div>
-      )}
-      <div className="flex-1 flex items-center justify-center relative">
-        {/* Video thumbnail background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
-
-        {/* Show video source indicator if uploaded */}
-        {hasVideo && (
-          <div className="absolute top-2 right-2 z-20">
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-black/50 text-white">
-              {isYouTube ? '▶ YouTube' : isVimeo ? '▶ Vimeo' : videoCount > 1 ? `${videoCount} videos` : '▶ Video'}
-            </span>
-          </div>
+        {videoCount > 1 && (
+          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[9px] text-white">{videoCount}</span>
         )}
+      </div>
 
-        {tpl.split ? (
-          /* Templates 1, 3 — side-by-side play button + info */
-          <div className="z-10 flex items-center gap-4 px-4">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg flex-shrink-0" style={{ backgroundColor: primary }}>
+      {/* Video Player */}
+      <div className="flex-1 bg-black relative overflow-hidden">
+        {youtubeId ? (
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1`}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="YouTube Video"
+          />
+        ) : vimeoId ? (
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoId}?title=0&byline=0&portrait=0`}
+            className="w-full h-full border-0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Vimeo Video"
+          />
+        ) : videoSource ? (
+          <video
+            src={videoSource}
+            controls
+            className="w-full h-full object-contain"
+            preload="metadata"
+          >
+            Your browser does not support video playback.
+          </video>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: primary }}>
               <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
             </div>
-            <div className="min-w-0">
-              {!tpl.header && <p className="text-white text-xs font-semibold truncate">{title}</p>}
-              <p className="text-gray-400 text-[10px] truncate">{hasVideo ? (isYouTube ? 'YouTube Video' : isVimeo ? 'Vimeo Video' : 'Uploaded Video') : description}</p>
-            </div>
-          </div>
-        ) : !tpl.header ? (
-          /* Template 2 Minimal — compact layout with info row */
-          <div className="z-10 flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: primary }}>
-              <div className="w-0 h-0 border-l-[10px] border-l-white border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-0.5" />
-            </div>
-            <p className="text-white text-xs font-semibold truncate max-w-[80%]">{title}</p>
-            <p className="text-gray-400 text-[10px] truncate max-w-[80%]">{hasVideo ? (isYouTube ? 'YouTube Video' : 'Video ready') : description}</p>
-          </div>
-        ) : !tpl.button ? (
-          /* Template 4 Clean — large centered play button with bottom overlay */
-          <div className="z-10 flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-lg" style={{ backgroundColor: primary }}>
-              <div className="w-0 h-0 border-l-[14px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
-            </div>
-          </div>
-        ) : (
-          /* Template 0 Classic — standard centered play button */
-          <div className="w-14 h-14 rounded-full flex items-center justify-center z-10 shadow-lg" style={{ backgroundColor: primary }}>
-            <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
+            <p className="text-gray-400 text-xs">Add a video URL to preview</p>
           </div>
         )}
       </div>
-      <div className="p-4">
-        <div className="h-1 rounded-full mb-3" style={{ backgroundColor: secondary === "#0F172A" ? "#374151" : primary + "30" }}>
-          <div className="h-1 rounded-full w-1/3" style={{ backgroundColor: primary }} />
-        </div>
-        {!tpl.button && tpl.header && <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>}
-        {!tpl.button && tpl.header && <p className="text-gray-500 text-[10px] truncate">{hasVideo ? 'Ready to play' : description}</p>}
+
+      {/* Footer */}
+      <div className="px-3 py-2" style={{ backgroundColor: secondary }}>
+        <p className="text-gray-400 text-[10px] truncate">{description}</p>
       </div>
-      {tpl.button && (
-        <div className="px-4 pb-4">
-          <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
-            <span className="text-white text-xs font-semibold">{hasVideo ? 'Play Video' : 'Watch Now'}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -727,69 +674,66 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
   const title = content?.title || "Summer Vibes";
   const description = content?.description || "The Audio Band";
   const fileUrl = content?.fileUrl || content?.url;
-  const fileName = fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : null;
+  const fileName = fileUrl ? decodeURIComponent(fileUrl.split('/').pop()?.split('?')[0] || '') : null;
   const hasAudio = !!fileUrl;
-  const tpl = getLayout(content);
+
   return (
-    <div className="h-full flex flex-col p-5" style={{ background: `linear-gradient(to bottom, ${secondary}, ${primary}15)` }}>
-      {tpl.header && (
-        <div className="rounded-xl py-2 mb-3 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-bold">{hasAudio ? '🎵 Audio Ready' : 'Now Playing'}</span>
+    <div className="h-full flex flex-col" style={{ background: `linear-gradient(to bottom, ${secondary}, ${primary}20)` }}>
+      {/* Header */}
+      <div className="px-4 py-3 text-center" style={{ backgroundColor: primary }}>
+        <MusicalNoteIcon className="h-5 w-5 text-white mx-auto mb-1" />
+        <p className="text-white text-xs font-bold truncate">{title}</p>
+        <p className="text-white/70 text-[10px] truncate">{description}</p>
+      </div>
+
+      {/* Album Art / Visualizer */}
+      <div className="flex-1 flex flex-col items-center justify-center p-4">
+        <div className="w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
+          <MusicalNoteIcon className="h-14 w-14 text-white" />
         </div>
-      )}
-      <div className={`flex-1 flex flex-col items-center ${tpl.header ? "" : "justify-center"}`}>
-        {tpl.split ? (
-          /* Templates 1, 3 — side-by-side album art + info */
-          <div className="flex items-center gap-4 w-full mb-5">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0" style={{ backgroundColor: primary }}>
-              <MusicalNoteIcon className="h-10 w-10 text-white" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-white text-sm font-bold truncate">{title}</p>
-              <p className="text-gray-400 text-[10px] truncate">{hasAudio ? (fileName || 'Audio file') : description}</p>
-              {hasAudio && <p className="text-[9px] mt-1" style={{ color: primary }}>✓ File uploaded</p>}
-            </div>
-          </div>
-        ) : !tpl.header ? (
-          /* Template 2 Minimal — compact inline */
-          <div className="flex items-center gap-3 w-full mb-5">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style={{ backgroundColor: primary }}>
-              <MusicalNoteIcon className="h-7 w-7 text-white" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-white text-sm font-bold truncate">{title}</p>
-              <p className="text-gray-400 text-[10px] truncate">{hasAudio ? (fileName || 'Audio file ready') : description}</p>
-            </div>
-          </div>
-        ) : !tpl.button ? (
-          /* Template 4 Clean — large art with text below */
-          <>
-            <div className="w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
-              <MusicalNoteIcon className="h-14 w-14 text-white" />
-            </div>
-            <p className="text-white text-base font-bold mb-0.5 truncate max-w-full">{title}</p>
-            <p className="text-gray-400 text-xs mb-5 truncate max-w-full">{description}</p>
-          </>
-        ) : (
-          /* Template 0 Classic — standard centered album art */
-          <>
-            <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
-              <MusicalNoteIcon className="h-12 w-12 text-white" />
-            </div>
-            <p className="text-white text-sm font-bold mb-0.5 truncate max-w-full">{title}</p>
-            <p className="text-gray-400 text-[10px] mb-5 truncate max-w-full">{description}</p>
-          </>
+
+        {hasAudio && (
+          <p className="text-[10px] text-gray-400 mb-3 truncate max-w-full px-4">
+            {fileName || 'audio.mp3'}
+          </p>
         )}
-        <div className="w-full space-y-2">
-          <div className="w-full h-1 bg-white/10 rounded-full"><div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} /></div>
-          <div className="flex justify-between text-[9px] text-gray-500"><span>1:24</span><span>3:42</span></div>
+
+        {/* Audio Player */}
+        {hasAudio ? (
+          <div className="w-full px-2">
+            <audio
+              src={fileUrl}
+              controls
+              className="w-full h-10"
+              style={{
+                filter: 'invert(1) hue-rotate(180deg)',
+                opacity: 0.9
+              }}
+              preload="metadata"
+            >
+              Your browser does not support audio playback.
+            </audio>
+          </div>
+        ) : (
+          <div className="w-full space-y-2 px-4">
+            <div className="w-full h-1 bg-white/10 rounded-full">
+              <div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} />
+            </div>
+            <div className="flex justify-between text-[9px] text-gray-500">
+              <span>0:00</span>
+              <span>--:--</span>
+            </div>
+            <p className="text-center text-[10px] text-gray-500 mt-2">Upload audio to play</p>
+          </div>
+        )}
+      </div>
+
+      {/* Download button */}
+      <div className="p-3">
+        <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-semibold">{hasAudio ? '⬇ Download' : 'Download'}</span>
         </div>
       </div>
-      {tpl.button && (
-        <div className="mt-3 rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">Download</span>
-        </div>
-      )}
     </div>
   );
 }
