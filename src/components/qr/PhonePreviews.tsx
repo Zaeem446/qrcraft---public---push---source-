@@ -57,50 +57,80 @@ export function WebsitePreview({ content }: { content: Record<string, any> }) {
 
 export function PdfPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
-  const primary = pd.primary || "#EF4444";
+  const primary = pd.primary || content?.headerColor || "#EF4444";
   const secondary = pd.secondary || "#FFFFFF";
-  const title = content?.title || "Company Report";
+  const title = content?.title || "Document Title";
   const description = content?.description || "PDF Document";
-  const buttonText = content?.buttonText || "Download PDF";
+  const buttonText = content?.buttonText || "View PDF";
+  const cover = content?.cover;
+  const logo = content?.logo;
   const fileUrl = content?.fileUrl;
-  const fileName = content?.fileName || (fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : null);
   const pdfs: { file: string; name?: string }[] = Array.isArray(content?.pdfs) ? content.pdfs : [];
   const pdfSource = fileUrl || (pdfs.length > 0 ? pdfs[0].file : null);
   const pdfCount = pdfs.length || (fileUrl ? 1 : 0);
+  const template = content?.template ?? 0;
+  const titleFont = content?.titleFont?.family || "Poppins";
+  const titleColor = content?.titleFont?.color || "#FFFFFF";
+  const textFont = content?.textFont?.family || "Inter";
+  const textColor = content?.textFont?.color || "#374151";
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      {/* Header */}
-      <div className="px-3 py-2 flex items-center gap-2" style={{ backgroundColor: primary }}>
-        <DocumentIcon className="h-5 w-5 text-white" />
-        <div className="min-w-0 flex-1">
-          <p className="text-white text-xs font-bold truncate">{title}</p>
-          <p className="text-white/70 text-[9px] truncate">{fileName || description}</p>
-        </div>
-        {pdfCount > 1 && (
-          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[9px] text-white">{pdfCount}</span>
-        )}
-      </div>
-
-      {/* PDF Viewer */}
-      <div className="flex-1 bg-gray-100 relative overflow-hidden">
-        {pdfSource ? (
-          <iframe
-            src={`${pdfSource}#toolbar=0&navpanes=0&scrollbar=0`}
-            className="w-full h-full border-0"
-            title="PDF Preview"
-          />
+    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: secondary }}>
+      {/* Cover/Header Section */}
+      <div className="relative" style={{ backgroundColor: primary }}>
+        {cover ? (
+          <div className="h-28 relative">
+            <img src={cover} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-3">
+              {logo && (
+                <img src={logo} alt="" className="w-10 h-10 rounded-lg object-cover mb-2 border-2 border-white shadow" />
+              )}
+              <p className="text-white text-sm font-bold truncate" style={{ fontFamily: titleFont }}>{title}</p>
+              <p className="text-white/80 text-[10px] truncate" style={{ fontFamily: textFont }}>{description}</p>
+            </div>
+          </div>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-4">
-            <DocumentIcon className="h-12 w-12 text-gray-300 mb-2" />
-            <p className="text-xs text-gray-400 text-center">Upload a PDF to preview</p>
+          <div className="px-4 py-4 text-center">
+            {logo ? (
+              <img src={logo} alt="" className="w-12 h-12 rounded-xl object-cover mx-auto mb-2" />
+            ) : (
+              <div className="w-12 h-12 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
+                <DocumentIcon className="h-6 w-6 text-white" />
+              </div>
+            )}
+            <p className="text-sm font-bold truncate" style={{ color: titleColor, fontFamily: titleFont }}>{title}</p>
+            <p className="text-[10px] mt-0.5 truncate" style={{ color: titleColor + "B3", fontFamily: textFont }}>{description}</p>
           </div>
         )}
       </div>
 
-      {/* Footer button */}
-      <div className="p-2">
-        <div className="rounded-lg py-2 text-center" style={{ backgroundColor: primary }}>
+      {/* PDF Content Area */}
+      <div className="flex-1 overflow-hidden">
+        {pdfSource ? (
+          <div className="h-full bg-gray-100">
+            <iframe
+              src={`${pdfSource}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
+              className="w-full h-full border-0"
+              title="PDF Preview"
+            />
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center p-4" style={{ backgroundColor: secondary }}>
+            <div className="w-16 h-20 rounded-lg border-2 border-dashed flex items-center justify-center mb-3" style={{ borderColor: primary + "40" }}>
+              <DocumentIcon className="h-8 w-8" style={{ color: primary + "60" }} />
+            </div>
+            <p className="text-xs text-center" style={{ color: textColor }}>Upload a PDF file to see preview</p>
+            {pdfCount > 0 && (
+              <p className="text-[10px] mt-1" style={{ color: primary }}>{pdfCount} file{pdfCount > 1 ? 's' : ''} attached</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Action Button */}
+      <div className="p-3" style={{ backgroundColor: secondary }}>
+        <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
           <span className="text-white text-xs font-semibold">{buttonText}</span>
         </div>
       </div>
@@ -320,13 +350,14 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || pd.color || "#DC2626";
   const secondary = pd.secondary || "#0F172A";
-  const title = content?.title || "Product Launch Video";
-  const description = content?.description || "Video";
+  const title = content?.title || "Video Title";
+  const description = content?.description || "Watch the video";
+  const cover = content?.cover;
   const fileUrl = content?.fileUrl;
   const url = content?.url;
   const videos: string[] = Array.isArray(content?.videos) ? content.videos : [];
   const videoSource = fileUrl || url || (videos.length > 0 ? videos[0] : null);
-  const videoCount = videos.length || (fileUrl ? 1 : url ? 1 : 0);
+  const buttonText = content?.buttonText || "Watch Video";
 
   // Detect video type
   const isYouTube = videoSource?.includes('youtube.com') || videoSource?.includes('youtu.be');
@@ -348,17 +379,23 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
   const vimeoId = videoSource && isVimeo ? getVimeoId(videoSource) : null;
 
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      {/* Header */}
-      <div className="px-3 py-2 flex items-center gap-2" style={{ backgroundColor: primary }}>
-        <VideoCameraIcon className="h-4 w-4 text-white" />
-        <div className="min-w-0 flex-1">
-          <p className="text-white text-xs font-bold truncate">{title}</p>
+    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: secondary }}>
+      {/* Header with optional cover */}
+      {cover ? (
+        <div className="h-20 relative">
+          <img src={cover} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <p className="text-white text-xs font-bold truncate">{title}</p>
+            <p className="text-white/70 text-[10px] truncate">{description}</p>
+          </div>
         </div>
-        {videoCount > 1 && (
-          <span className="px-1.5 py-0.5 bg-white/20 rounded text-[9px] text-white">{videoCount}</span>
-        )}
-      </div>
+      ) : (
+        <div className="px-3 py-3" style={{ backgroundColor: primary }}>
+          <p className="text-white text-xs font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[10px] truncate">{description}</p>
+        </div>
+      )}
 
       {/* Video Player */}
       <div className="flex-1 bg-black relative overflow-hidden">
@@ -384,22 +421,25 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
             controls
             className="w-full h-full object-contain"
             preload="metadata"
+            poster={cover}
           >
             Your browser does not support video playback.
           </video>
         ) : (
           <div className="h-full flex flex-col items-center justify-center">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center mb-3" style={{ backgroundColor: primary }}>
-              <div className="w-0 h-0 border-l-[12px] border-l-white border-t-[7px] border-t-transparent border-b-[7px] border-b-transparent ml-1" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-lg" style={{ backgroundColor: primary }}>
+              <div className="w-0 h-0 border-l-[14px] border-l-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent ml-1" />
             </div>
             <p className="text-gray-400 text-xs">Add a video URL to preview</p>
           </div>
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-3 py-2" style={{ backgroundColor: secondary }}>
-        <p className="text-gray-400 text-[10px] truncate">{description}</p>
+      {/* Action Button */}
+      <div className="p-3" style={{ backgroundColor: secondary }}>
+        <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+          <span className="text-white text-xs font-semibold">{buttonText}</span>
+        </div>
       </div>
     </div>
   );
@@ -671,31 +711,45 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || "#22C55E";
   const secondary = pd.secondary || "#1A1A2E";
-  const title = content?.title || "Summer Vibes";
-  const description = content?.description || "The Audio Band";
+  const title = content?.title || "Audio Title";
+  const description = content?.description || "Artist Name";
+  const cover = content?.cover || content?.albumArt;
   const fileUrl = content?.fileUrl || content?.url;
   const fileName = fileUrl ? decodeURIComponent(fileUrl.split('/').pop()?.split('?')[0] || '') : null;
   const hasAudio = !!fileUrl;
+  const buttonText = content?.buttonText || "Download";
 
   return (
-    <div className="h-full flex flex-col" style={{ background: `linear-gradient(to bottom, ${secondary}, ${primary}20)` }}>
-      {/* Header */}
-      <div className="px-4 py-3 text-center" style={{ backgroundColor: primary }}>
-        <MusicalNoteIcon className="h-5 w-5 text-white mx-auto mb-1" />
-        <p className="text-white text-xs font-bold truncate">{title}</p>
-        <p className="text-white/70 text-[10px] truncate">{description}</p>
-      </div>
+    <div className="h-full flex flex-col overflow-hidden" style={{ background: `linear-gradient(to bottom, ${secondary}, ${primary}15)` }}>
+      {/* Header with cover */}
+      {cover ? (
+        <div className="h-24 relative">
+          <img src={cover} alt="" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-3">
+            <p className="text-white text-xs font-bold truncate">{title}</p>
+            <p className="text-white/70 text-[10px] truncate">{description}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="px-4 py-3 text-center" style={{ backgroundColor: primary }}>
+          <p className="text-white text-xs font-bold truncate">{title}</p>
+          <p className="text-white/70 text-[10px] truncate">{description}</p>
+        </div>
+      )}
 
       {/* Album Art / Visualizer */}
       <div className="flex-1 flex flex-col items-center justify-center p-4">
-        <div className="w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
-          <MusicalNoteIcon className="h-14 w-14 text-white" />
-        </div>
+        {cover ? (
+          <img src={cover} alt="" className="w-28 h-28 rounded-2xl object-cover mb-4 shadow-xl" />
+        ) : (
+          <div className="w-28 h-28 rounded-2xl flex items-center justify-center mb-4 shadow-xl" style={{ backgroundColor: primary }}>
+            <MusicalNoteIcon className="h-14 w-14 text-white" />
+          </div>
+        )}
 
-        {hasAudio && (
-          <p className="text-[10px] text-gray-400 mb-3 truncate max-w-full px-4">
-            {fileName || 'audio.mp3'}
-          </p>
+        {hasAudio && fileName && (
+          <p className="text-[10px] text-gray-400 mb-3 truncate max-w-full px-4">{fileName}</p>
         )}
 
         {/* Audio Player */}
@@ -705,10 +759,7 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
               src={fileUrl}
               controls
               className="w-full h-10"
-              style={{
-                filter: 'invert(1) hue-rotate(180deg)',
-                opacity: 0.9
-              }}
+              style={{ filter: 'invert(1) hue-rotate(180deg)', opacity: 0.9 }}
               preload="metadata"
             >
               Your browser does not support audio playback.
@@ -720,18 +771,17 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
               <div className="w-2/5 h-1 rounded-full" style={{ backgroundColor: primary }} />
             </div>
             <div className="flex justify-between text-[9px] text-gray-500">
-              <span>0:00</span>
-              <span>--:--</span>
+              <span>0:00</span><span>--:--</span>
             </div>
             <p className="text-center text-[10px] text-gray-500 mt-2">Upload audio to play</p>
           </div>
         )}
       </div>
 
-      {/* Download button */}
+      {/* Action button */}
       <div className="p-3">
         <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">{hasAudio ? '⬇ Download' : 'Download'}</span>
+          <span className="text-white text-xs font-semibold">{buttonText}</span>
         </div>
       </div>
     </div>

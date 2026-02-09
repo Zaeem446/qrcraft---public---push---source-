@@ -70,6 +70,26 @@ export default function QRLandingPage({ params }: { params: Promise<{ slug: stri
       .finally(() => setLoading(false));
   }, [slug]);
 
+  // Set favicon dynamically
+  useEffect(() => {
+    if (!data) return;
+    const favicon = data.content?.favicon || data.content?.logo;
+    if (favicon) {
+      const faviconUrl = typeof favicon === 'string' ? favicon : (favicon.url || favicon.file || favicon.src);
+      if (faviconUrl) {
+        // Remove existing favicon links
+        const existingLinks = document.querySelectorAll("link[rel*='icon']");
+        existingLinks.forEach(link => link.remove());
+
+        // Add new favicon
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = faviconUrl;
+        document.head.appendChild(link);
+      }
+    }
+  }, [data]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-gray-50">
@@ -127,8 +147,8 @@ export default function QRLandingPage({ params }: { params: Promise<{ slug: stri
         {type === "feedback" && <FeedbackView content={content} theme={theme} />}
         {type === "product" && <ProductView content={content} theme={theme} />}
         {type === "playlist" && <PlaylistView content={content} theme={theme} />}
-        {type === "pdf" && <FileView content={content} theme={theme} label="PDF Document" />}
-        {type === "mp3" && <FileView content={content} theme={theme} label="Audio File" />}
+        {type === "pdf" && <PdfView content={content} theme={theme} />}
+        {type === "mp3" && <Mp3View content={content} theme={theme} />}
         {type === "images" && <ImagesView content={content} theme={theme} />}
         {type === "video" && <VideoView content={content} theme={theme} />}
         {type === "text" && <TextView content={content} theme={theme} />}
@@ -582,30 +602,97 @@ function PlaylistView({ content: c, theme }: ViewProps) {
   );
 }
 
-function FileView({ content: c, theme, label }: ViewProps & { label: string }) {
+function PdfView({ content: c, theme }: ViewProps) {
   const files: { url: string; name: string }[] = [];
-  if (c.fileUrl) files.push({ url: c.fileUrl, name: c.fileName || label });
+  if (c.fileUrl) files.push({ url: c.fileUrl, name: c.fileName || "Document" });
   if (Array.isArray(c.pdfs)) {
     for (const p of c.pdfs) {
       const url = p.file || p.fileUrl || p.url;
-      if (url) files.push({ url, name: p.name || label });
+      if (url) files.push({ url, name: p.name || "Document" });
     }
   }
   const mainUrl = files[0]?.url || c.url;
+  const buttonText = c.buttonText || "Download PDF";
 
   return (
-    <div className="text-center">
-      <SectionTitle theme={theme}>{c.title || label}</SectionTitle>
-      {c.description && <p className="text-sm mb-4" style={{ color: "#4B5563" }}>{c.description}</p>}
+    <div>
+      {/* Cover Image */}
+      {c.cover && (
+        <div className="relative -mx-8 -mt-8 mb-6">
+          <img src={imgSrc(c.cover)} alt="" className="w-full h-48 object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          {c.logo && (
+            <img src={imgSrc(c.logo)} alt="" className="absolute bottom-4 left-4 w-14 h-14 rounded-xl object-cover border-2 shadow-lg" style={{ borderColor: theme.secondary }} />
+          )}
+        </div>
+      )}
+
+      <SectionTitle theme={theme}>{c.title || "PDF Document"}</SectionTitle>
+      {c.description && <p className="text-sm mb-4 text-center" style={{ color: "#4B5563" }}>{c.description}</p>}
+
+      {/* Embedded PDF Viewer */}
+      {mainUrl && (
+        <div className="mb-4 rounded-xl overflow-hidden border" style={{ borderColor: withOpacity(theme.primary, 0.2) }}>
+          <iframe
+            src={`${mainUrl}#toolbar=1&navpanes=0&view=FitH`}
+            className="w-full h-96 border-0"
+            title="PDF Viewer"
+          />
+        </div>
+      )}
+
+      {/* Download buttons */}
       {files.length > 1 ? (
         <div className="space-y-3">
           {files.map((f, i) => (
-            <ActionButton key={i} href={f.url} theme={theme}>{f.name || `${label} ${i + 1}`}</ActionButton>
+            <SecondaryButton key={i} href={f.url} theme={theme}>{f.name}</SecondaryButton>
           ))}
         </div>
       ) : mainUrl ? (
-        <ActionButton href={mainUrl} theme={theme}>Open {label}</ActionButton>
+        <ActionButton href={mainUrl} theme={theme}>{buttonText}</ActionButton>
       ) : null}
+    </div>
+  );
+}
+
+function Mp3View({ content: c, theme }: ViewProps) {
+  const fileUrl = c.fileUrl || c.url;
+  const buttonText = c.buttonText || "Download Audio";
+
+  return (
+    <div>
+      {/* Cover/Album Art */}
+      {c.cover && (
+        <div className="relative -mx-8 -mt-8 mb-6">
+          <img src={imgSrc(c.cover)} alt="" className="w-full h-40 object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        </div>
+      )}
+
+      <SectionTitle theme={theme}>{c.title || "Audio"}</SectionTitle>
+      {c.description && <p className="text-sm mb-4 text-center" style={{ color: "#4B5563" }}>{c.description}</p>}
+
+      {/* Album Art */}
+      {c.cover ? (
+        <img src={imgSrc(c.cover)} alt="" className="w-32 h-32 rounded-2xl object-cover mx-auto mb-4 shadow-lg" />
+      ) : (
+        <div className="w-32 h-32 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{ backgroundColor: theme.primary }}>
+          <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+          </svg>
+        </div>
+      )}
+
+      {/* Audio Player */}
+      {fileUrl && (
+        <div className="mb-4">
+          <audio src={fileUrl} controls className="w-full" preload="metadata">
+            Your browser does not support audio playback.
+          </audio>
+        </div>
+      )}
+
+      {fileUrl && <ActionButton href={fileUrl} theme={theme}>{buttonText}</ActionButton>}
     </div>
   );
 }
@@ -631,11 +718,70 @@ function ImagesView({ content: c, theme }: ViewProps) {
 
 function VideoView({ content: c, theme }: ViewProps) {
   const url = c.url || c.fileUrl || "";
+  const buttonText = c.buttonText || "Watch Video";
+
+  // Detect video type
+  const isYouTube = url?.includes('youtube.com') || url?.includes('youtu.be');
+  const isVimeo = url?.includes('vimeo.com');
+
+  // Extract YouTube video ID
+  const getYouTubeId = (videoUrl: string): string | null => {
+    const match = videoUrl.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  // Extract Vimeo video ID
+  const getVimeoId = (videoUrl: string): string | null => {
+    const match = videoUrl.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    return match ? match[1] : null;
+  };
+
+  const youtubeId = url && isYouTube ? getYouTubeId(url) : null;
+  const vimeoId = url && isVimeo ? getVimeoId(url) : null;
+
   return (
-    <div className="text-center">
+    <div>
+      {/* Cover Image */}
+      {c.cover && (
+        <div className="relative -mx-8 -mt-8 mb-6">
+          <img src={imgSrc(c.cover)} alt="" className="w-full h-40 object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        </div>
+      )}
+
       <SectionTitle theme={theme}>{c.title || "Video"}</SectionTitle>
-      {c.description && <p className="text-sm mb-4" style={{ color: "#4B5563" }}>{c.description}</p>}
-      {url && <ActionButton href={url} theme={theme}>Watch Video</ActionButton>}
+      {c.description && <p className="text-sm mb-4 text-center" style={{ color: "#4B5563" }}>{c.description}</p>}
+
+      {/* Embedded Video Player */}
+      {youtubeId ? (
+        <div className="mb-4 rounded-xl overflow-hidden aspect-video">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1`}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="YouTube Video"
+          />
+        </div>
+      ) : vimeoId ? (
+        <div className="mb-4 rounded-xl overflow-hidden aspect-video">
+          <iframe
+            src={`https://player.vimeo.com/video/${vimeoId}?title=0&byline=0&portrait=0`}
+            className="w-full h-full border-0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Vimeo Video"
+          />
+        </div>
+      ) : url ? (
+        <div className="mb-4 rounded-xl overflow-hidden">
+          <video src={url} controls className="w-full" preload="metadata" poster={c.cover ? imgSrc(c.cover) : undefined}>
+            Your browser does not support video playback.
+          </video>
+        </div>
+      ) : null}
+
+      {url && <ActionButton href={url} theme={theme}>{buttonText}</ActionButton>}
     </div>
   );
 }
