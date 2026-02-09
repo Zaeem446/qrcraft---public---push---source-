@@ -62,7 +62,12 @@ export function PdfPreview({ content }: { content: Record<string, any> }) {
   const title = content?.title || "Company Report";
   const description = content?.description || "PDF Document";
   const buttonText = content?.buttonText || "Download PDF";
+  const fileUrl = content?.fileUrl;
+  const fileName = content?.fileName || (fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : null);
+  const pdfs: { file: string; name?: string }[] = Array.isArray(content?.pdfs) ? content.pdfs : [];
+  const pdfCount = pdfs.length || (fileUrl ? 1 : 0);
   const tpl = getLayout(content);
+
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
       {tpl.header && (
@@ -86,27 +91,61 @@ export function PdfPreview({ content }: { content: Record<string, any> }) {
         </div>
       )}
       <div className="flex-1 p-4">
-        {tpl.split ? (
-          <div className="grid grid-cols-2 gap-2 h-full">
-            <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
-              <div className="h-3 bg-gray-200 rounded-full w-full" />
-              <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-              <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+        {/* Show uploaded PDF preview */}
+        {(fileUrl || pdfs.length > 0) ? (
+          <div className="space-y-3">
+            {/* Main PDF file card */}
+            <div className="bg-white rounded-xl border-2 border-dashed p-4 flex items-center gap-3" style={{ borderColor: primary + "40" }}>
+              <div className="w-12 h-14 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary + "15" }}>
+                <DocumentIcon className="h-7 w-7" style={{ color: primary }} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-gray-900 truncate">
+                  {fileName || pdfs[0]?.name || "document.pdf"}
+                </p>
+                <p className="text-[10px] text-gray-400 mt-0.5">PDF Document</p>
+                {pdfCount > 1 && (
+                  <p className="text-[10px] mt-1" style={{ color: primary }}>+{pdfCount - 1} more file{pdfCount > 2 ? 's' : ''}</p>
+                )}
+              </div>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: primary }}>
+                <ArrowRightIcon className="h-4 w-4 text-white" />
+              </div>
             </div>
-            <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
-              <div className="h-3 bg-gray-200 rounded-full w-full" />
-              <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-              <div className="h-3 bg-gray-200 rounded-full w-full" />
-            </div>
+
+            {/* Additional PDFs if any */}
+            {pdfs.length > 1 && tpl.split && (
+              <div className="grid grid-cols-2 gap-2">
+                {pdfs.slice(1, 3).map((pdf, i) => (
+                  <div key={i} className="rounded-lg p-2 flex items-center gap-2" style={{ backgroundColor: primary + "10" }}>
+                    <DocumentIcon className="h-4 w-4 flex-shrink-0" style={{ color: primary }} />
+                    <span className="text-[10px] text-gray-600 truncate">{pdf.name || `File ${i + 2}`}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-2">
-            <div className="h-3 bg-gray-200 rounded-full w-full" />
-            <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-            <div className="h-3 bg-gray-100 rounded-full w-4/5" />
-            <div className="h-3 bg-gray-200 rounded-full w-full" />
-            <div className="h-3 bg-gray-100 rounded-full w-3/4" />
-          </div>
+          /* Placeholder when no PDF uploaded */
+          tpl.split ? (
+            <div className="grid grid-cols-2 gap-2 h-full">
+              <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
+                <div className="h-3 bg-gray-200 rounded-full w-full" />
+                <div className="h-3 bg-gray-100 rounded-full w-5/6" />
+                <div className="h-3 bg-gray-100 rounded-full w-4/5" />
+              </div>
+              <div className="rounded-lg p-2 space-y-2" style={{ backgroundColor: primary + "10" }}>
+                <div className="h-3 bg-gray-200 rounded-full w-full" />
+                <div className="h-3 bg-gray-100 rounded-full w-3/4" />
+                <div className="h-3 bg-gray-200 rounded-full w-full" />
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border-2 border-dashed p-6 text-center" style={{ borderColor: primary + "30" }}>
+              <DocumentIcon className="h-10 w-10 mx-auto mb-2" style={{ color: primary + "50" }} />
+              <p className="text-xs text-gray-400">Upload a PDF to preview</p>
+            </div>
+          )
         )}
       </div>
       {tpl.button && (
@@ -334,7 +373,18 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
   const secondary = pd.secondary || "#0F172A";
   const title = content?.title || "Product Launch Video";
   const description = content?.description || "1,234 views";
+  const fileUrl = content?.fileUrl;
+  const url = content?.url;
+  const videos: string[] = Array.isArray(content?.videos) ? content.videos : [];
+  const hasVideo = fileUrl || url || videos.length > 0;
+  const videoCount = videos.length || (fileUrl ? 1 : url ? 1 : 0);
   const tpl = getLayout(content);
+
+  // Extract video source for display
+  const videoSource = fileUrl || url || (videos.length > 0 ? videos[0] : null);
+  const isYouTube = videoSource?.includes('youtube.com') || videoSource?.includes('youtu.be');
+  const isVimeo = videoSource?.includes('vimeo.com');
+
   return (
     <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
       {tpl.header && (
@@ -344,7 +394,18 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
         </div>
       )}
       <div className="flex-1 flex items-center justify-center relative">
+        {/* Video thumbnail background */}
         <div className="absolute inset-0 bg-gradient-to-b from-gray-800/50 to-gray-900/50" />
+
+        {/* Show video source indicator if uploaded */}
+        {hasVideo && (
+          <div className="absolute top-2 right-2 z-20">
+            <span className="px-2 py-0.5 rounded-full text-[9px] font-medium bg-black/50 text-white">
+              {isYouTube ? '▶ YouTube' : isVimeo ? '▶ Vimeo' : videoCount > 1 ? `${videoCount} videos` : '▶ Video'}
+            </span>
+          </div>
+        )}
+
         {tpl.split ? (
           /* Templates 1, 3 — side-by-side play button + info */
           <div className="z-10 flex items-center gap-4 px-4">
@@ -353,7 +414,7 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
             </div>
             <div className="min-w-0">
               {!tpl.header && <p className="text-white text-xs font-semibold truncate">{title}</p>}
-              <p className="text-gray-400 text-[10px] truncate">{description}</p>
+              <p className="text-gray-400 text-[10px] truncate">{hasVideo ? (isYouTube ? 'YouTube Video' : isVimeo ? 'Vimeo Video' : 'Uploaded Video') : description}</p>
             </div>
           </div>
         ) : !tpl.header ? (
@@ -363,7 +424,7 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
               <div className="w-0 h-0 border-l-[10px] border-l-white border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-0.5" />
             </div>
             <p className="text-white text-xs font-semibold truncate max-w-[80%]">{title}</p>
-            <p className="text-gray-400 text-[10px] truncate max-w-[80%]">{description}</p>
+            <p className="text-gray-400 text-[10px] truncate max-w-[80%]">{hasVideo ? (isYouTube ? 'YouTube Video' : 'Video ready') : description}</p>
           </div>
         ) : !tpl.button ? (
           /* Template 4 Clean — large centered play button with bottom overlay */
@@ -384,12 +445,12 @@ export function VideoPreview({ content }: { content: Record<string, any> }) {
           <div className="h-1 rounded-full w-1/3" style={{ backgroundColor: primary }} />
         </div>
         {!tpl.button && tpl.header && <p className="text-white text-xs font-semibold mb-1 truncate">{title}</p>}
-        {!tpl.button && tpl.header && <p className="text-gray-500 text-[10px] truncate">{description}</p>}
+        {!tpl.button && tpl.header && <p className="text-gray-500 text-[10px] truncate">{hasVideo ? 'Ready to play' : description}</p>}
       </div>
       {tpl.button && (
         <div className="px-4 pb-4">
           <div className="rounded-lg py-2.5 text-center" style={{ backgroundColor: primary }}>
-            <span className="text-white text-xs font-semibold">Watch Now</span>
+            <span className="text-white text-xs font-semibold">{hasVideo ? 'Play Video' : 'Watch Now'}</span>
           </div>
         </div>
       )}
@@ -665,12 +726,15 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
   const secondary = pd.secondary || "#1A1A2E";
   const title = content?.title || "Summer Vibes";
   const description = content?.description || "The Audio Band";
+  const fileUrl = content?.fileUrl || content?.url;
+  const fileName = fileUrl ? fileUrl.split('/').pop()?.split('?')[0] : null;
+  const hasAudio = !!fileUrl;
   const tpl = getLayout(content);
   return (
     <div className="h-full flex flex-col p-5" style={{ background: `linear-gradient(to bottom, ${secondary}, ${primary}15)` }}>
       {tpl.header && (
         <div className="rounded-xl py-2 mb-3 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-bold">Now Playing</span>
+          <span className="text-white text-xs font-bold">{hasAudio ? '🎵 Audio Ready' : 'Now Playing'}</span>
         </div>
       )}
       <div className={`flex-1 flex flex-col items-center ${tpl.header ? "" : "justify-center"}`}>
@@ -682,7 +746,8 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
             </div>
             <div className="min-w-0">
               <p className="text-white text-sm font-bold truncate">{title}</p>
-              <p className="text-gray-400 text-[10px] truncate">{description}</p>
+              <p className="text-gray-400 text-[10px] truncate">{hasAudio ? (fileName || 'Audio file') : description}</p>
+              {hasAudio && <p className="text-[9px] mt-1" style={{ color: primary }}>✓ File uploaded</p>}
             </div>
           </div>
         ) : !tpl.header ? (
@@ -693,7 +758,7 @@ export function Mp3Preview({ content }: { content: Record<string, any> }) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-white text-sm font-bold truncate">{title}</p>
-              <p className="text-gray-400 text-[10px] truncate">{description}</p>
+              <p className="text-gray-400 text-[10px] truncate">{hasAudio ? (fileName || 'Audio file ready') : description}</p>
             </div>
           </div>
         ) : !tpl.button ? (
@@ -1482,6 +1547,175 @@ export function FeedbackPreview({ content }: { content: Record<string, any> }) {
   );
 }
 
+export function VcardPlusPreview({ content }: { content: Record<string, any> }) {
+  const pd = content?.pageDesign || {};
+  const primary = pd.primary || "#1d59f9";
+  const secondary = pd.secondary || "#FFFFFF";
+  const name = [content?.firstName, content?.lastName].filter(Boolean).join(" ") || "Sarah Johnson";
+  const jobLine = [content?.title || content?.jobTitle, content?.company].filter(Boolean).join(" at ") || "Marketing Director at TechCorp";
+  const photo = content?.photo;
+  const cover = content?.cover;
+  const description = content?.description || content?.bio || "Digital marketing specialist with 10+ years of experience";
+  const phone = content?.phone || "+1 (555) 123-4567";
+  const email = content?.email || "sarah@techcorp.com";
+  const socials: { platform: string; url: string }[] = content?.socials || [];
+  const tpl = getLayout(content);
+
+  return (
+    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
+      {/* Cover image header */}
+      <div className="relative h-24" style={{ backgroundColor: primary }}>
+        {cover && (
+          <img src={cover} alt="" className="w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        {/* Profile photo - positioned at bottom of cover */}
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2">
+          <div className="w-16 h-16 rounded-full border-4 border-white bg-white shadow-lg flex items-center justify-center overflow-hidden">
+            {photo ? (
+              <img src={photo} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <UserIcon className="h-8 w-8 text-gray-400" />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 px-4 pt-10 pb-3">
+        <div className="text-center mb-3">
+          <p className="text-sm font-bold text-gray-900 truncate">{name}</p>
+          <p className="text-xs text-gray-500 truncate">{jobLine}</p>
+          {description && (
+            <p className="text-[10px] text-gray-400 mt-1 line-clamp-2">{description}</p>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        {tpl.split ? (
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+              <span className="text-white text-[10px] font-semibold">📞 Call</span>
+            </div>
+            <div className="rounded-xl py-2.5 text-center border" style={{ borderColor: primary, color: primary }}>
+              <span className="text-[10px] font-semibold">✉️ Email</span>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2 mb-3">
+            <div className="rounded-xl shadow-sm border px-3 py-2" style={{ borderColor: primary + "20" }}>
+              <p className="text-[9px] font-medium uppercase" style={{ color: primary }}>Phone</p>
+              <p className="text-[10px] text-gray-700 truncate">{phone}</p>
+            </div>
+            <div className="rounded-xl shadow-sm border px-3 py-2" style={{ borderColor: primary + "20" }}>
+              <p className="text-[9px] font-medium uppercase" style={{ color: primary }}>Email</p>
+              <p className="text-[10px] text-gray-700 truncate">{email}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Social icons */}
+        {socials.length > 0 && (
+          <div className="flex justify-center gap-2 mb-3">
+            {socials.slice(0, 5).map((s, i) => (
+              <div key={i} className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: primary + "15" }}>
+                <span className="text-[8px] font-bold uppercase" style={{ color: primary }}>{(s.platform || "").slice(0, 2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Save Contact button */}
+      {tpl.button && (
+        <div className="px-4 pb-3">
+          <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
+            <span className="text-white text-xs font-semibold">💾 Save Contact</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function BarcodePreview({ content }: { content: Record<string, any> }) {
+  const value = content?.value || content?.code || "5901234123457";
+  const format = content?.format || "EAN13";
+  const displayValue = content?.displayValue !== false;
+
+  // Generate visual barcode pattern (simplified representation)
+  const generateBars = (code: string): number[] => {
+    // Create a visual pattern based on the code
+    const bars: number[] = [];
+    const seed = code.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    for (let i = 0; i < 60; i++) {
+      // Pseudo-random but deterministic pattern based on code
+      bars.push(((seed * (i + 1)) % 3) + 1);
+    }
+    return bars;
+  };
+
+  const bars = generateBars(value);
+
+  return (
+    <div className="h-full bg-white flex flex-col items-center justify-center p-6">
+      <div className="bg-gray-50 rounded-2xl p-6 w-full">
+        {/* Barcode visual */}
+        <div className="flex items-end justify-center h-24 gap-[1px] mb-3">
+          {/* Start guard */}
+          <div className="w-[2px] h-full bg-black" />
+          <div className="w-[1px] h-full bg-white" />
+          <div className="w-[2px] h-full bg-black" />
+
+          {/* Bars */}
+          {bars.slice(0, 25).map((width, i) => (
+            <div
+              key={i}
+              className={`h-[85%] ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
+              style={{ width: `${width}px` }}
+            />
+          ))}
+
+          {/* Center guard */}
+          <div className="w-[1px] h-full bg-white" />
+          <div className="w-[2px] h-full bg-black" />
+          <div className="w-[1px] h-full bg-white" />
+          <div className="w-[2px] h-full bg-black" />
+          <div className="w-[1px] h-full bg-white" />
+
+          {/* More bars */}
+          {bars.slice(25, 50).map((width, i) => (
+            <div
+              key={i + 25}
+              className={`h-[85%] ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
+              style={{ width: `${width}px` }}
+            />
+          ))}
+
+          {/* End guard */}
+          <div className="w-[2px] h-full bg-black" />
+          <div className="w-[1px] h-full bg-white" />
+          <div className="w-[2px] h-full bg-black" />
+        </div>
+
+        {/* Barcode number */}
+        {displayValue && (
+          <p className="text-center text-sm font-mono font-semibold text-gray-900 tracking-widest">
+            {value}
+          </p>
+        )}
+
+        {/* Format badge */}
+        <div className="flex justify-center mt-3">
+          <span className="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-medium text-gray-600">
+            {format}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function DefaultPhonePreview() {
   return (
     <div className="h-full bg-white flex flex-col items-center justify-center p-5">
@@ -1505,6 +1739,8 @@ export function DefaultPhonePreview() {
 const MemoPdfPreview = React.memo(PdfPreview);
 const MemoLinksPreview = React.memo(LinksPreview);
 const MemoVcardPreview = React.memo(VcardPreview);
+const MemoVcardPlusPreview = React.memo(VcardPlusPreview);
+const MemoBarcodePreview = React.memo(BarcodePreview);
 const MemoBusinessPreview = React.memo(BusinessPreview);
 const MemoVideoPreview = React.memo(VideoPreview);
 const MemoImagesPreview = React.memo(ImagesPreview);
@@ -1527,6 +1763,8 @@ export function renderPreviewForType(type: string, dynamicContent?: Record<strin
     case "pdf": return <MemoPdfPreview content={dynamicContent || {}} />;
     case "links": return <MemoLinksPreview content={dynamicContent || {}} />;
     case "vcard": return <MemoVcardPreview content={dynamicContent || {}} />;
+    case "vcard-plus": return <MemoVcardPlusPreview content={dynamicContent || {}} />;
+    case "barcode": return <MemoBarcodePreview content={dynamicContent || {}} />;
     case "business": return <MemoBusinessPreview content={dynamicContent || {}} />;
     case "video": return <MemoVideoPreview content={dynamicContent || {}} />;
     case "images": return <MemoImagesPreview content={dynamicContent || {}} />;
