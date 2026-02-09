@@ -25,7 +25,7 @@ const pricingFAQ = [
   { q: "What are my payment options?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely through Stripe with industry-standard encryption." },
   { q: "Can I cancel my subscription anytime?", a: "Yes, you can easily cancel your subscription from your dashboard. Your plan will remain active until the end of your current billing period." },
   { q: "Can I change my billing cycle later?", a: "You can switch between monthly, quarterly, and annual billing at any time. Changes take effect at the next billing cycle." },
-  { q: "What happens when my trial expires?", a: "Once your 14-day trial ends, you'll need to subscribe to a paid plan to continue creating and editing QR codes. Your existing codes and data will be preserved." },
+  { q: "What happens when my trial expires?", a: "Once your 7-day trial ends, you'll need to subscribe to a paid plan to continue creating and editing QR codes. Your existing codes and data will be preserved." },
   { q: "Why choose annual billing?", a: "Annual billing saves you 60% compared to monthly billing. That's like getting over 7 months free every year!" },
 ];
 
@@ -125,7 +125,7 @@ export default function PricingPage() {
             transition={{ delay: 0.2 }}
             className="text-blue-200 text-sm"
           >
-            Start with a free 14-day trial. No credit card required.
+            Start with a free 7-day trial. No credit card required.
           </motion.p>
         </div>
       </section>

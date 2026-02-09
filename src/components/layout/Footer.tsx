@@ -19,7 +19,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
-              <li><Link href="/dashboard/create" className="hover:text-white transition-colors">Create QR Code</Link></li>
+              <li><Link href="/auth/login" className="hover:text-white transition-colors">Create QR Code</Link></li>
             </ul>
           </div>
           <div>

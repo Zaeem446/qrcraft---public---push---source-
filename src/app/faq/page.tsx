@@ -64,7 +64,7 @@ const faqCategories = [
       },
       {
         q: "Can I download QR codes created during my trial?",
-        a: "You sure can! We invite you to take full advantage of your 14-day trial period to see what our platform can really do. All features are available during the trial."
+        a: "You sure can! We invite you to take full advantage of your 7-day trial period to see what our platform can really do. All features are available during the trial."
       },
     ],
   },

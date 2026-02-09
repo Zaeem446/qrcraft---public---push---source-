@@ -372,7 +372,7 @@ export default function HomePage() {
               <motion.div variants={fadeInUp} className="mt-6 flex items-center gap-6 text-sm text-gray-500">
                 <span className="flex items-center gap-1.5">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
-                  14-day free trial
+                  7-day free trial
                 </span>
                 <span className="flex items-center gap-1.5">
                   <CheckCircleIcon className="h-4 w-4 text-green-500" />
@@ -747,7 +747,7 @@ export default function HomePage() {
                 Ready to Create Your First QR Code?
               </h2>
               <p className="text-blue-100 text-lg max-w-2xl mx-auto mb-8">
-                Join thousands of businesses already using QRCraft. Start your free 14-day trial today — no credit card required.
+                Join thousands of businesses already using QRCraft. Start your free 7-day trial today — no credit card required.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
