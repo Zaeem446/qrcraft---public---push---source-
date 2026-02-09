@@ -56,7 +56,6 @@ export const STATIC_QR_TYPES = [
   { id: 'bitcoin', name: 'Bitcoin', icon: 'CurrencyDollarIcon', description: 'Cryptocurrency payment', qrfyType: 'url-static' },
   { id: 'phone', name: 'Phone Call', icon: 'PhoneIcon', description: 'Initiate a phone call', qrfyType: 'url-static' },
   { id: 'calendar', name: 'Calendar Event', icon: 'CalendarDaysIcon', description: 'Add event to calendar', qrfyType: 'url-static' },
-  { id: 'barcode', name: 'Barcode', icon: 'QrCodeIcon', description: 'Generate EAN/UPC barcode', qrfyType: 'barcode' },
 ] as const;
 
 // Combined for backward compatibility

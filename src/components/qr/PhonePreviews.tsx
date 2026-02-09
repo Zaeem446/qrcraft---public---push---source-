@@ -1638,84 +1638,6 @@ export function VcardPlusPreview({ content }: { content: Record<string, any> }) 
   );
 }
 
-export function BarcodePreview({ content }: { content: Record<string, any> }) {
-  const value = content?.value || content?.code || "5901234123457";
-  const format = content?.format || "EAN13";
-  const displayValue = content?.displayValue !== false;
-
-  // Generate visual barcode pattern (simplified representation)
-  const generateBars = (code: string): number[] => {
-    // Create a visual pattern based on the code
-    const bars: number[] = [];
-    const seed = code.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    for (let i = 0; i < 60; i++) {
-      // Pseudo-random but deterministic pattern based on code
-      bars.push(((seed * (i + 1)) % 3) + 1);
-    }
-    return bars;
-  };
-
-  const bars = generateBars(value);
-
-  return (
-    <div className="h-full bg-white flex flex-col items-center justify-center p-6">
-      <div className="bg-gray-50 rounded-2xl p-6 w-full">
-        {/* Barcode visual */}
-        <div className="flex items-end justify-center h-24 gap-[1px] mb-3">
-          {/* Start guard */}
-          <div className="w-[2px] h-full bg-black" />
-          <div className="w-[1px] h-full bg-white" />
-          <div className="w-[2px] h-full bg-black" />
-
-          {/* Bars */}
-          {bars.slice(0, 25).map((width, i) => (
-            <div
-              key={i}
-              className={`h-[85%] ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
-              style={{ width: `${width}px` }}
-            />
-          ))}
-
-          {/* Center guard */}
-          <div className="w-[1px] h-full bg-white" />
-          <div className="w-[2px] h-full bg-black" />
-          <div className="w-[1px] h-full bg-white" />
-          <div className="w-[2px] h-full bg-black" />
-          <div className="w-[1px] h-full bg-white" />
-
-          {/* More bars */}
-          {bars.slice(25, 50).map((width, i) => (
-            <div
-              key={i + 25}
-              className={`h-[85%] ${i % 2 === 0 ? 'bg-black' : 'bg-white'}`}
-              style={{ width: `${width}px` }}
-            />
-          ))}
-
-          {/* End guard */}
-          <div className="w-[2px] h-full bg-black" />
-          <div className="w-[1px] h-full bg-white" />
-          <div className="w-[2px] h-full bg-black" />
-        </div>
-
-        {/* Barcode number */}
-        {displayValue && (
-          <p className="text-center text-sm font-mono font-semibold text-gray-900 tracking-widest">
-            {value}
-          </p>
-        )}
-
-        {/* Format badge */}
-        <div className="flex justify-center mt-3">
-          <span className="px-3 py-1 bg-gray-200 rounded-full text-[10px] font-medium text-gray-600">
-            {format}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function DefaultPhonePreview() {
   return (
     <div className="h-full bg-white flex flex-col items-center justify-center p-5">
@@ -1740,7 +1662,6 @@ const MemoPdfPreview = React.memo(PdfPreview);
 const MemoLinksPreview = React.memo(LinksPreview);
 const MemoVcardPreview = React.memo(VcardPreview);
 const MemoVcardPlusPreview = React.memo(VcardPlusPreview);
-const MemoBarcodePreview = React.memo(BarcodePreview);
 const MemoBusinessPreview = React.memo(BusinessPreview);
 const MemoVideoPreview = React.memo(VideoPreview);
 const MemoImagesPreview = React.memo(ImagesPreview);
@@ -1764,7 +1685,6 @@ export function renderPreviewForType(type: string, dynamicContent?: Record<strin
     case "links": return <MemoLinksPreview content={dynamicContent || {}} />;
     case "vcard": return <MemoVcardPreview content={dynamicContent || {}} />;
     case "vcard-plus": return <MemoVcardPlusPreview content={dynamicContent || {}} />;
-    case "barcode": return <MemoBarcodePreview content={dynamicContent || {}} />;
     case "business": return <MemoBusinessPreview content={dynamicContent || {}} />;
     case "video": return <MemoVideoPreview content={dynamicContent || {}} />;
     case "images": return <MemoImagesPreview content={dynamicContent || {}} />;

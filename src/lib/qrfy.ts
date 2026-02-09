@@ -60,7 +60,6 @@ const TYPE_MAP: Record<string, string> = {
   playlist: 'link-list',
   product: 'business',
   feedback: 'feedback',
-  barcode: 'barcode',  // P2: Barcode support
 };
 
 export function mapTypeToQrfy(ourType: string): string {
@@ -377,18 +376,6 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
       };
     }
 
-    // ── Barcode ────────────────────────────────────────────────────────
-    case 'barcode':
-      return {
-        type: 'barcode',
-        data: {
-          value: content.value || content.code || '',
-          format: content.format || 'CODE128', // EAN13, EAN8, UPC, CODE128, CODE39, ITF14, etc.
-          displayValue: content.displayValue !== false,
-          ...(content.width ? { width: content.width } : {}),
-          ...(content.height ? { height: content.height } : {}),
-        },
-      };
 
     // ── WiFi ───────────────────────────────────────────────────────────
     case 'wifi':
@@ -757,7 +744,7 @@ export function mapContentToData(ourType: string, content: Record<string, any>) 
 
 // Static types whose content should be mapped directly for QRFY (embed data in QR)
 // Exported so other modules use the same list
-export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard', 'barcode'];
+export const STATIC_TYPES = ['text', 'wifi', 'email', 'sms', 'bitcoin', 'phone', 'calendar', 'vcard'];
 
 export interface CreateQRParams {
   type: string;
