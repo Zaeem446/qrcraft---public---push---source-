@@ -18,14 +18,24 @@ function normalizeUrl(url: string | undefined | null): string {
 }
 
 async function qrfyFetch(path: string, options: RequestInit = {}) {
-  const res = await fetch(`${QRFY_API_URL}${path}`, {
+  const url = `${QRFY_API_URL}${path}`;
+
+  const res = await fetch(url, {
     ...options,
     headers: {
       'API-KEY': QRFY_API_KEY,
       'Content-Type': 'application/json',
+      'Accept': 'application/json, image/*',
+      'User-Agent': 'QRCraft/1.0 (https://qr-craft.online)',
       ...options.headers,
     },
   });
+
+  // Log failed requests for debugging (not the full body to avoid leaking sensitive data)
+  if (!res.ok) {
+    console.error(`[QRFY] Request failed: ${options.method || 'GET'} ${path} -> ${res.status} ${res.statusText}`);
+  }
+
   return res;
 }
 
@@ -996,10 +1006,25 @@ export async function createStaticQRImage(
     body.data = { url: normalizeUrl(content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
-  const res = await qrfyFetch(`/api/public/qrs/${format}`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
+  // Add timeout to prevent infinite loading (10 seconds max)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  let res: Response;
+  try {
+    res = await qrfyFetch(`/api/public/qrs/${format}`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('QRFY request timed out after 10 seconds');
+    }
+    throw err;
+  }
+  clearTimeout(timeoutId);
 
   if (!res.ok) {
     const err = await res.text();
