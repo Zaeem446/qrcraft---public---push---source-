@@ -7,914 +7,115 @@ import {
   ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
+import {
+  QRFY_SHAPE_SVGS,
+  QRFY_BORDER_SVGS,
+  QRFY_CENTER_SVGS,
+  QRFY_FRAME_SVGS,
+} from "@/lib/qrfy-svgs";
+
+// ─── Style ID to QRFY number mappings ────────────────────────────────────────
+
+// Map shape style IDs to QRFY style numbers (1-19)
+const SHAPE_STYLE_TO_NUM: { [key: string]: number } = {
+  "square": 1, "rounded": 2, "dots": 3, "classy": 4, "classy-rounded": 5,
+  "extra-rounded": 6, "cross": 7, "cross-rounded": 8, "diamond": 9,
+  "diamond-special": 10, "heart": 11, "horizontal-rounded": 12,
+  "vertical-rounded": 13, "ribbon": 14, "shake": 15, "sparkle": 16,
+  "star": 17, "x": 18, "x-rounded": 19,
+};
+
+// Map corner square (border) style IDs to QRFY style numbers (1-15)
+const BORDER_STYLE_TO_NUM: { [key: string]: number } = {
+  "default": 1, "dot": 2, "square": 3, "extra-rounded": 4, "shape1": 5,
+  "shape2": 6, "shape3": 7, "shape4": 8, "shape5": 9, "shape6": 10,
+  "shape7": 11, "shape8": 12, "shape9": 13, "shape10": 14, "shape11": 15,
+};
+
+// Map corner dot (center) style IDs to QRFY style numbers (1-16)
+const CENTER_STYLE_TO_NUM: { [key: string]: number } = {
+  "default": 1, "dot": 2, "rounded": 3, "dot2": 4, "dot3": 5, "dot4": 6,
+  "star": 7, "diamond": 8, "x": 9, "cross": 10, "sun": 11, "square2": 12,
+  "square3": 13, "cross-rounded": 14, "x-rounded": 15, "heart": 16,
+};
 
 // ─── SVG Pattern Thumbnails ──────────────────────────────────────────────────
 
-// Pattern SVGs matching QRFY's actual "QR code style" renders from screenshot
+// Render actual QRFY SVG from extracted data
 function PatternSVG({ style }: { style: string }) {
-  const s = 48;
+  const num = SHAPE_STYLE_TO_NUM[style] || 1;
+  const svgData = QRFY_SHAPE_SVGS[num];
+  if (!svgData) return null;
 
-  // Simple thumbnail showing the pattern style - matching QRFY's UI thumbnails
-  switch (style) {
-    case "square": // Solid squares
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="14" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="26" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="4" y="14" width="8" height="8" fill="currentColor"/>
-          <rect x="20" y="14" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="14" width="8" height="8" fill="currentColor"/>
-          <rect x="4" y="26" width="8" height="8" fill="currentColor"/>
-          <rect x="20" y="26" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="26" width="8" height="8" fill="currentColor"/>
-          <rect x="4" y="36" width="8" height="8" fill="currentColor"/>
-          <rect x="14" y="36" width="8" height="8" fill="currentColor"/>
-          <rect x="26" y="36" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="36" width="8" height="8" fill="currentColor"/>
-        </svg>
-      );
-    case "rounded": // Rounded squares
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="14" y="4" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="26" y="4" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="36" y="4" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="4" y="14" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="20" y="14" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="36" y="14" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="4" y="26" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="20" y="26" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="36" y="26" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="4" y="36" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="14" y="36" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="26" y="36" width="8" height="8" rx="2" fill="currentColor"/>
-          <rect x="36" y="36" width="8" height="8" rx="2" fill="currentColor"/>
-        </svg>
-      );
-    case "dots": // Small dots
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <circle cx="8" cy="8" r="3" fill="currentColor"/>
-          <circle cx="18" cy="8" r="3" fill="currentColor"/>
-          <circle cx="30" cy="8" r="3" fill="currentColor"/>
-          <circle cx="40" cy="8" r="3" fill="currentColor"/>
-          <circle cx="8" cy="18" r="3" fill="currentColor"/>
-          <circle cx="24" cy="18" r="3" fill="currentColor"/>
-          <circle cx="40" cy="18" r="3" fill="currentColor"/>
-          <circle cx="8" cy="30" r="3" fill="currentColor"/>
-          <circle cx="24" cy="30" r="3" fill="currentColor"/>
-          <circle cx="40" cy="30" r="3" fill="currentColor"/>
-          <circle cx="8" cy="40" r="3" fill="currentColor"/>
-          <circle cx="18" cy="40" r="3" fill="currentColor"/>
-          <circle cx="30" cy="40" r="3" fill="currentColor"/>
-          <circle cx="40" cy="40" r="3" fill="currentColor"/>
-        </svg>
-      );
-    case "classy": // Offset/classy pattern
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="7" height="9" fill="currentColor"/>
-          <rect x="13" y="4" width="7" height="9" fill="currentColor"/>
-          <rect x="28" y="4" width="7" height="9" fill="currentColor"/>
-          <rect x="37" y="4" width="7" height="9" fill="currentColor"/>
-          <rect x="6" y="15" width="7" height="9" fill="currentColor"/>
-          <rect x="22" y="15" width="7" height="9" fill="currentColor"/>
-          <rect x="35" y="15" width="7" height="9" fill="currentColor"/>
-          <rect x="4" y="26" width="7" height="9" fill="currentColor"/>
-          <rect x="22" y="26" width="7" height="9" fill="currentColor"/>
-          <rect x="37" y="26" width="7" height="9" fill="currentColor"/>
-          <rect x="6" y="37" width="7" height="9" fill="currentColor"/>
-          <rect x="15" y="37" width="7" height="9" fill="currentColor"/>
-          <rect x="26" y="37" width="7" height="9" fill="currentColor"/>
-          <rect x="35" y="37" width="7" height="9" fill="currentColor"/>
-        </svg>
-      );
-    case "classy-rounded": // Classy with rounded corners
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="13" y="4" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="28" y="4" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="37" y="4" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="6" y="15" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="22" y="15" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="35" y="15" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="4" y="26" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="22" y="26" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="37" y="26" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="6" y="37" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="15" y="37" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="26" y="37" width="7" height="9" rx="2" fill="currentColor"/>
-          <rect x="35" y="37" width="7" height="9" rx="2" fill="currentColor"/>
-        </svg>
-      );
-    case "extra-rounded": // Large circles
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <circle cx="8" cy="8" r="5" fill="currentColor"/>
-          <circle cx="20" cy="8" r="5" fill="currentColor"/>
-          <circle cx="32" cy="8" r="5" fill="currentColor"/>
-          <circle cx="8" cy="20" r="5" fill="currentColor"/>
-          <circle cx="24" cy="20" r="5" fill="currentColor"/>
-          <circle cx="40" cy="20" r="5" fill="currentColor"/>
-          <circle cx="8" cy="32" r="5" fill="currentColor"/>
-          <circle cx="24" cy="32" r="5" fill="currentColor"/>
-          <circle cx="40" cy="32" r="5" fill="currentColor"/>
-          <circle cx="16" cy="40" r="5" fill="currentColor"/>
-          <circle cx="28" cy="40" r="5" fill="currentColor"/>
-          <circle cx="40" cy="40" r="5" fill="currentColor"/>
-        </svg>
-      );
-    case "cross": // Plus/cross pattern
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <path d="M6,4 h4 v4 h-4z M4,6 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M18,4 h4 v4 h-4z M16,6 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M34,4 h4 v4 h-4z M32,6 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M6,18 h4 v4 h-4z M4,20 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M22,18 h4 v4 h-4z M20,20 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M38,18 h4 v4 h-4z M36,20 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M6,34 h4 v4 h-4z M4,36 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M22,34 h4 v4 h-4z M20,36 h4 v4 h-4z" fill="currentColor"/>
-          <path d="M38,34 h4 v4 h-4z M36,36 h4 v4 h-4z" fill="currentColor"/>
-        </svg>
-      );
-    case "cross-rounded": // Rounded cross
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="6" y="4" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="4" y="6" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="22" y="4" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="20" y="6" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="38" y="4" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="36" y="6" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="6" y="20" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="4" y="22" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="22" y="20" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="20" y="22" width="8" height="4" rx="1" fill="currentColor"/>
-          <rect x="38" y="36" width="4" height="8" rx="1" fill="currentColor"/>
-          <rect x="36" y="38" width="8" height="4" rx="1" fill="currentColor"/>
-        </svg>
-      );
-    case "diamond": // Diamond shapes
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <polygon points="8,2 14,8 8,14 2,8" fill="currentColor"/>
-          <polygon points="24,2 30,8 24,14 18,8" fill="currentColor"/>
-          <polygon points="40,2 46,8 40,14 34,8" fill="currentColor"/>
-          <polygon points="8,18 14,24 8,30 2,24" fill="currentColor"/>
-          <polygon points="24,18 30,24 24,30 18,24" fill="currentColor"/>
-          <polygon points="40,18 46,24 40,30 34,24" fill="currentColor"/>
-          <polygon points="8,34 14,40 8,46 2,40" fill="currentColor"/>
-          <polygon points="24,34 30,40 24,46 18,40" fill="currentColor"/>
-          <polygon points="40,34 46,40 40,46 34,40" fill="currentColor"/>
-        </svg>
-      );
-    case "diamond-special": // Diamond with center dot
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <polygon points="8,2 14,8 8,14 2,8" fill="currentColor"/>
-          <circle cx="8" cy="8" r="1.5" fill="white"/>
-          <polygon points="24,2 30,8 24,14 18,8" fill="currentColor"/>
-          <circle cx="24" cy="8" r="1.5" fill="white"/>
-          <polygon points="40,2 46,8 40,14 34,8" fill="currentColor"/>
-          <circle cx="40" cy="8" r="1.5" fill="white"/>
-          <polygon points="8,18 14,24 8,30 2,24" fill="currentColor"/>
-          <circle cx="8" cy="24" r="1.5" fill="white"/>
-          <polygon points="24,18 30,24 24,30 18,24" fill="currentColor"/>
-          <circle cx="24" cy="24" r="1.5" fill="white"/>
-          <polygon points="40,34 46,40 40,46 34,40" fill="currentColor"/>
-          <circle cx="40" cy="40" r="1.5" fill="white"/>
-        </svg>
-      );
-    case "heart": // Heart shapes
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <path d="M8 14 C8 10 4 8 4 12 C4 15 8 18 8 18 C8 18 12 15 12 12 C12 8 8 10 8 14Z" fill="currentColor"/>
-          <path d="M24 14 C24 10 20 8 20 12 C20 15 24 18 24 18 C24 18 28 15 28 12 C28 8 24 10 24 14Z" fill="currentColor"/>
-          <path d="M40 14 C40 10 36 8 36 12 C36 15 40 18 40 18 C40 18 44 15 44 12 C44 8 40 10 40 14Z" fill="currentColor"/>
-          <path d="M8 30 C8 26 4 24 4 28 C4 31 8 34 8 34 C8 34 12 31 12 28 C12 24 8 26 8 30Z" fill="currentColor"/>
-          <path d="M24 30 C24 26 20 24 20 28 C20 31 24 34 24 34 C24 34 28 31 28 28 C28 24 24 26 24 30Z" fill="currentColor"/>
-          <path d="M40 30 C40 26 36 24 36 28 C36 31 40 34 40 34 C40 34 44 31 44 28 C44 24 40 26 40 30Z" fill="currentColor"/>
-        </svg>
-      );
-    case "horizontal-rounded": // Horizontal bars
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="2" y="6" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="18" y="6" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="34" y="6" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="2" y="18" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="18" y="18" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="34" y="18" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="2" y="30" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="18" y="30" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="34" y="30" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="2" y="42" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="18" y="42" width="12" height="4" rx="2" fill="currentColor"/>
-          <rect x="34" y="42" width="12" height="4" rx="2" fill="currentColor"/>
-        </svg>
-      );
-    case "vertical-rounded": // Vertical bars
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="6" y="2" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="6" y="18" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="6" y="34" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="18" y="2" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="18" y="18" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="18" y="34" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="30" y="2" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="30" y="18" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="30" y="34" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="42" y="2" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="42" y="18" width="4" height="12" rx="2" fill="currentColor"/>
-          <rect x="42" y="34" width="4" height="12" rx="2" fill="currentColor"/>
-        </svg>
-      );
-    case "ribbon": // Double lines
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="8" height="3" fill="currentColor"/>
-          <rect x="4" y="9" width="8" height="3" fill="currentColor"/>
-          <rect x="20" y="4" width="8" height="3" fill="currentColor"/>
-          <rect x="20" y="9" width="8" height="3" fill="currentColor"/>
-          <rect x="36" y="4" width="8" height="3" fill="currentColor"/>
-          <rect x="36" y="9" width="8" height="3" fill="currentColor"/>
-          <rect x="4" y="20" width="8" height="3" fill="currentColor"/>
-          <rect x="4" y="25" width="8" height="3" fill="currentColor"/>
-          <rect x="20" y="20" width="8" height="3" fill="currentColor"/>
-          <rect x="20" y="25" width="8" height="3" fill="currentColor"/>
-          <rect x="36" y="36" width="8" height="3" fill="currentColor"/>
-          <rect x="36" y="41" width="8" height="3" fill="currentColor"/>
-        </svg>
-      );
-    case "shake": // Offset/shaky squares
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="3" y="5" width="7" height="7" fill="currentColor"/>
-          <rect x="15" y="3" width="7" height="7" fill="currentColor"/>
-          <rect x="29" y="5" width="7" height="7" fill="currentColor"/>
-          <rect x="39" y="3" width="7" height="7" fill="currentColor"/>
-          <rect x="5" y="17" width="7" height="7" fill="currentColor"/>
-          <rect x="21" y="19" width="7" height="7" fill="currentColor"/>
-          <rect x="37" y="17" width="7" height="7" fill="currentColor"/>
-          <rect x="3" y="31" width="7" height="7" fill="currentColor"/>
-          <rect x="21" y="29" width="7" height="7" fill="currentColor"/>
-          <rect x="39" y="31" width="7" height="7" fill="currentColor"/>
-        </svg>
-      );
-    case "sparkle": // 4-point stars
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <polygon points="8,2 10,6 14,8 10,10 8,14 6,10 2,8 6,6" fill="currentColor"/>
-          <polygon points="24,2 26,6 30,8 26,10 24,14 22,10 18,8 22,6" fill="currentColor"/>
-          <polygon points="40,2 42,6 46,8 42,10 40,14 38,10 34,8 38,6" fill="currentColor"/>
-          <polygon points="8,18 10,22 14,24 10,26 8,30 6,26 2,24 6,22" fill="currentColor"/>
-          <polygon points="24,18 26,22 30,24 26,26 24,30 22,26 18,24 22,22" fill="currentColor"/>
-          <polygon points="40,18 42,22 46,24 42,26 40,30 38,26 34,24 38,22" fill="currentColor"/>
-          <polygon points="8,34 10,38 14,40 10,42 8,46 6,42 2,40 6,38" fill="currentColor"/>
-          <polygon points="24,34 26,38 30,40 26,42 24,46 22,42 18,40 22,38" fill="currentColor"/>
-          <polygon points="40,34 42,38 46,40 42,42 40,46 38,42 34,40 38,38" fill="currentColor"/>
-        </svg>
-      );
-    case "star": // 5-point stars
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <polygon points="8,2 9.5,6 14,6.5 10.5,9.5 11.5,14 8,11.5 4.5,14 5.5,9.5 2,6.5 6.5,6" fill="currentColor"/>
-          <polygon points="24,2 25.5,6 30,6.5 26.5,9.5 27.5,14 24,11.5 20.5,14 21.5,9.5 18,6.5 22.5,6" fill="currentColor"/>
-          <polygon points="40,2 41.5,6 46,6.5 42.5,9.5 43.5,14 40,11.5 36.5,14 37.5,9.5 34,6.5 38.5,6" fill="currentColor"/>
-          <polygon points="8,18 9.5,22 14,22.5 10.5,25.5 11.5,30 8,27.5 4.5,30 5.5,25.5 2,22.5 6.5,22" fill="currentColor"/>
-          <polygon points="24,18 25.5,22 30,22.5 26.5,25.5 27.5,30 24,27.5 20.5,30 21.5,25.5 18,22.5 22.5,22" fill="currentColor"/>
-          <polygon points="40,34 41.5,38 46,38.5 42.5,41.5 43.5,46 40,43.5 36.5,46 37.5,41.5 34,38.5 38.5,38" fill="currentColor"/>
-        </svg>
-      );
-    case "x": // X shapes
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <path d="M4,4 L12,12 M12,4 L4,12" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M20,4 L28,12 M28,4 L20,12" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M36,4 L44,12 M44,4 L36,12" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M4,20 L12,28 M12,20 L4,28" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M20,20 L28,28 M28,20 L20,28" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M36,20 L44,28 M44,20 L36,28" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M4,36 L12,44 M12,36 L4,44" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M20,36 L28,44 M28,36 L20,44" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <path d="M36,36 L44,44 M44,36 L36,44" stroke="currentColor" strokeWidth="3" fill="none"/>
-        </svg>
-      );
-    case "x-rounded": // Rounded X shapes
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <path d="M4,4 L12,12 M12,4 L4,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M20,4 L28,12 M28,4 L20,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M36,4 L44,12 M44,4 L36,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M4,20 L12,28 M12,20 L4,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M20,20 L28,28 M28,20 L20,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M36,20 L44,28 M44,20 L36,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M4,36 L12,44 M12,36 L4,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M20,36 L28,44 M28,36 L20,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-          <path d="M36,36 L44,44 M44,36 L36,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="20" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="4" width="8" height="8" fill="currentColor"/>
-          <rect x="4" y="20" width="8" height="8" fill="currentColor"/>
-          <rect x="20" y="20" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="20" width="8" height="8" fill="currentColor"/>
-          <rect x="4" y="36" width="8" height="8" fill="currentColor"/>
-          <rect x="20" y="36" width="8" height="8" fill="currentColor"/>
-          <rect x="36" y="36" width="8" height="8" fill="currentColor"/>
-        </svg>
-      );
-  }
-}
-
-// Border style SVGs matching QRFY's actual "Border style" from screenshot
-function CornerSquareSVG({ style }: { style: string }) {
-  const s = 48;
-  switch (style) {
-    case "default": // Sharp square
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
-        </svg>
-      );
-    case "dot": // Circle
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <circle cx="24" cy="24" r="7" fill="currentColor"/>
-        </svg>
-      );
-    case "square": // Small rounded
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="4" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" rx="2" fill="currentColor"/>
-        </svg>
-      );
-    case "extra-rounded": // Medium rounded
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" rx="4" fill="currentColor"/>
-        </svg>
-      );
-    case "shape1": // Large rounded
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="14" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" rx="6" fill="currentColor"/>
-        </svg>
-      );
-    case "shape2": // Very rounded (almost circle)
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="18" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <circle cx="24" cy="24" r="7" fill="currentColor"/>
-        </svg>
-      );
-    case "shape3": // Square with circle inside
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <circle cx="24" cy="24" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <circle cx="24" cy="24" r="4" fill="currentColor"/>
-        </svg>
-      );
-    case "shape4": // Diamond outer
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <polygon points="24,4 44,24 24,44 4,24" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="17" y="17" width="14" height="14" fill="currentColor"/>
-        </svg>
-      );
-    case "shape5": // Circle with square inside
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
-        </svg>
-      );
-    case "shape6": // Double square
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="4" y="4" width="40" height="40" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <rect x="10" y="10" width="28" height="28" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <rect x="18" y="18" width="12" height="12" fill="currentColor"/>
-        </svg>
-      );
-    case "shape7": // Double circle
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <circle cx="24" cy="24" r="13" stroke="currentColor" strokeWidth="3" fill="none"/>
-          <circle cx="24" cy="24" r="5" fill="currentColor"/>
-        </svg>
-      );
-    case "shape8": // Square with rounded inner
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="14" y="14" width="20" height="20" rx="10" fill="currentColor"/>
-        </svg>
-      );
-    case "shape9": // Rounded with rounded inner
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="6" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="12" y="12" width="24" height="24" rx="6" stroke="currentColor" strokeWidth="2" fill="none"/>
-          <rect x="18" y="18" width="12" height="12" rx="3" fill="currentColor"/>
-        </svg>
-      );
-    case "shape10": // Pill horizontal
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="4" y="12" width="40" height="24" rx="12" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="18" y="18" width="12" height="12" rx="3" fill="currentColor"/>
-        </svg>
-      );
-    case "shape11": // Corner brackets only
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <path d="M6 16 L6 6 L16 6" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <path d="M32 6 L42 6 L42 16" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <path d="M42 32 L42 42 L32 42" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <path d="M16 42 L6 42 L6 32" stroke="currentColor" strokeWidth="4" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
-        </svg>
-      );
-    case "shape12": // Dotted square
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" strokeDasharray="4 4" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="5" fill="none"/>
-          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
-        </svg>
-      );
-  }
-}
-
-// Center style SVGs matching QRFY's actual "Center style" from screenshot
-function CornerDotSVG({ style }: { style: string }) {
-  switch (style) {
-    case "default": // Solid square
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="10" y="10" width="28" height="28" fill="currentColor"/>
-        </svg>
-      );
-    case "dot": // Horizontal oval/pill
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="6" y="14" width="36" height="20" rx="10" fill="currentColor"/>
-        </svg>
-      );
-    case "rounded": // Rounded square
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="10" y="10" width="28" height="28" rx="6" fill="currentColor"/>
-        </svg>
-      );
-    case "dot2": // Circle
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="14" fill="currentColor"/>
-        </svg>
-      );
-    case "dot3": // Donut (circle with hole)
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="14" fill="currentColor"/>
-          <circle cx="24" cy="24" r="6" fill="white"/>
-        </svg>
-      );
-    case "dot4": // Smaller circle
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="10" fill="currentColor"/>
-        </svg>
-      );
-    case "star": // 5-point star
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <polygon points="24,4 28,18 44,18 31,28 36,44 24,34 12,44 17,28 4,18 20,18" fill="currentColor"/>
-        </svg>
-      );
-    case "diamond": // Diamond
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <polygon points="24,6 42,24 24,42 6,24" fill="currentColor"/>
-        </svg>
-      );
-    case "x": // X shape
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <path d="M8,8 L18,24 L8,40 L14,40 L24,28 L34,40 L40,40 L30,24 L40,8 L34,8 L24,20 L14,8 Z" fill="currentColor"/>
-        </svg>
-      );
-    case "cross": // Plus/cross
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="18" y="6" width="12" height="36" fill="currentColor"/>
-          <rect x="6" y="18" width="36" height="12" fill="currentColor"/>
-        </svg>
-      );
-    case "sun": // Sun with rays
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="10" fill="currentColor"/>
-          <line x1="24" y1="4" x2="24" y2="12" stroke="currentColor" strokeWidth="3"/>
-          <line x1="24" y1="36" x2="24" y2="44" stroke="currentColor" strokeWidth="3"/>
-          <line x1="4" y1="24" x2="12" y2="24" stroke="currentColor" strokeWidth="3"/>
-          <line x1="36" y1="24" x2="44" y2="24" stroke="currentColor" strokeWidth="3"/>
-          <line x1="10" y1="10" x2="16" y2="16" stroke="currentColor" strokeWidth="3"/>
-          <line x1="32" y1="32" x2="38" y2="38" stroke="currentColor" strokeWidth="3"/>
-          <line x1="38" y1="10" x2="32" y2="16" stroke="currentColor" strokeWidth="3"/>
-          <line x1="16" y1="32" x2="10" y2="38" stroke="currentColor" strokeWidth="3"/>
-        </svg>
-      );
-    case "square2": // 4 dots in corners
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="14" cy="14" r="6" fill="currentColor"/>
-          <circle cx="34" cy="14" r="6" fill="currentColor"/>
-          <circle cx="14" cy="34" r="6" fill="currentColor"/>
-          <circle cx="34" cy="34" r="6" fill="currentColor"/>
-        </svg>
-      );
-    case "square3": // Circle outline only
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="5" fill="none"/>
-        </svg>
-      );
-    case "cross-rounded": // Small dots 3x3 grid
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="12" cy="12" r="4" fill="currentColor"/>
-          <circle cx="24" cy="12" r="4" fill="currentColor"/>
-          <circle cx="36" cy="12" r="4" fill="currentColor"/>
-          <circle cx="12" cy="24" r="4" fill="currentColor"/>
-          <circle cx="24" cy="24" r="4" fill="currentColor"/>
-          <circle cx="36" cy="24" r="4" fill="currentColor"/>
-          <circle cx="12" cy="36" r="4" fill="currentColor"/>
-          <circle cx="24" cy="36" r="4" fill="currentColor"/>
-          <circle cx="36" cy="36" r="4" fill="currentColor"/>
-        </svg>
-      );
-    case "x-rounded": // 5 dots (4 corners + center)
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <circle cx="24" cy="24" r="7" fill="currentColor"/>
-          <circle cx="10" cy="10" r="5" fill="currentColor"/>
-          <circle cx="38" cy="10" r="5" fill="currentColor"/>
-          <circle cx="10" cy="38" r="5" fill="currentColor"/>
-          <circle cx="38" cy="38" r="5" fill="currentColor"/>
-        </svg>
-      );
-    case "heart": // Heart shape
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <path d="M24 42 C14 32 4 24 4 16 C4 8 10 4 16 4 C20 4 24 8 24 12 C24 8 28 4 32 4 C38 4 44 8 44 16 C44 24 34 32 24 42Z" fill="currentColor"/>
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
-          <rect x="10" y="10" width="28" height="28" fill="currentColor"/>
-        </svg>
-      );
-  }
-}
-
-// ─── Frame Thumbnails ────────────────────────────────────────────────────────
-
-// Frame metadata matching QRFY's frame order from their UI
-const FRAME_META: { id: number; label: string }[] = [
-  { id: -1, label: "None" },
-  { id: 0, label: "Video Player" },
-  { id: 1, label: "Simple 1" },
-  { id: 2, label: "Simple 2" },
-  { id: 3, label: "Simple 3" },
-  { id: 4, label: "Simple 4" },
-  { id: 5, label: "Simple 5" },
-  { id: 6, label: "Simple 6" },
-  { id: 7, label: "Simple 7" },
-  { id: 8, label: "Simple 8" },
-  { id: 9, label: "Simple 9" },
-  { id: 10, label: "Simple 10" },
-  { id: 11, label: "Simple 11" },
-  { id: 12, label: "Text Top" },
-  { id: 13, label: "Plain" },
-  { id: 14, label: "Script" },
-  { id: 15, label: "Banner Top" },
-  { id: 16, label: "Gift Bow" },
-  { id: 17, label: "Polaroid" },
-  { id: 18, label: "Simple 18" },
-  { id: 19, label: "Ribbons" },
-  { id: 20, label: "Minimal" },
-  { id: 21, label: "Scooter" },
-  { id: 22, label: "Monitor" },
-  { id: 23, label: "Folder" },
-  { id: 24, label: "Clipboard" },
-  { id: 25, label: "Notebook" },
-  { id: 26, label: "Drink Cup" },
-  { id: 27, label: "Alarm Clock" },
-  { id: 28, label: "Plain 28" },
-  { id: 29, label: "Plain 29" },
-  { id: 30, label: "Plain 30" },
-];
-
-// Frame SVGs matching actual QRFY frame renders
-function FrameSVG({ id }: { id: number }) {
-  const s = 48;
-
-  switch (id) {
-    case -1: // None
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-400">
-          <line x1="12" y1="12" x2="36" y2="36" stroke="currentColor" strokeWidth="2" />
-          <line x1="36" y1="12" x2="12" y2="36" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      );
-    case 0: // Video Player - rectangle with play button
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="4" y="6" width="40" height="30" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="4" y="36" width="40" height="8" rx="1" fill="currentColor" opacity="0.3" />
-          <polygon points="20,16 20,26 28,21" fill="currentColor" opacity="0.5" />
-        </svg>
-      );
-    case 1: // Simple 1 - basic rectangle with bottom text area
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="32" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="6" y="36" width="36" height="8" rx="1" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 2: // Simple 2 - top text area
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="8" rx="1" fill="currentColor" opacity="0.25" />
-          <rect x="6" y="12" width="36" height="32" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 3: // Simple 3 - both top and bottom
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="2" width="36" height="6" rx="1" fill="currentColor" opacity="0.25" />
-          <rect x="6" y="10" width="36" height="28" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="6" y="40" width="36" height="6" rx="1" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 4: // Simple 4 - rounded corners bottom
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="32" rx="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="8" y="36" width="32" height="8" rx="4" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 5: // Simple 5 - rounded top
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="8" y="4" width="32" height="8" rx="4" fill="currentColor" opacity="0.25" />
-          <rect x="6" y="12" width="36" height="32" rx="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 6: // Simple 6 - rounded both
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="8" y="2" width="32" height="6" rx="3" fill="currentColor" opacity="0.25" />
-          <rect x="6" y="10" width="36" height="28" rx="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="8" y="40" width="32" height="6" rx="3" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 7: // Simple 7 - pill bottom
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="32" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="10" y="38" width="28" height="6" rx="3" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 8: // Simple 8 - pill top and bottom
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="10" y="2" width="28" height="6" rx="3" fill="currentColor" opacity="0.25" />
-          <rect x="6" y="10" width="36" height="28" rx="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="10" y="40" width="28" height="6" rx="3" fill="currentColor" opacity="0.25" />
-        </svg>
-      );
-    case 9: // Simple 9 - dashed square
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="36" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="4 2" />
-          <rect x="10" y="34" width="28" height="6" rx="1" fill="currentColor" opacity="0.2" />
-        </svg>
-      );
-    case 10: // Simple 10 - dashed rounded
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="4 2" />
-          <rect x="10" y="34" width="28" height="6" rx="3" fill="currentColor" opacity="0.2" />
-        </svg>
-      );
-    case 11: // Simple 11 - dotted
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="36" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="2 2" />
-          <rect x="10" y="34" width="28" height="6" rx="1" fill="currentColor" opacity="0.2" />
-        </svg>
-      );
-    case 12: // Text Top - text banner at top
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="4" y="2" width="40" height="10" rx="2" fill="currentColor" opacity="0.3" />
-          <rect x="6" y="14" width="36" height="30" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 13: // Plain - double border
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="4" y="4" width="40" height="40" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="8" y="8" width="32" height="32" rx="1" stroke="currentColor" strokeWidth="1" fill="none" />
-        </svg>
-      );
-    case 14: // Script - double rounded
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="8" y="8" width="32" height="32" rx="6" stroke="currentColor" strokeWidth="1" fill="none" />
-        </svg>
-      );
-    case 15: // Banner Top - flag/banner shape
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="8" width="36" height="36" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M12 8 L12 2 L36 2 L36 8" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.2" />
-        </svg>
-      );
-    case 16: // Gift Bow - box with bow
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="14" width="36" height="30" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <line x1="24" y1="14" x2="24" y2="44" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M24 14 C20 14 16 10 18 6 C20 4 24 6 24 10" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M24 14 C28 14 32 10 30 6 C28 4 24 6 24 10" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 17: // Polaroid - photo frame
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="2" width="36" height="44" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="10" y="6" width="28" height="28" fill="currentColor" opacity="0.15" />
-          <rect x="10" y="38" width="28" height="4" rx="1" fill="currentColor" opacity="0.2" />
-        </svg>
-      );
-    case 18: // Simple 18 - thick border
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="4" y="4" width="40" height="40" rx="3" stroke="currentColor" strokeWidth="3" fill="none" />
-        </svg>
-      );
-    case 19: // Ribbons - decorative ribbons
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="8" y="8" width="32" height="32" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M4 4 L12 12 M36 12 L44 4 M4 44 L12 36 M36 36 L44 44" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-      );
-    case 20: // Minimal - corner brackets only
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <path d="M4 14 L4 4 L14 4" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path d="M34 4 L44 4 L44 14" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path d="M44 34 L44 44 L34 44" stroke="currentColor" strokeWidth="2" fill="none" />
-          <path d="M14 44 L4 44 L4 34" stroke="currentColor" strokeWidth="2" fill="none" />
-        </svg>
-      );
-    case 21: // Scooter - scooter shape
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="8" y="8" width="28" height="24" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <circle cx="14" cy="40" r="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <circle cx="34" cy="40" r="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <line x1="8" y1="32" x2="14" y2="35" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="36" y1="32" x2="34" y2="35" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
-      );
-    case 22: // Monitor - computer screen
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="4" width="36" height="28" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <line x1="24" y1="32" x2="24" y2="38" stroke="currentColor" strokeWidth="2" />
-          <line x1="14" y1="40" x2="34" y2="40" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      );
-    case 23: // Folder - file folder
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <path d="M4 12 L4 42 L44 42 L44 12 L26 12 L22 6 L4 6 Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 24: // Clipboard - clipboard with clip
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="8" y="8" width="32" height="38" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <rect x="16" y="4" width="16" height="8" rx="2" stroke="currentColor" strokeWidth="1.5" fill="currentColor" fillOpacity="0.2" />
-        </svg>
-      );
-    case 25: // Notebook - spiral notebook
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="10" y="4" width="34" height="40" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <circle cx="10" cy="12" r="2" fill="currentColor" />
-          <circle cx="10" cy="20" r="2" fill="currentColor" />
-          <circle cx="10" cy="28" r="2" fill="currentColor" />
-          <circle cx="10" cy="36" r="2" fill="currentColor" />
-        </svg>
-      );
-    case 26: // Drink Cup - coffee cup
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <path d="M10 12 L14 44 L34 44 L38 12 Z" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M38 18 C44 18 46 24 44 28 C42 32 38 30 38 30" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <path d="M16 6 Q18 2 20 6 M24 6 Q26 2 28 6 M32 6 Q34 2 36 6" stroke="currentColor" strokeWidth="1" fill="none" />
-        </svg>
-      );
-    case 27: // Alarm Clock - classic alarm clock shape
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <circle cx="24" cy="26" r="18" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <circle cx="10" cy="10" r="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <circle cx="38" cy="10" r="5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          <line x1="13" y1="13" x2="18" y2="18" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="35" y1="13" x2="30" y2="18" stroke="currentColor" strokeWidth="1.5" />
-          <line x1="18" y1="44" x2="14" y2="48" stroke="currentColor" strokeWidth="2" />
-          <line x1="30" y1="44" x2="34" y2="48" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      );
-    case 28: // Plain 28 - simple square
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-    case 29: // Plain 29 - dashed circle
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="4 2" />
-        </svg>
-      );
-    case 30: // Plain 30 - dotted circle
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="1.5" fill="none" strokeDasharray="2 2" />
-        </svg>
-      );
-    default:
-      return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-10 h-10 text-gray-600">
-          <rect x="6" y="6" width="36" height="36" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
-        </svg>
-      );
-  }
-}
-
-// ─── Inline Color Picker ────────────────────────────────────────────────────
-function InlineColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  // Render the actual QRFY SVG with proper styling
   return (
-    <div>
-      <label className="text-xs font-medium text-gray-600 mb-2 block">{label}</label>
-      <div className="flex items-center gap-2">
-        <div className="relative w-9 h-9 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0">
-          <input type="color" value={value} onChange={e => onChange(e.target.value)}
-            className="absolute inset-0 w-full h-full cursor-pointer opacity-0" />
-          <div className="w-full h-full" style={{ backgroundColor: value }} />
-        </div>
-        <input type="text" value={value} onChange={e => onChange(e.target.value)}
-          className="w-28 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-gray-700 font-mono" />
-      </div>
-    </div>
+    <svg
+      viewBox={svgData.viewBox}
+      className="w-12 h-12 text-gray-700"
+      dangerouslySetInnerHTML={{ __html: svgData.inner.replace(/#000000/g, 'currentColor') }}
+    />
   );
 }
 
-// ─── Accordion Section ──────────────────────────────────────────────────────
+// Render actual QRFY Border style SVG
+function CornerSquareSVG({ style }: { style: string }) {
+  const num = BORDER_STYLE_TO_NUM[style] || 1;
+  const svgData = QRFY_BORDER_SVGS[num];
+  if (!svgData) return null;
+
+  return (
+    <svg
+      viewBox={svgData.viewBox}
+      className="w-12 h-12 text-gray-600"
+      dangerouslySetInnerHTML={{ __html: svgData.inner.replace(/#000000/g, 'currentColor') }}
+    />
+  );
+}
+
+// Render actual QRFY Center style SVG
+function CornerDotSVG({ style }: { style: string }) {
+  const num = CENTER_STYLE_TO_NUM[style] || 1;
+  const svgData = QRFY_CENTER_SVGS[num];
+  if (!svgData) return null;
+
+  return (
+    <svg
+      viewBox={svgData.viewBox}
+      className="w-12 h-12 text-gray-600"
+      dangerouslySetInnerHTML={{ __html: svgData.inner.replace(/#000000/g, 'currentColor') }}
+    />
+  );
+}
+
+// Render actual QRFY Frame SVG
+function FrameSVG({ id }: { id: number }) {
+  const svgData = QRFY_FRAME_SVGS[id];
+  if (!svgData) {
+    // Fallback for unknown frames
+    return (
+      <svg viewBox="0 0 48 48" className="w-10 h-10 text-gray-400">
+        <rect x="6" y="4" width="36" height="40" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      </svg>
+    );
+  }
+
+  // Handle special SVG attributes for frames
+  const processedInner = svgData.inner
+    .replace(/#000000/g, 'currentColor')
+    .replace(/fill="currentColor"/g, 'fill="currentColor"')
+    .replace(/stroke="currentColor"/g, 'stroke="currentColor"');
+
+  return (
+    <svg
+      viewBox={svgData.viewBox}
+      className="w-10 h-10 text-gray-600"
+      style={{ fill: 'none' }}
+      dangerouslySetInnerHTML={{ __html: processedInner }}
+    />
+  );
+}
+
+// Accordion Section component
 function AccordionSection({ icon, title, subtitle, children, defaultOpen = false }: {
   icon: React.ReactNode; title: string; subtitle: string; children: React.ReactNode; defaultOpen?: boolean;
 }) {
@@ -934,9 +135,37 @@ function AccordionSection({ icon, title, subtitle, children, defaultOpen = false
   );
 }
 
+// Inline color picker component
+function InlineColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+      <span className="text-sm text-gray-600">{label}</span>
+      <div className="ml-auto flex items-center gap-2">
+        <div className="relative">
+          <input
+            type="color"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          <div
+            className="w-6 h-6 rounded-md border border-gray-300 shadow-sm"
+            style={{ backgroundColor: value }}
+          />
+        </div>
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-20 px-2 py-1 text-xs font-mono border border-gray-200 rounded text-gray-700 uppercase"
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Design Options Constants ────────────────────────────────────────────────
 
-// 19 QR code styles matching QRFY's "QR code style" section
 const SHAPE_STYLES = [
   { id: "square", label: "Square" },           // Style 1
   { id: "rounded", label: "Rounded" },         // Style 2
@@ -1004,6 +233,42 @@ const ERROR_CORRECTION = [
   { id: "M", label: "Medium" },
   { id: "Q", label: "Quartile" },
   { id: "H", label: "High" },
+];
+
+// Frame metadata - maps to QRFY frame IDs
+const FRAME_META = [
+  { id: 0, label: "None" },
+  { id: 1, label: "Frame 1" },
+  { id: 2, label: "Frame 2" },
+  { id: 3, label: "Frame 3" },
+  { id: 4, label: "Frame 4" },
+  { id: 5, label: "Frame 5" },
+  { id: 6, label: "Frame 6" },
+  { id: 7, label: "Frame 7" },
+  { id: 8, label: "Frame 8" },
+  { id: 9, label: "Frame 9" },
+  { id: 10, label: "Frame 10" },
+  { id: 11, label: "Frame 11" },
+  { id: 12, label: "Frame 12" },
+  { id: 13, label: "Frame 13" },
+  { id: 14, label: "Frame 14" },
+  { id: 15, label: "Frame 15" },
+  { id: 16, label: "Frame 16" },
+  { id: 17, label: "Frame 17" },
+  { id: 18, label: "Frame 18" },
+  { id: 19, label: "Frame 19" },
+  { id: 20, label: "Frame 20" },
+  { id: 21, label: "Frame 21" },
+  { id: 22, label: "Frame 22" },
+  { id: 23, label: "Frame 23" },
+  { id: 24, label: "Frame 24" },
+  { id: 25, label: "Frame 25" },
+  { id: 26, label: "Frame 26" },
+  { id: 27, label: "Frame 27" },
+  { id: 28, label: "Frame 28" },
+  { id: 29, label: "Frame 29" },
+  { id: 30, label: "Frame 30" },
+  { id: 31, label: "Frame 31" },
 ];
 
 // Preset logo URLs (external sources - QRFY can't fetch from its own domain)
