@@ -242,11 +242,21 @@ export function mapDesignToStyle(design: Record<string, any>) {
     style.image = toAbsoluteUrl(design.logo);
   }
 
-  // Shape / pattern - use simple hex colors (gradients may not work on static endpoint)
+  // Shape / pattern
   style.shape = {
     style: SHAPE_STYLE_MAP[design.dotsType] || 'square',
-    color: design.dotsColor || '#000000',
-    backgroundColor: design.bgTransparent ? '#FFFFFF' : (design.backgroundColor || '#FFFFFF'),
+    color: makeColorValue(
+      design.dotsColor || '#000000',
+      design.patternGradient,
+      design.patternColor2
+    ),
+    backgroundColor: design.bgTransparent
+      ? '#FFFFFF'
+      : makeColorValue(
+          design.backgroundColor || '#FFFFFF',
+          design.useGradientBg,
+          design.bgColor2
+        ),
   };
 
   // Corners
