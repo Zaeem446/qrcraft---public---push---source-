@@ -47,11 +47,11 @@ export default function CreateQRPage() {
     logoSize: 0.4,
     frameStyle: "none",
     frameId: -1,
-    frameColor: "#6D28D9",
+    frameColor: "#000000",
     frameText: "Scan me!",
     frameFontSize: 42,
-    frameTextColor: "#FFFFFF",
-    frameBackgroundColor: "#6D28D9",
+    frameTextColor: "#000000",
+    frameBackgroundColor: "#FFFFFF",
     patternGradient: false,
     patternColor2: "#7C3AED",
     bgTransparent: false,
@@ -151,6 +151,9 @@ export default function CreateQRPage() {
         toast.success("QR code created!");
         setCreatedQr({ id: data.id, imageUrl: previewUrl || "" });
         setStep(4);
+      } else if (res.status === 401) {
+        toast.error("Session expired. Please log in again.");
+        router.push("/auth/login");
       } else {
         const d = await res.json();
         toast.error(d.error || "Failed to create");

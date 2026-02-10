@@ -32,24 +32,69 @@ function getLayout(content: Record<string, any>) {
 // ─── Phone Preview Components ────────────────────────────────────────────────
 
 export function WebsitePreview({ content }: { content: Record<string, any> }) {
-  const url = content?.url || "https://qr-generator.ai";
-  const displayUrl = url.replace(/^https?:\/\//, "").replace(/\/$/, "") || "qr-generator.ai";
+  const url = content?.url || "https://example.com";
+  const displayUrl = url.replace(/^https?:\/\//, "").replace(/\/$/, "") || "example.com";
+  const badge = content?.badge;
+  const websites = content?.websites || [];
+
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="bg-blue-500 px-3 py-2.5 flex items-center gap-2">
+    <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
+      {/* Header with URL bar */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-2.5 flex items-center gap-2">
         <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
           <GlobeAltIcon className="h-2.5 w-2.5 text-white" />
         </div>
-        <span className="text-white text-[11px] truncate">{displayUrl}</span>
+        <span className="text-white text-[11px] truncate font-medium">{displayUrl}</span>
       </div>
-      <div className="flex-1 p-4 space-y-3">
-        <div className="h-28 bg-gray-100 rounded-lg" />
-        <div className="space-y-2">
-          <div className="h-3 bg-gray-200 rounded-full w-3/4" />
-          <div className="h-3 bg-gray-100 rounded-full w-full" />
-          <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-          <div className="h-3 bg-gray-200 rounded-full w-2/3" />
-        </div>
+
+      <div className="flex-1 p-4 flex flex-col items-center justify-center">
+        {/* Badge Image */}
+        {badge ? (
+          <div className="mb-4">
+            <img
+              src={badge}
+              alt="Badge"
+              className="w-24 h-24 object-contain rounded-xl shadow-lg"
+            />
+          </div>
+        ) : (
+          <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-4">
+            <GlobeAltIcon className="h-10 w-10 text-blue-500" />
+          </div>
+        )}
+
+        {/* Primary URL Button */}
+        <a
+          href="#"
+          className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-center py-2.5 rounded-xl text-xs font-semibold shadow-lg mb-3"
+        >
+          Visit Website
+        </a>
+
+        {/* Additional Websites */}
+        {websites.length > 0 && (
+          <div className="w-full space-y-2">
+            {websites.slice(0, 3).map((w: any, idx: number) => (
+              <div key={idx} className="bg-white rounded-lg p-2.5 shadow-sm flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <GlobeAltIcon className="h-3 w-3 text-blue-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-semibold text-gray-900 truncate">{w.name || "Website"}</p>
+                  <p className="text-[8px] text-gray-500 truncate">{w.description || w.url || ""}</p>
+                </div>
+                <ChevronRightIcon className="h-3 w-3 text-gray-400" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Placeholder when no additional sites */}
+        {websites.length === 0 && (
+          <p className="text-[10px] text-gray-400 text-center mt-2">
+            Add additional websites to show more links
+          </p>
+        )}
       </div>
     </div>
   );
