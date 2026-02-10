@@ -205,7 +205,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { type, content, design, format = 'png' } = body;
+    const { type, content, format = 'png' } = body;
+
+    // Strip base64 data from design to avoid payload size issues
+    // QRFY can't use base64 logos anyway - it needs URLs
+    const design = { ...(body.design || {}) };
+    if (design.logo && design.logo.startsWith('data:')) {
+      delete design.logo;
+    }
 
     if (!type) {
       return NextResponse.json({ error: 'Type is required' }, { status: 400 });

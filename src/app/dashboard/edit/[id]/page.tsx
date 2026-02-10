@@ -77,10 +77,15 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
 
     setPreviewLoading(true);
     try {
+      // Strip base64 logos to avoid 413 payload size errors
+      const previewDesign = { ...design };
+      if (previewDesign.logo?.startsWith('data:')) {
+        delete previewDesign.logo;
+      }
       const res = await fetch("/api/qrcodes/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: qrType, content, design }),
+        body: JSON.stringify({ type: qrType, content, design: previewDesign }),
         signal: abortControllerRef.current.signal,
       });
       if (res.ok) {
