@@ -68,100 +68,101 @@ export function mapTypeToQrfy(ourType: string): string {
 
 // ─── Style Mapping ──────────────────────────────────────────────────────────
 
-// QRFY shape styles (19 native + backward-compat aliases)
-const SHAPE_STYLE_MAP: Record<string, string> = {
-  // 19 native QRFY styles (identity)
-  square: 'square',
-  rounded: 'rounded',
-  dots: 'dots',
-  classy: 'classy',
-  'classy-rounded': 'classy-rounded',
-  'extra-rounded': 'extra-rounded',
-  cross: 'cross',
-  'cross-rounded': 'cross-rounded',
-  diamond: 'diamond',
-  'diamond-special': 'diamond-special',
-  heart: 'heart',
-  'horizontal-rounded': 'horizontal-rounded',
-  ribbon: 'ribbon',
-  shake: 'shake',
-  sparkle: 'sparkle',
-  star: 'star',
-  'vertical-rounded': 'vertical-rounded',
-  x: 'x',
-  'x-rounded': 'x-rounded',
+// QRFY shape styles - maps to numeric IDs (Shape style 1-19)
+// Based on QRFY builder at https://qrfy.com/app/builder/url/3
+const SHAPE_STYLE_MAP: Record<string, number> = {
+  // 19 QRFY shape styles mapped to IDs
+  square: 1,
+  rounded: 2,
+  dots: 3,
+  classy: 4,
+  'classy-rounded': 5,
+  'extra-rounded': 6,
+  cross: 7,
+  'cross-rounded': 8,
+  diamond: 9,
+  'diamond-special': 10,
+  heart: 11,
+  'horizontal-rounded': 12,
+  ribbon: 13,
+  shake: 14,
+  sparkle: 15,
+  star: 16,
+  'vertical-rounded': 17,
+  x: 18,
+  'x-rounded': 19,
   // Backward-compat aliases from old UI
-  dot: 'dots',
-  'small-square': 'square',
-  'tiny-square': 'square',
-  'vertical-line': 'vertical-rounded',
-  'horizontal-line': 'horizontal-rounded',
-  'random-dot': 'dots',
-  wave: 'rounded',
-  weave: 'cross',
-  pentagon: 'sparkle',
-  hexagon: 'sparkle',
-  'zebra-horizontal': 'horizontal-rounded',
-  'zebra-vertical': 'vertical-rounded',
-  'blocks-horizontal': 'horizontal-rounded',
-  'blocks-vertical': 'vertical-rounded',
+  dot: 3,
+  'small-square': 1,
+  'tiny-square': 1,
+  'vertical-line': 17,
+  'horizontal-line': 12,
+  'random-dot': 3,
+  wave: 2,
+  weave: 7,
+  pentagon: 15,
+  hexagon: 15,
+  'zebra-horizontal': 12,
+  'zebra-vertical': 17,
+  'blocks-horizontal': 12,
+  'blocks-vertical': 17,
 };
 
-// QRFY corner square styles (16 native + backward-compat aliases)
-// Maps to QRFY API: https://qrfy.com/app/builder/url/3
-const CORNER_SQUARE_MAP: Record<string, string> = {
-  // 16 native QRFY styles (identity mapping)
-  default: 'default',
-  dot: 'dot',
-  square: 'square',
-  'extra-rounded': 'extra-rounded',
-  shape1: 'shape1',
-  shape2: 'shape2',
-  shape3: 'shape3',
-  shape4: 'shape4',
-  shape5: 'shape5',
-  shape6: 'shape6',
-  shape7: 'shape7',
-  shape8: 'shape8',
-  shape9: 'shape9',
-  shape10: 'shape10',
-  shape11: 'shape11',
-  shape12: 'shape12',
+// QRFY corner square styles - maps to Border style IDs (1-15)
+// Based on QRFY builder at https://qrfy.com/app/builder/url/3
+const CORNER_SQUARE_MAP: Record<string, number> = {
+  // 15 QRFY border styles mapped to IDs + default (0)
+  default: 0,
+  dot: 1,
+  square: 2,
+  'extra-rounded': 3,
+  shape1: 4,
+  shape2: 5,
+  shape3: 6,
+  shape4: 7,
+  shape5: 8,
+  shape6: 9,
+  shape7: 10,
+  shape8: 11,
+  shape9: 12,
+  shape10: 13,
+  shape11: 14,
+  shape12: 15,
   // Backward-compat aliases from old UI
-  classy: 'shape1',
-  outpoint: 'shape2',
-  inpoint: 'shape3',
-  'center-circle': 'shape4',
+  classy: 4,
+  outpoint: 5,
+  inpoint: 6,
+  'center-circle': 7,
 };
 
-// QRFY corner dot styles (17 native + backward-compat aliases)
-// Maps to QRFY API: Center Styles 1-16
-const CORNER_DOT_MAP: Record<string, string> = {
-  // 17 native QRFY styles (identity mapping)
-  default: 'default',
-  dot: 'dot',
-  square: 'square',
-  cross: 'cross',
-  'cross-rounded': 'cross-rounded',
-  diamond: 'diamond',
-  dot2: 'dot2',
-  dot3: 'dot3',
-  dot4: 'dot4',
-  heart: 'heart',
-  rounded: 'rounded',
-  square2: 'square2',
-  square3: 'square3',
-  star: 'star',
-  sun: 'sun',
-  x: 'x',
-  'x-rounded': 'x-rounded',
+// QRFY corner dot styles - maps to Center style IDs (1-16)
+// Based on QRFY builder at https://qrfy.com/app/builder/url/3
+const CORNER_DOT_MAP: Record<string, number> = {
+  // 16 QRFY center styles mapped to IDs + default (0)
+  default: 0,
+  dot: 1,
+  square: 2,
+  cross: 3,
+  'cross-rounded': 4,
+  diamond: 5,
+  dot2: 6,
+  dot3: 7,
+  dot4: 8,
+  heart: 9,
+  rounded: 10,
+  square2: 11,
+  square3: 12,
+  star: 13,
+  sun: 14,
+  x: 15,
+  'x-rounded': 16,
   // Backward-compat aliases
-  'extra-rounded': 'rounded',
-  classy: 'square2',
-  outpoint: 'diamond',
-  inpoint: 'cross',
-  pentagon: 'dot2',
-  hexagon: 'dot3',
+  'extra-rounded': 10,
+  classy: 11,
+  outpoint: 5,
+  inpoint: 3,
+  pentagon: 6,
+  hexagon: 7,
 };
 
 // QRFY frame/border mapping (31 frames + 15 border styles)
@@ -242,9 +243,9 @@ export function mapDesignToStyle(design: Record<string, any>) {
     style.image = toAbsoluteUrl(design.logo);
   }
 
-  // Shape / pattern
+  // Shape / pattern - use numeric ID
   style.shape = {
-    style: SHAPE_STYLE_MAP[design.dotsType] || 'square',
+    id: SHAPE_STYLE_MAP[design.dotsType] || 1,
     color: makeColorValue(
       design.dotsColor || '#000000',
       design.patternGradient,
@@ -259,10 +260,10 @@ export function mapDesignToStyle(design: Record<string, any>) {
         ),
   };
 
-  // Corners
+  // Corners - use numeric IDs
   style.corners = {
-    squareStyle: CORNER_SQUARE_MAP[design.cornersSquareType] || 'default',
-    dotStyle: CORNER_DOT_MAP[design.cornersDotType] || 'default',
+    squareId: CORNER_SQUARE_MAP[design.cornersSquareType] || 0,
+    dotId: CORNER_DOT_MAP[design.cornersDotType] || 0,
     squareColor: design.cornersSquareColor || '#000000',
     dotColor: design.cornersDotColor || '#000000',
   };
