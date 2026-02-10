@@ -183,15 +183,7 @@ function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
       ],
     };
   }
-  // QRFY only accepts "linear" or "radial" - use linear with same color for solid
-  return {
-    type: 'linear' as const,
-    rotation: 0,
-    colorStops: [
-      { offset: 0, color: hex },
-      { offset: 1, color: hex },
-    ],
-  };
+  return hex;
 }
 
 export function mapDesignToStyle(design: Record<string, any>) {
@@ -212,7 +204,7 @@ export function mapDesignToStyle(design: Record<string, any>) {
       design.patternColor2
     ),
     backgroundColor: design.bgTransparent
-      ? makeColorValue('#FFFFFF')
+      ? '#FFFFFF'
       : makeColorValue(
           design.backgroundColor || '#FFFFFF',
           design.useGradientBg,
@@ -220,12 +212,12 @@ export function mapDesignToStyle(design: Record<string, any>) {
         ),
   };
 
-  // Corners - use proper color objects
+  // Corners
   style.corners = {
     squareStyle: CORNER_SQUARE_MAP[design.cornersSquareType] || 'default',
     dotStyle: CORNER_DOT_MAP[design.cornersDotType] || 'default',
-    squareColor: makeColorValue(design.cornersSquareColor || '#000000'),
-    dotColor: makeColorValue(design.cornersDotColor || '#000000'),
+    squareColor: design.cornersSquareColor || '#000000',
+    dotColor: design.cornersDotColor || '#000000',
   };
 
   // Frame — only include if frameId is a valid QRFY frame (0-30)
@@ -234,13 +226,13 @@ export function mapDesignToStyle(design: Record<string, any>) {
   if (frameId >= 0) {
     style.frame = {
       id: frameId,
-      color: makeColorValue(design.frameColor || '#7C3AED'),
+      color: design.frameColor || '#7C3AED',
       text: (design.frameText || 'Scan me!').slice(0, 30),
       fontSize: design.frameFontSize || 42,
-      textColor: design.frameTextColor || '#FFFFFF', // textColor stays as plain string per QRFY docs
+      textColor: design.frameTextColor || '#FFFFFF',
     };
     if (frameId > 0) {
-      style.frame.backgroundColor = makeColorValue(design.frameBackgroundColor || design.frameColor || '#7C3AED');
+      style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
     }
   }
 
@@ -1014,25 +1006,10 @@ export async function createStaticQRImage(
     body.data = { url: normalizeUrl(content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
-  // Add timeout to prevent infinite loading (10 seconds max)
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-  let res: Response;
-  try {
-    res = await qrfyFetch(`/api/public/qrs/${format}`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      throw new Error('QRFY request timed out after 10 seconds');
-    }
-    throw err;
-  }
-  clearTimeout(timeoutId);
+  const res = await qrfyFetch(`/api/public/qrs/${format}`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 
   if (!res.ok) {
     const err = await res.text();
