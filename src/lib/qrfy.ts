@@ -183,11 +183,14 @@ function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
       ],
     };
   }
-  // QRFY expects color objects with colorStops, not plain hex strings
+  // QRFY only accepts "linear" or "radial" - use linear with same color for solid
   return {
-    type: 'solid' as const,
-    rotation: null,
-    colorStops: [{ offset: 0, color: hex }],
+    type: 'linear' as const,
+    rotation: 0,
+    colorStops: [
+      { offset: 0, color: hex },
+      { offset: 1, color: hex },
+    ],
   };
 }
 
