@@ -248,43 +248,34 @@ export function mapDesignToStyle(design: Record<string, any>) {
     style.image = toAbsoluteUrl(design.logo);
   }
 
-  // Shape / pattern - all colors must be objects per QRFY API
+  // Shape / pattern - use simple hex strings (QRFY generate endpoint may not support color objects)
   style.shape = {
     style: SHAPE_STYLE_MAP[design.dotsType] || 'square',
-    color: makeColorObject(
-      design.dotsColor || '#000000',
-      design.patternGradient,
-      design.patternColor2
-    ),
-    backgroundColor: makeColorObject(
-      design.bgTransparent ? '#FFFFFF' : (design.backgroundColor || '#FFFFFF'),
-      design.useGradientBg,
-      design.bgColor2
-    ),
+    color: design.dotsColor || '#000000',
+    backgroundColor: design.bgTransparent ? 'transparent' : (design.backgroundColor || '#FFFFFF'),
   };
 
-  // Corners - all colors must be objects per QRFY API
+  // Corners - use simple hex strings
   style.corners = {
     squareStyle: CORNER_SQUARE_MAP[design.cornersSquareType] || 'default',
     dotStyle: CORNER_DOT_MAP[design.cornersDotType] || 'default',
-    squareColor: makeColorObject(design.cornersSquareColor || '#000000'),
-    dotColor: makeColorObject(design.cornersDotColor || '#000000'),
+    squareColor: design.cornersSquareColor || '#000000',
+    dotColor: design.cornersDotColor || '#000000',
   };
 
   // Frame — only include if frameId is a valid QRFY frame (0-30)
   // frameId -1 means "None" (no frame)
-  // Per API docs: color and backgroundColor are objects, textColor is hex string
   const frameId = typeof design.frameId === 'number' ? design.frameId : -1;
   if (frameId >= 0) {
     style.frame = {
       id: frameId,
-      color: makeColorObject(design.frameColor || '#7C3AED'),
+      color: design.frameColor || '#7C3AED',
       text: (design.frameText || 'Scan me!').slice(0, 30),
       fontSize: design.frameFontSize || 42,
       textColor: design.frameTextColor || '#FFFFFF',
     };
     if (frameId > 0) {
-      style.frame.backgroundColor = makeColorObject(design.frameBackgroundColor || design.frameColor || '#7C3AED');
+      style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
     }
   }
 
