@@ -1036,10 +1036,6 @@ export async function createStaticQRImage(
 
   const style = mapDesignToStyle(design);
 
-  // Exclude frames from static QR generation - they cause large payloads
-  // and may not be fully supported on the static endpoint
-  delete style.frame;
-
   // For preview, use url-static with a placeholder if type isn't natively static
   // These are the only types allowed for POST /api/public/qrs/{format}
   const staticTypes = ['url-static', 'text', 'wifi', 'email', 'sms', 'vcard', 'whatsapp'];
