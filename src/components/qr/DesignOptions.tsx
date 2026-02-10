@@ -14,498 +14,590 @@ import toast from "react-hot-toast";
 function PatternSVG({ style }: { style: string }) {
   const s = 48;
 
-  // Pre-built pattern thumbnails matching QRFY's visual style
+  // Simple thumbnail showing the pattern style - matching QRFY's UI thumbnails
   switch (style) {
-    case "square": // Style 1 - solid dense squares
+    case "square": // Solid squares
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
-            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="14" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="26" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="4" y="14" width="8" height="8" fill="currentColor"/>
+          <rect x="20" y="14" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="14" width="8" height="8" fill="currentColor"/>
+          <rect x="4" y="26" width="8" height="8" fill="currentColor"/>
+          <rect x="20" y="26" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="26" width="8" height="8" fill="currentColor"/>
+          <rect x="4" y="36" width="8" height="8" fill="currentColor"/>
+          <rect x="14" y="36" width="8" height="8" fill="currentColor"/>
+          <rect x="26" y="36" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="36" width="8" height="8" fill="currentColor"/>
         </svg>
       );
-    case "rounded": // Style 2 - rounded squares
+    case "rounded": // Rounded squares
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
-            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" rx="2" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="14" y="4" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="26" y="4" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="36" y="4" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="4" y="14" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="20" y="14" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="36" y="14" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="4" y="26" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="20" y="26" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="36" y="26" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="4" y="36" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="14" y="36" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="26" y="36" width="8" height="8" rx="2" fill="currentColor"/>
+          <rect x="36" y="36" width="8" height="8" rx="2" fill="currentColor"/>
         </svg>
       );
-    case "dots": // Style 3 - circular dots
+    case "dots": // Small dots
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
-            <circle key={`${x}-${y}`} cx={x*9.6+4} cy={y*9.6+4} r="3.5" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <circle cx="8" cy="8" r="3" fill="currentColor"/>
+          <circle cx="18" cy="8" r="3" fill="currentColor"/>
+          <circle cx="30" cy="8" r="3" fill="currentColor"/>
+          <circle cx="40" cy="8" r="3" fill="currentColor"/>
+          <circle cx="8" cy="18" r="3" fill="currentColor"/>
+          <circle cx="24" cy="18" r="3" fill="currentColor"/>
+          <circle cx="40" cy="18" r="3" fill="currentColor"/>
+          <circle cx="8" cy="30" r="3" fill="currentColor"/>
+          <circle cx="24" cy="30" r="3" fill="currentColor"/>
+          <circle cx="40" cy="30" r="3" fill="currentColor"/>
+          <circle cx="8" cy="40" r="3" fill="currentColor"/>
+          <circle cx="18" cy="40" r="3" fill="currentColor"/>
+          <circle cx="30" cy="40" r="3" fill="currentColor"/>
+          <circle cx="40" cy="40" r="3" fill="currentColor"/>
         </svg>
       );
-    case "classy": // Style 4 - offset/staggered squares
+    case "classy": // Offset/classy pattern
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const offset = y % 2 === 0 ? 1 : -1;
-            return <rect key={`${x}-${y}`} x={x*9.6+offset} y={y*9.6} width="7" height="8" fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="7" height="9" fill="currentColor"/>
+          <rect x="13" y="4" width="7" height="9" fill="currentColor"/>
+          <rect x="28" y="4" width="7" height="9" fill="currentColor"/>
+          <rect x="37" y="4" width="7" height="9" fill="currentColor"/>
+          <rect x="6" y="15" width="7" height="9" fill="currentColor"/>
+          <rect x="22" y="15" width="7" height="9" fill="currentColor"/>
+          <rect x="35" y="15" width="7" height="9" fill="currentColor"/>
+          <rect x="4" y="26" width="7" height="9" fill="currentColor"/>
+          <rect x="22" y="26" width="7" height="9" fill="currentColor"/>
+          <rect x="37" y="26" width="7" height="9" fill="currentColor"/>
+          <rect x="6" y="37" width="7" height="9" fill="currentColor"/>
+          <rect x="15" y="37" width="7" height="9" fill="currentColor"/>
+          <rect x="26" y="37" width="7" height="9" fill="currentColor"/>
+          <rect x="35" y="37" width="7" height="9" fill="currentColor"/>
         </svg>
       );
-    case "classy-rounded": // Style 5 - offset rounded
+    case "classy-rounded": // Classy with rounded corners
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const offset = y % 2 === 0 ? 1 : -1;
-            return <rect key={`${x}-${y}`} x={x*9.6+offset} y={y*9.6} width="7" height="8" rx="2" fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="13" y="4" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="28" y="4" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="37" y="4" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="6" y="15" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="22" y="15" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="35" y="15" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="4" y="26" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="22" y="26" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="37" y="26" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="6" y="37" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="15" y="37" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="26" y="37" width="7" height="9" rx="2" fill="currentColor"/>
+          <rect x="35" y="37" width="7" height="9" rx="2" fill="currentColor"/>
         </svg>
       );
-    case "extra-rounded": // Style 6 - large circles
+    case "extra-rounded": // Large circles
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
-            <circle key={`${x}-${y}`} cx={x*9.6+4} cy={y*9.6+4} r="4.5" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <circle cx="8" cy="8" r="5" fill="currentColor"/>
+          <circle cx="20" cy="8" r="5" fill="currentColor"/>
+          <circle cx="32" cy="8" r="5" fill="currentColor"/>
+          <circle cx="8" cy="20" r="5" fill="currentColor"/>
+          <circle cx="24" cy="20" r="5" fill="currentColor"/>
+          <circle cx="40" cy="20" r="5" fill="currentColor"/>
+          <circle cx="8" cy="32" r="5" fill="currentColor"/>
+          <circle cx="24" cy="32" r="5" fill="currentColor"/>
+          <circle cx="40" cy="32" r="5" fill="currentColor"/>
+          <circle cx="16" cy="40" r="5" fill="currentColor"/>
+          <circle cx="28" cy="40" r="5" fill="currentColor"/>
+          <circle cx="40" cy="40" r="5" fill="currentColor"/>
         </svg>
       );
-    case "cross": // Style 7 - plus/cross shapes
+    case "cross": // Plus/cross pattern
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <g key={`${x}-${y}`}>
-              <rect x={cx-1.5} y={cy-4} width="3" height="8" fill="currentColor" />
-              <rect x={cx-4} y={cy-1.5} width="8" height="3" fill="currentColor" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <path d="M6,4 h4 v4 h-4z M4,6 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M18,4 h4 v4 h-4z M16,6 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M34,4 h4 v4 h-4z M32,6 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M6,18 h4 v4 h-4z M4,20 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M22,18 h4 v4 h-4z M20,20 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M38,18 h4 v4 h-4z M36,20 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M6,34 h4 v4 h-4z M4,36 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M22,34 h4 v4 h-4z M20,36 h4 v4 h-4z" fill="currentColor"/>
+          <path d="M38,34 h4 v4 h-4z M36,36 h4 v4 h-4z" fill="currentColor"/>
         </svg>
       );
-    case "cross-rounded": // Style 8 - rounded plus shapes
+    case "cross-rounded": // Rounded cross
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <g key={`${x}-${y}`}>
-              <rect x={cx-1.5} y={cy-4} width="3" height="8" rx="1" fill="currentColor" />
-              <rect x={cx-4} y={cy-1.5} width="8" height="3" rx="1" fill="currentColor" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="6" y="4" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="4" y="6" width="8" height="4" rx="1" fill="currentColor"/>
+          <rect x="22" y="4" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="20" y="6" width="8" height="4" rx="1" fill="currentColor"/>
+          <rect x="38" y="4" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="36" y="6" width="8" height="4" rx="1" fill="currentColor"/>
+          <rect x="6" y="20" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="4" y="22" width="8" height="4" rx="1" fill="currentColor"/>
+          <rect x="22" y="20" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="20" y="22" width="8" height="4" rx="1" fill="currentColor"/>
+          <rect x="38" y="36" width="4" height="8" rx="1" fill="currentColor"/>
+          <rect x="36" y="38" width="8" height="4" rx="1" fill="currentColor"/>
         </svg>
       );
-    case "diamond": // Style 9 - diamond shapes
+    case "diamond": // Diamond shapes
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <polygon key={`${x}-${y}`} points={`${cx},${cy-4} ${cx+4},${cy} ${cx},${cy+4} ${cx-4},${cy}`} fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <polygon points="8,2 14,8 8,14 2,8" fill="currentColor"/>
+          <polygon points="24,2 30,8 24,14 18,8" fill="currentColor"/>
+          <polygon points="40,2 46,8 40,14 34,8" fill="currentColor"/>
+          <polygon points="8,18 14,24 8,30 2,24" fill="currentColor"/>
+          <polygon points="24,18 30,24 24,30 18,24" fill="currentColor"/>
+          <polygon points="40,18 46,24 40,30 34,24" fill="currentColor"/>
+          <polygon points="8,34 14,40 8,46 2,40" fill="currentColor"/>
+          <polygon points="24,34 30,40 24,46 18,40" fill="currentColor"/>
+          <polygon points="40,34 46,40 40,46 34,40" fill="currentColor"/>
         </svg>
       );
-    case "diamond-special": // Style 10 - diamond with dot
+    case "diamond-special": // Diamond with center dot
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <g key={`${x}-${y}`}>
-              <polygon points={`${cx},${cy-4} ${cx+4},${cy} ${cx},${cy+4} ${cx-4},${cy}`} fill="currentColor" />
-              <circle cx={cx} cy={cy} r="1" fill="white" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <polygon points="8,2 14,8 8,14 2,8" fill="currentColor"/>
+          <circle cx="8" cy="8" r="1.5" fill="white"/>
+          <polygon points="24,2 30,8 24,14 18,8" fill="currentColor"/>
+          <circle cx="24" cy="8" r="1.5" fill="white"/>
+          <polygon points="40,2 46,8 40,14 34,8" fill="currentColor"/>
+          <circle cx="40" cy="8" r="1.5" fill="white"/>
+          <polygon points="8,18 14,24 8,30 2,24" fill="currentColor"/>
+          <circle cx="8" cy="24" r="1.5" fill="white"/>
+          <polygon points="24,18 30,24 24,30 18,24" fill="currentColor"/>
+          <circle cx="24" cy="24" r="1.5" fill="white"/>
+          <polygon points="40,34 46,40 40,46 34,40" fill="currentColor"/>
+          <circle cx="40" cy="40" r="1.5" fill="white"/>
         </svg>
       );
-    case "heart": // Style 11 - heart shapes
+    case "heart": // Heart shapes
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <path key={`${x}-${y}`} d={`M${cx} ${cy+3} C${cx-4} ${cy} ${cx-2} ${cy-3} ${cx} ${cy-1} C${cx+2} ${cy-3} ${cx+4} ${cy} ${cx} ${cy+3}Z`} fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <path d="M8 14 C8 10 4 8 4 12 C4 15 8 18 8 18 C8 18 12 15 12 12 C12 8 8 10 8 14Z" fill="currentColor"/>
+          <path d="M24 14 C24 10 20 8 20 12 C20 15 24 18 24 18 C24 18 28 15 28 12 C28 8 24 10 24 14Z" fill="currentColor"/>
+          <path d="M40 14 C40 10 36 8 36 12 C36 15 40 18 40 18 C40 18 44 15 44 12 C44 8 40 10 40 14Z" fill="currentColor"/>
+          <path d="M8 30 C8 26 4 24 4 28 C4 31 8 34 8 34 C8 34 12 31 12 28 C12 24 8 26 8 30Z" fill="currentColor"/>
+          <path d="M24 30 C24 26 20 24 20 28 C20 31 24 34 24 34 C24 34 28 31 28 28 C28 24 24 26 24 30Z" fill="currentColor"/>
+          <path d="M40 30 C40 26 36 24 36 28 C36 31 40 34 40 34 C40 34 44 31 44 28 C44 24 40 26 40 30Z" fill="currentColor"/>
         </svg>
       );
-    case "horizontal-rounded": // Style 12 - horizontal bars
+    case "horizontal-rounded": // Horizontal bars
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 ? null :
-            <rect key={`${x}-${y}`} x={x*9.6-1} y={y*9.6+2} width="10" height="4" rx="2" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="2" y="6" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="18" y="6" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="34" y="6" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="2" y="18" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="18" y="18" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="34" y="18" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="2" y="30" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="18" y="30" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="34" y="30" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="2" y="42" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="18" y="42" width="12" height="4" rx="2" fill="currentColor"/>
+          <rect x="34" y="42" width="12" height="4" rx="2" fill="currentColor"/>
         </svg>
       );
-    case "vertical-rounded": // Style 13 - vertical bars
+    case "vertical-rounded": // Vertical bars
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 ? null :
-            <rect key={`${x}-${y}`} x={x*9.6+2} y={y*9.6-1} width="4" height="10" rx="2" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="6" y="2" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="6" y="18" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="6" y="34" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="18" y="2" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="18" y="18" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="18" y="34" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="30" y="2" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="30" y="18" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="30" y="34" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="42" y="2" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="42" y="18" width="4" height="12" rx="2" fill="currentColor"/>
+          <rect x="42" y="34" width="4" height="12" rx="2" fill="currentColor"/>
         </svg>
       );
-    case "ribbon": // Style 14 - double horizontal lines
+    case "ribbon": // Double lines
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            return <g key={`${x}-${y}`}>
-              <rect x={x*9.6} y={y*9.6} width="8" height="3" rx="1" fill="currentColor" />
-              <rect x={x*9.6} y={y*9.6+5} width="8" height="3" rx="1" fill="currentColor" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="8" height="3" fill="currentColor"/>
+          <rect x="4" y="9" width="8" height="3" fill="currentColor"/>
+          <rect x="20" y="4" width="8" height="3" fill="currentColor"/>
+          <rect x="20" y="9" width="8" height="3" fill="currentColor"/>
+          <rect x="36" y="4" width="8" height="3" fill="currentColor"/>
+          <rect x="36" y="9" width="8" height="3" fill="currentColor"/>
+          <rect x="4" y="20" width="8" height="3" fill="currentColor"/>
+          <rect x="4" y="25" width="8" height="3" fill="currentColor"/>
+          <rect x="20" y="20" width="8" height="3" fill="currentColor"/>
+          <rect x="20" y="25" width="8" height="3" fill="currentColor"/>
+          <rect x="36" y="36" width="8" height="3" fill="currentColor"/>
+          <rect x="36" y="41" width="8" height="3" fill="currentColor"/>
         </svg>
       );
-    case "shake": // Style 15 - offset squares
+    case "shake": // Offset/shaky squares
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const offsetX = (x + y) % 4 === 1 ? 1 : -1;
-            const offsetY = (x + y) % 4 === 3 ? 1 : -1;
-            return <rect key={`${x}-${y}`} x={x*9.6+offsetX} y={y*9.6+offsetY} width="7" height="7" fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="3" y="5" width="7" height="7" fill="currentColor"/>
+          <rect x="15" y="3" width="7" height="7" fill="currentColor"/>
+          <rect x="29" y="5" width="7" height="7" fill="currentColor"/>
+          <rect x="39" y="3" width="7" height="7" fill="currentColor"/>
+          <rect x="5" y="17" width="7" height="7" fill="currentColor"/>
+          <rect x="21" y="19" width="7" height="7" fill="currentColor"/>
+          <rect x="37" y="17" width="7" height="7" fill="currentColor"/>
+          <rect x="3" y="31" width="7" height="7" fill="currentColor"/>
+          <rect x="21" y="29" width="7" height="7" fill="currentColor"/>
+          <rect x="39" y="31" width="7" height="7" fill="currentColor"/>
         </svg>
       );
-    case "sparkle": // Style 16 - 4-point star/sparkle
+    case "sparkle": // 4-point stars
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <polygon key={`${x}-${y}`} points={`${cx},${cy-4} ${cx+1.5},${cy-1.5} ${cx+4},${cy} ${cx+1.5},${cy+1.5} ${cx},${cy+4} ${cx-1.5},${cy+1.5} ${cx-4},${cy} ${cx-1.5},${cy-1.5}`} fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <polygon points="8,2 10,6 14,8 10,10 8,14 6,10 2,8 6,6" fill="currentColor"/>
+          <polygon points="24,2 26,6 30,8 26,10 24,14 22,10 18,8 22,6" fill="currentColor"/>
+          <polygon points="40,2 42,6 46,8 42,10 40,14 38,10 34,8 38,6" fill="currentColor"/>
+          <polygon points="8,18 10,22 14,24 10,26 8,30 6,26 2,24 6,22" fill="currentColor"/>
+          <polygon points="24,18 26,22 30,24 26,26 24,30 22,26 18,24 22,22" fill="currentColor"/>
+          <polygon points="40,18 42,22 46,24 42,26 40,30 38,26 34,24 38,22" fill="currentColor"/>
+          <polygon points="8,34 10,38 14,40 10,42 8,46 6,42 2,40 6,38" fill="currentColor"/>
+          <polygon points="24,34 26,38 30,40 26,42 24,46 22,42 18,40 22,38" fill="currentColor"/>
+          <polygon points="40,34 42,38 46,40 42,42 40,46 38,42 34,40 38,38" fill="currentColor"/>
         </svg>
       );
-    case "star": // Style 17 - 5-point stars
+    case "star": // 5-point stars
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4, r = 4;
-            const pts = [];
-            for (let i = 0; i < 5; i++) {
-              const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
-              const a2 = a1 + Math.PI / 5;
-              pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
-              pts.push(`${cx + Math.cos(a2) * r * 0.4},${cy + Math.sin(a2) * r * 0.4}`);
-            }
-            return <polygon key={`${x}-${y}`} points={pts.join(" ")} fill="currentColor" />;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <polygon points="8,2 9.5,6 14,6.5 10.5,9.5 11.5,14 8,11.5 4.5,14 5.5,9.5 2,6.5 6.5,6" fill="currentColor"/>
+          <polygon points="24,2 25.5,6 30,6.5 26.5,9.5 27.5,14 24,11.5 20.5,14 21.5,9.5 18,6.5 22.5,6" fill="currentColor"/>
+          <polygon points="40,2 41.5,6 46,6.5 42.5,9.5 43.5,14 40,11.5 36.5,14 37.5,9.5 34,6.5 38.5,6" fill="currentColor"/>
+          <polygon points="8,18 9.5,22 14,22.5 10.5,25.5 11.5,30 8,27.5 4.5,30 5.5,25.5 2,22.5 6.5,22" fill="currentColor"/>
+          <polygon points="24,18 25.5,22 30,22.5 26.5,25.5 27.5,30 24,27.5 20.5,30 21.5,25.5 18,22.5 22.5,22" fill="currentColor"/>
+          <polygon points="40,34 41.5,38 46,38.5 42.5,41.5 43.5,46 40,43.5 36.5,46 37.5,41.5 34,38.5 38.5,38" fill="currentColor"/>
         </svg>
       );
-    case "x": // Style 18 - X shapes
+    case "x": // X shapes
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <g key={`${x}-${y}`}>
-              <rect x={cx-4} y={cy-1} width="8" height="2" transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
-              <rect x={cx-4} y={cy-1} width="8" height="2" transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <path d="M4,4 L12,12 M12,4 L4,12" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M20,4 L28,12 M28,4 L20,12" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M36,4 L44,12 M44,4 L36,12" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M4,20 L12,28 M12,20 L4,28" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M20,20 L28,28 M28,20 L20,28" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M36,20 L44,28 M44,20 L36,28" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M4,36 L12,44 M12,36 L4,44" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M20,36 L28,44 M28,36 L20,44" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <path d="M36,36 L44,44 M44,36 L36,44" stroke="currentColor" strokeWidth="3" fill="none"/>
         </svg>
       );
-    case "x-rounded": // Style 19 - rounded X shapes
+    case "x-rounded": // Rounded X shapes
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
-            if ((x + y) % 2 === 0) return null;
-            const cx = x*9.6+4, cy = y*9.6+4;
-            return <g key={`${x}-${y}`}>
-              <rect x={cx-4} y={cy-1} width="8" height="2" rx="1" transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
-              <rect x={cx-4} y={cy-1} width="8" height="2" rx="1" transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
-            </g>;
-          }))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <path d="M4,4 L12,12 M12,4 L4,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M20,4 L28,12 M28,4 L20,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M36,4 L44,12 M44,4 L36,12" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M4,20 L12,28 M12,20 L4,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M20,20 L28,28 M28,20 L20,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M36,20 L44,28 M44,20 L36,28" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M4,36 L12,44 M12,36 L4,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M20,36 L28,44 M28,36 L20,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
+          <path d="M36,36 L44,44 M44,36 L36,44" stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none"/>
         </svg>
       );
-    default: // Fallback - square pattern
+    default:
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
-            (x + y) % 2 === 0 ? null :
-            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" fill="currentColor" />
-          ))}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-700">
+          <rect x="4" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="20" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="4" width="8" height="8" fill="currentColor"/>
+          <rect x="4" y="20" width="8" height="8" fill="currentColor"/>
+          <rect x="20" y="20" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="20" width="8" height="8" fill="currentColor"/>
+          <rect x="4" y="36" width="8" height="8" fill="currentColor"/>
+          <rect x="20" y="36" width="8" height="8" fill="currentColor"/>
+          <rect x="36" y="36" width="8" height="8" fill="currentColor"/>
         </svg>
       );
   }
 }
 
-// Border style SVGs matching QRFY's actual renders from screenshot
+// Border style SVGs matching QRFY's actual "Border style" from screenshot
 function CornerSquareSVG({ style }: { style: string }) {
   const s = 48;
   switch (style) {
-    case "default": // Border 1 - solid square
+    case "default": // Sharp square
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" stroke="currentColor" strokeWidth="6" fill="none" />
-          <rect x="16" y="16" width="16" height="16" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
         </svg>
       );
-    case "dot": // Border 2 - circle
+    case "dot": // Circle
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="5" fill="none" />
-          <circle cx="24" cy="24" r="8" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <circle cx="24" cy="24" r="7" fill="currentColor"/>
         </svg>
       );
-    case "square": // Border 3 - small rounded square
+    case "square": // Small rounded
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="4" stroke="currentColor" strokeWidth="5" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="2" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" rx="4" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" rx="2" fill="currentColor"/>
         </svg>
       );
-    case "extra-rounded": // Border 4 - medium rounded
+    case "extra-rounded": // Medium rounded
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="10" stroke="currentColor" strokeWidth="5" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="4" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" rx="8" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" rx="4" fill="currentColor"/>
         </svg>
       );
-    case "shape1": // Border 5 - large rounded (almost pill)
+    case "shape1": // Large rounded
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="16" stroke="currentColor" strokeWidth="5" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="6" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" rx="14" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" rx="6" fill="currentColor"/>
         </svg>
       );
-    case "shape2": // Border 6 - pill/capsule horizontal
+    case "shape2": // Very rounded (almost circle)
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="2" y="10" width="44" height="28" rx="14" stroke="currentColor" strokeWidth="4" fill="none" />
-          <rect x="16" y="18" width="16" height="12" rx="6" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" rx="18" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <circle cx="24" cy="24" r="7" fill="currentColor"/>
         </svg>
       );
-    case "shape3": // Border 7 - leaf/pointed rounded
+    case "shape3": // Square with circle inside
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <path d="M24 4 Q44 4 44 24 Q44 44 24 44 Q4 44 4 24 Q4 4 24 4" stroke="currentColor" strokeWidth="4" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="4" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <circle cx="24" cy="24" r="10" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <circle cx="24" cy="24" r="4" fill="currentColor"/>
         </svg>
       );
-    case "shape4": // Border 8 - diamond
+    case "shape4": // Diamond outer
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <polygon points="24,4 44,24 24,44 4,24" stroke="currentColor" strokeWidth="4" fill="none" />
-          <polygon points="24,16 32,24 24,32 16,24" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <polygon points="24,4 44,24 24,44 4,24" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="17" y="17" width="14" height="14" fill="currentColor"/>
         </svg>
       );
-    case "shape5": // Border 9 - hexagon
+    case "shape5": // Circle with square inside
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <polygon points="14,4 34,4 44,24 34,44 14,44 4,24" stroke="currentColor" strokeWidth="4" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="2" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="18" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
         </svg>
       );
-    case "shape6": // Border 10 - octagon
+    case "shape6": // Double square
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <polygon points="16,4 32,4 44,16 44,32 32,44 16,44 4,32 4,16" stroke="currentColor" strokeWidth="4" fill="none" />
-          <rect x="16" y="16" width="16" height="16" rx="2" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="4" y="4" width="40" height="40" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <rect x="10" y="10" width="28" height="28" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <rect x="18" y="18" width="12" height="12" fill="currentColor"/>
         </svg>
       );
-    case "shape7": // Border 11 - star-like
+    case "shape7": // Double circle
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="20" stroke="currentColor" strokeWidth="5" fill="none" />
-          <circle cx="24" cy="24" r="8" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <circle cx="24" cy="24" r="13" stroke="currentColor" strokeWidth="3" fill="none"/>
+          <circle cx="24" cy="24" r="5" fill="currentColor"/>
         </svg>
       );
-    case "shape8": // Border 12 - clover/flower
+    case "shape8": // Square with rounded inner
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="0" stroke="currentColor" strokeWidth="5" fill="none" />
-          <circle cx="24" cy="24" r="10" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="14" y="14" width="20" height="20" rx="10" fill="currentColor"/>
         </svg>
       );
-    case "shape9": // Border 13 - double border
+    case "shape9": // Rounded with rounded inner
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="4" stroke="currentColor" strokeWidth="3" fill="none" />
-          <rect x="10" y="10" width="28" height="28" rx="2" stroke="currentColor" strokeWidth="2" fill="none" />
-          <rect x="18" y="18" width="12" height="12" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" rx="6" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="12" y="12" width="24" height="24" rx="6" stroke="currentColor" strokeWidth="2" fill="none"/>
+          <rect x="18" y="18" width="12" height="12" rx="3" fill="currentColor"/>
         </svg>
       );
-    case "shape10": // Border 14 - concentric circles
+    case "shape10": // Pill horizontal
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="3" fill="none" />
-          <circle cx="24" cy="24" r="13" stroke="currentColor" strokeWidth="2" fill="none" />
-          <circle cx="24" cy="24" r="6" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="4" y="12" width="40" height="24" rx="12" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="18" y="18" width="12" height="12" rx="3" fill="currentColor"/>
         </svg>
       );
-    case "shape11": // Border 15 - rounded with inner
+    case "shape11": // Corner brackets only
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="8" stroke="currentColor" strokeWidth="4" fill="none" />
-          <rect x="12" y="12" width="24" height="24" rx="4" stroke="currentColor" strokeWidth="2" fill="none" />
-          <rect x="18" y="18" width="12" height="12" rx="2" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <path d="M6 16 L6 6 L16 6" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <path d="M32 6 L42 6 L42 16" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <path d="M42 32 L42 42 L32 42" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <path d="M16 42 L6 42 L6 32" stroke="currentColor" strokeWidth="4" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
         </svg>
       );
-    case "shape12": // Border 16 - frame style
+    case "shape12": // Dotted square
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" rx="2" stroke="currentColor" strokeWidth="6" fill="none" />
-          <rect x="14" y="14" width="20" height="20" rx="1" stroke="currentColor" strokeWidth="2" fill="none" />
-          <rect x="20" y="20" width="8" height="8" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="4" strokeDasharray="4 4" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
         </svg>
       );
     default:
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="4" y="4" width="40" height="40" stroke="currentColor" strokeWidth="5" fill="none" />
-          <rect x="16" y="16" width="16" height="16" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="6" width="36" height="36" stroke="currentColor" strokeWidth="5" fill="none"/>
+          <rect x="16" y="16" width="16" height="16" fill="currentColor"/>
         </svg>
       );
   }
 }
 
-// Center style SVGs matching QRFY's actual renders from screenshot
+// Center style SVGs matching QRFY's actual "Center style" from screenshot
 function CornerDotSVG({ style }: { style: string }) {
-  const s = 48;
   switch (style) {
-    case "default": // Center 1 - solid square
+    case "default": // Solid square
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="12" y="12" width="24" height="24" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="10" y="10" width="28" height="28" fill="currentColor"/>
         </svg>
       );
-    case "dot": // Center 2 - horizontal oval/pill
+    case "dot": // Horizontal oval/pill
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="8" y="16" width="32" height="16" rx="8" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="6" y="14" width="36" height="20" rx="10" fill="currentColor"/>
         </svg>
       );
-    case "rounded": // Center 3 - rounded square
+    case "rounded": // Rounded square
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="12" y="12" width="24" height="24" rx="6" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="10" y="10" width="28" height="28" rx="6" fill="currentColor"/>
         </svg>
       );
-    case "dot2": // Center 4 - circle
+    case "dot2": // Circle
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="12" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="14" fill="currentColor"/>
         </svg>
       );
-    case "dot3": // Center 5 - donut/ring
+    case "dot3": // Donut (circle with hole)
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="12" fill="currentColor" />
-          <circle cx="24" cy="24" r="5" fill="white" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="14" fill="currentColor"/>
+          <circle cx="24" cy="24" r="6" fill="white"/>
         </svg>
       );
-    case "dot4": // Center 6 - smaller filled circle
+    case "dot4": // Smaller circle
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="9" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="10" fill="currentColor"/>
         </svg>
       );
-    case "star": { // Center 7 - 5-point star
-      const pts = [];
-      for (let i = 0; i < 5; i++) {
-        const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
-        const a2 = a1 + Math.PI / 5;
-        pts.push(`${24 + Math.cos(a1) * 14},${24 + Math.sin(a1) * 14}`);
-        pts.push(`${24 + Math.cos(a2) * 6},${24 + Math.sin(a2) * 6}`);
-      }
+    case "star": // 5-point star
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <polygon points={pts.join(" ")} fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <polygon points="24,4 28,18 44,18 31,28 36,44 24,34 12,44 17,28 4,18 20,18" fill="currentColor"/>
         </svg>
       );
-    }
-    case "diamond": // Center 8 - diamond
+    case "diamond": // Diamond
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <polygon points="24,8 40,24 24,40 8,24" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <polygon points="24,6 42,24 24,42 6,24" fill="currentColor"/>
         </svg>
       );
-    case "x": // Center 9 - X rotated
+    case "x": // X shape
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="10" y="21" width="28" height="6" transform="rotate(45 24 24)" fill="currentColor" />
-          <rect x="10" y="21" width="28" height="6" transform="rotate(-45 24 24)" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <path d="M8,8 L18,24 L8,40 L14,40 L24,28 L34,40 L40,40 L30,24 L40,8 L34,8 L24,20 L14,8 Z" fill="currentColor"/>
         </svg>
       );
-    case "cross": // Center 10 - plus/cross
+    case "cross": // Plus/cross
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="20" y="8" width="8" height="32" fill="currentColor" />
-          <rect x="8" y="20" width="32" height="8" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="18" y="6" width="12" height="36" fill="currentColor"/>
+          <rect x="6" y="18" width="36" height="12" fill="currentColor"/>
         </svg>
       );
-    case "sun": { // Center 11 - sun/burst with rays
+    case "sun": // Sun with rays
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="8" fill="currentColor" />
-          {Array.from({ length: 8 }).map((_, i) => {
-            const angle = (Math.PI / 4) * i;
-            const x1 = 24 + Math.cos(angle) * 11;
-            const y1 = 24 + Math.sin(angle) * 11;
-            const x2 = 24 + Math.cos(angle) * 16;
-            const y2 = 24 + Math.sin(angle) * 16;
-            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="3" strokeLinecap="round" />;
-          })}
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="10" fill="currentColor"/>
+          <line x1="24" y1="4" x2="24" y2="12" stroke="currentColor" strokeWidth="3"/>
+          <line x1="24" y1="36" x2="24" y2="44" stroke="currentColor" strokeWidth="3"/>
+          <line x1="4" y1="24" x2="12" y2="24" stroke="currentColor" strokeWidth="3"/>
+          <line x1="36" y1="24" x2="44" y2="24" stroke="currentColor" strokeWidth="3"/>
+          <line x1="10" y1="10" x2="16" y2="16" stroke="currentColor" strokeWidth="3"/>
+          <line x1="32" y1="32" x2="38" y2="38" stroke="currentColor" strokeWidth="3"/>
+          <line x1="38" y1="10" x2="32" y2="16" stroke="currentColor" strokeWidth="3"/>
+          <line x1="16" y1="32" x2="10" y2="38" stroke="currentColor" strokeWidth="3"/>
         </svg>
       );
-    }
-    case "square2": // Center 12 - 4 dots pattern
+    case "square2": // 4 dots in corners
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="16" cy="16" r="5" fill="currentColor" />
-          <circle cx="32" cy="16" r="5" fill="currentColor" />
-          <circle cx="16" cy="32" r="5" fill="currentColor" />
-          <circle cx="32" cy="32" r="5" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="14" cy="14" r="6" fill="currentColor"/>
+          <circle cx="34" cy="14" r="6" fill="currentColor"/>
+          <circle cx="14" cy="34" r="6" fill="currentColor"/>
+          <circle cx="34" cy="34" r="6" fill="currentColor"/>
         </svg>
       );
-    case "square3": // Center 13 - ring outline
+    case "square3": // Circle outline only
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="12" stroke="currentColor" strokeWidth="4" fill="none" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="14" stroke="currentColor" strokeWidth="5" fill="none"/>
         </svg>
       );
-    case "cross-rounded": // Center 14 - small dots grid
+    case "cross-rounded": // Small dots 3x3 grid
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="16" cy="16" r="3" fill="currentColor" />
-          <circle cx="24" cy="16" r="3" fill="currentColor" />
-          <circle cx="32" cy="16" r="3" fill="currentColor" />
-          <circle cx="16" cy="24" r="3" fill="currentColor" />
-          <circle cx="24" cy="24" r="3" fill="currentColor" />
-          <circle cx="32" cy="24" r="3" fill="currentColor" />
-          <circle cx="16" cy="32" r="3" fill="currentColor" />
-          <circle cx="24" cy="32" r="3" fill="currentColor" />
-          <circle cx="32" cy="32" r="3" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="12" cy="12" r="4" fill="currentColor"/>
+          <circle cx="24" cy="12" r="4" fill="currentColor"/>
+          <circle cx="36" cy="12" r="4" fill="currentColor"/>
+          <circle cx="12" cy="24" r="4" fill="currentColor"/>
+          <circle cx="24" cy="24" r="4" fill="currentColor"/>
+          <circle cx="36" cy="24" r="4" fill="currentColor"/>
+          <circle cx="12" cy="36" r="4" fill="currentColor"/>
+          <circle cx="24" cy="36" r="4" fill="currentColor"/>
+          <circle cx="36" cy="36" r="4" fill="currentColor"/>
         </svg>
       );
-    case "x-rounded": // Center 15 - dots with center
+    case "x-rounded": // 5 dots (4 corners + center)
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <circle cx="24" cy="24" r="6" fill="currentColor" />
-          <circle cx="12" cy="12" r="4" fill="currentColor" />
-          <circle cx="36" cy="12" r="4" fill="currentColor" />
-          <circle cx="12" cy="36" r="4" fill="currentColor" />
-          <circle cx="36" cy="36" r="4" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <circle cx="24" cy="24" r="7" fill="currentColor"/>
+          <circle cx="10" cy="10" r="5" fill="currentColor"/>
+          <circle cx="38" cy="10" r="5" fill="currentColor"/>
+          <circle cx="10" cy="38" r="5" fill="currentColor"/>
+          <circle cx="38" cy="38" r="5" fill="currentColor"/>
         </svg>
       );
-    case "heart": // Center 16 - heart
+    case "heart": // Heart shape
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <path d="M24 38 C12 28 4 20 4 14 C4 8 9 4 14 4 C18 4 22 7 24 10 C26 7 30 4 34 4 C39 4 44 8 44 14 C44 20 36 28 24 38Z" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <path d="M24 42 C14 32 4 24 4 16 C4 8 10 4 16 4 C20 4 24 8 24 12 C24 8 28 4 32 4 C38 4 44 8 44 16 C44 24 34 32 24 42Z" fill="currentColor"/>
         </svg>
       );
     default:
       return (
-        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-          <rect x="12" y="12" width="24" height="24" fill="currentColor" />
+        <svg viewBox="0 0 48 48" className="w-12 h-12 text-gray-600">
+          <rect x="10" y="10" width="28" height="28" fill="currentColor"/>
         </svg>
       );
   }
