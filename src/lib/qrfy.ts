@@ -18,24 +18,14 @@ function normalizeUrl(url: string | undefined | null): string {
 }
 
 async function qrfyFetch(path: string, options: RequestInit = {}) {
-  const url = `${QRFY_API_URL}${path}`;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${QRFY_API_URL}${path}`, {
     ...options,
     headers: {
       'API-KEY': QRFY_API_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'application/json, image/*',
-      'User-Agent': 'QRCraft/1.0 (https://qr-craft.online)',
       ...options.headers,
     },
   });
-
-  // Log failed requests for debugging (not the full body to avoid leaking sensitive data)
-  if (!res.ok) {
-    console.error(`[QRFY] Request failed: ${options.method || 'GET'} ${path} -> ${res.status} ${res.statusText}`);
-  }
-
   return res;
 }
 
@@ -1036,10 +1026,6 @@ export async function createStaticQRImage(
 
   const style = mapDesignToStyle(design);
 
-  // Exclude frames from static QR generation - they cause large payloads
-  // and may not be fully supported on the static endpoint
-  delete style.frame;
-
   // For preview, use url-static with a placeholder if type isn't natively static
   // These are the only types allowed for POST /api/public/qrs/{format}
   const staticTypes = ['url-static', 'text', 'wifi', 'email', 'sms', 'vcard', 'whatsapp'];
@@ -1049,6 +1035,7 @@ export async function createStaticQRImage(
   const body: Record<string, any> = {
     type: useType,
     style,
+    size: 600, // Limit image size to reduce payload
   };
 
   if (useType === qrfyType) {
