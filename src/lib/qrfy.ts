@@ -183,7 +183,12 @@ function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
       ],
     };
   }
-  return hex;
+  // QRFY expects color objects with colorStops, not plain hex strings
+  return {
+    type: 'solid' as const,
+    rotation: null,
+    colorStops: [{ offset: 0, color: hex }],
+  };
 }
 
 export function mapDesignToStyle(design: Record<string, any>) {
@@ -204,7 +209,7 @@ export function mapDesignToStyle(design: Record<string, any>) {
       design.patternColor2
     ),
     backgroundColor: design.bgTransparent
-      ? '#FFFFFF'
+      ? makeColorValue('#FFFFFF')
       : makeColorValue(
           design.backgroundColor || '#FFFFFF',
           design.useGradientBg,
@@ -212,12 +217,12 @@ export function mapDesignToStyle(design: Record<string, any>) {
         ),
   };
 
-  // Corners
+  // Corners - use proper color objects
   style.corners = {
     squareStyle: CORNER_SQUARE_MAP[design.cornersSquareType] || 'default',
     dotStyle: CORNER_DOT_MAP[design.cornersDotType] || 'default',
-    squareColor: design.cornersSquareColor || '#000000',
-    dotColor: design.cornersDotColor || '#000000',
+    squareColor: makeColorValue(design.cornersSquareColor || '#000000'),
+    dotColor: makeColorValue(design.cornersDotColor || '#000000'),
   };
 
   // Frame — only include if frameId is a valid QRFY frame (0-30)
@@ -226,13 +231,13 @@ export function mapDesignToStyle(design: Record<string, any>) {
   if (frameId >= 0) {
     style.frame = {
       id: frameId,
-      color: design.frameColor || '#7C3AED',
+      color: makeColorValue(design.frameColor || '#7C3AED'),
       text: (design.frameText || 'Scan me!').slice(0, 30),
       fontSize: design.frameFontSize || 42,
-      textColor: design.frameTextColor || '#FFFFFF',
+      textColor: design.frameTextColor || '#FFFFFF', // textColor stays as plain string per QRFY docs
     };
     if (frameId > 0) {
-      style.frame.backgroundColor = design.frameBackgroundColor || design.frameColor || '#7C3AED';
+      style.frame.backgroundColor = makeColorValue(design.frameBackgroundColor || design.frameColor || '#7C3AED');
     }
   }
 
