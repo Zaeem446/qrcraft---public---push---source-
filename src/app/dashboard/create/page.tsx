@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
@@ -66,7 +66,11 @@ export default function CreateQRPage() {
     errorCorrectionLevel: "H",
   });
   const [saving, setSaving] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [createdQr, setCreatedQr] = useState<{ id: string; imageUrl: string } | null>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Advanced Settings State
   const [password, setPassword] = useState("");
@@ -77,6 +81,55 @@ export default function CreateQRPage() {
   const [googleTagManagerId, setGoogleTagManagerId] = useState("");
 
   const activePreview = hoveredType || qrType || "";
+
+  // Fetch QR preview from QRFY via our API
+  const fetchPreview = useCallback(async () => {
+    if (!qrType) return;
+
+    // Abort any previous in-flight request to prevent race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    setPreviewLoading(true);
+    try {
+      const res = await fetch("/api/qrcodes/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: qrType, content, design }),
+        signal: abortControllerRef.current.signal,
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      }
+    } catch (err) {
+      // Ignore abort errors - they're expected when user changes design quickly
+      if (err instanceof Error && err.name === 'AbortError') return;
+      console.error("Preview fetch error:", err);
+    }
+    setPreviewLoading(false);
+  }, [qrType, content, design]);
+
+  // Debounced preview refresh
+  useEffect(() => {
+    if (step >= 2 && qrType) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchPreview(), 400);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }
+  }, [step, design, qrType, content, fetchPreview]);
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Please enter a name"); return; }
@@ -102,7 +155,7 @@ export default function CreateQRPage() {
       if (res.ok) {
         const data = await res.json();
         toast.success("QR code created!");
-        setCreatedQr({ id: data.id, imageUrl: data.imageUrl || "" });
+        setCreatedQr({ id: data.id, imageUrl: previewUrl || "" });
         setStep(4);
       } else if (res.status === 401) {
         toast.error("Session expired. Please log in again.");
@@ -407,12 +460,36 @@ export default function CreateQRPage() {
               </div>
             )}
 
-            {/* QR Code Display - Instant local preview with CustomSVGQR */}
+            {/* QR Code Display (separate, clean) */}
             {step >= 2 && step < 4 && previewTab === "qrcode" && (
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4">
                 <div className="flex items-center justify-center">
-                  {qrType ? (
-                    <CustomSVGQR content={content} type={qrType} design={design} size={220} />
+                  {previewUrl ? (
+                    <div className="relative">
+                      <img
+                        src={previewUrl}
+                        alt="QR Preview"
+                        className="w-[220px] h-[220px] object-contain"
+                        onError={() => {
+                          // If API image fails to load, clear it to show InstantQRPreview fallback
+                          setPreviewUrl(null);
+                        }}
+                      />
+                      {previewLoading && (
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : qrType ? (
+                    <div className="relative">
+                      <CustomSVGQR content={content} type={qrType} design={design} size={220} />
+                      {previewLoading && (
+                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
+                          <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     <div className="text-center text-gray-400">
                       <QrCodeIcon className="h-20 w-20 mx-auto text-gray-200" />

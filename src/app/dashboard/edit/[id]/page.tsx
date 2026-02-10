@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Button from "@/components/ui/Button";
@@ -32,6 +32,10 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
   const [qrfyId, setQrfyId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Advanced settings state
   const [password, setPassword] = useState("");
@@ -63,6 +67,64 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
       .catch(() => toast.error("Failed to load QR code"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const fetchPreview = useCallback(async () => {
+    // Abort any previous in-flight request to prevent race conditions
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+
+    setPreviewLoading(true);
+    try {
+      const res = await fetch("/api/qrcodes/preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: qrType, content, design }),
+        signal: abortControllerRef.current.signal,
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl(prev => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      }
+    } catch (err) {
+      // Ignore abort errors - they're expected when user changes design quickly
+      if (err instanceof Error && err.name === 'AbortError') return;
+      console.error("Preview fetch error:", err);
+    }
+    setPreviewLoading(false);
+  }, [qrType, content, design]);
+
+  useEffect(() => {
+    if (!loading && qrType) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => fetchPreview(), 600);
+      return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }
+  }, [loading, design, content, qrType, fetchPreview]);
+
+  useEffect(() => {
+    if (!loading) {
+      fetch(`/api/qrcodes/${id}/image?format=png`)
+        .then(res => {
+          if (res.ok) return res.blob();
+          return null;
+        })
+        .then(blob => {
+          if (blob) {
+            setPreviewUrl(prev => {
+              if (prev) URL.revokeObjectURL(prev);
+              return URL.createObjectURL(blob);
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [loading, id]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -214,9 +276,32 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
             <PhoneMockup>
               {previewTab === "qrcode" ? (
                 <div className="h-full bg-gradient-to-br from-violet-50 to-purple-50 flex flex-col items-center justify-center p-4">
-                  {qrType ? (
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                      <CustomSVGQR content={content} type={qrType} design={design} size={180} />
+                  {previewUrl ? (
+                    <div className="relative">
+                      <div className="bg-white rounded-2xl p-4 shadow-lg">
+                        <img
+                          src={previewUrl}
+                          alt="QR Preview"
+                          className="w-[180px] h-[180px] object-contain"
+                          onError={() => setPreviewUrl(null)}
+                        />
+                      </div>
+                      {previewLoading && (
+                        <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center">
+                          <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                  ) : qrType ? (
+                    <div className="relative">
+                      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                        <CustomSVGQR content={content} type={qrType} design={design} size={180} />
+                      </div>
+                      {previewLoading && (
+                        <div className="absolute inset-0 bg-white/50 rounded-2xl flex items-center justify-center">
+                          <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center text-gray-400 text-sm">
