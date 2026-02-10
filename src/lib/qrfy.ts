@@ -134,27 +134,26 @@ const CORNER_SQUARE_MAP: Record<string, string> = {
   'center-circle': 'shape4',
 };
 
-// QRFY corner dot styles (17 native + backward-compat aliases)
-// Maps to QRFY API: Center Styles 1-16
+// QRFY corner dot styles (16 native - Center Styles 1-16)
+// Maps to QRFY API center/dot styles
 const CORNER_DOT_MAP: Record<string, string> = {
-  // 17 native QRFY styles (identity mapping)
-  default: 'default',
-  dot: 'dot',
-  square: 'square',
-  cross: 'cross',
-  'cross-rounded': 'cross-rounded',
-  diamond: 'diamond',
-  dot2: 'dot2',
-  dot3: 'dot3',
-  dot4: 'dot4',
-  heart: 'heart',
-  rounded: 'rounded',
-  square2: 'square2',
-  square3: 'square3',
-  star: 'star',
-  sun: 'sun',
-  x: 'x',
-  'x-rounded': 'x-rounded',
+  // 16 native QRFY styles matching screenshot order
+  default: 'default',   // Center 1 - solid square
+  dot: 'dot',           // Center 2 - oval/pill
+  rounded: 'rounded',   // Center 3 - rounded square
+  dot2: 'dot2',         // Center 4 - circle
+  dot3: 'dot3',         // Center 5 - donut/ring
+  dot4: 'dot4',         // Center 6 - small circle
+  star: 'star',         // Center 7 - star
+  diamond: 'diamond',   // Center 8 - diamond
+  x: 'x',               // Center 9 - X shape
+  cross: 'cross',       // Center 10 - plus/cross
+  sun: 'sun',           // Center 11 - sun/burst
+  square2: 'square2',   // Center 12 - dots pattern
+  square3: 'square3',   // Center 13 - ring outline
+  'cross-rounded': 'cross-rounded', // Center 14 - small dots
+  'x-rounded': 'x-rounded',         // Center 15 - pattern
+  heart: 'heart',       // Center 16 - heart
   // Backward-compat aliases
   'extra-rounded': 'rounded',
   classy: 'square2',
@@ -162,6 +161,7 @@ const CORNER_DOT_MAP: Record<string, string> = {
   inpoint: 'cross',
   pentagon: 'dot2',
   hexagon: 'dot3',
+  square: 'default',
 };
 
 // QRFY frame/border mapping (31 frames + 15 border styles)
