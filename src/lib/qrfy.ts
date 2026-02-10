@@ -1064,6 +1064,9 @@ export async function createStaticQRImage(
     body.data = { url: normalizeUrl(content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
+  // Log the request for debugging
+  console.log('[QRFY] createStaticQRImage request:', JSON.stringify(body, null, 2));
+
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {
     method: 'POST',
     body: JSON.stringify(body),
@@ -1071,6 +1074,7 @@ export async function createStaticQRImage(
 
   if (!res.ok) {
     const err = await res.text();
+    console.error('[QRFY] createStaticQRImage failed. Request body was:', JSON.stringify(body, null, 2));
     throw new Error(`QRFY static image failed (${res.status}): ${err}`);
   }
 

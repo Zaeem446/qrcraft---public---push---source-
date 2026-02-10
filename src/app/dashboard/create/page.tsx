@@ -94,15 +94,10 @@ export default function CreateQRPage() {
 
     setPreviewLoading(true);
     try {
-      // Strip base64 logos to avoid 413 payload size errors
-      const previewDesign = { ...design };
-      if (previewDesign.logo?.startsWith('data:')) {
-        delete previewDesign.logo;
-      }
       const res = await fetch("/api/qrcodes/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: qrType, content, design: previewDesign }),
+        body: JSON.stringify({ type: qrType, content, design }),
         signal: abortControllerRef.current.signal,
       });
       if (res.ok) {
