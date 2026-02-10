@@ -118,8 +118,9 @@ const SHAPE_STYLE_MAP: Record<string, string> = {
 };
 
 // QRFY corner square styles (16 native + backward-compat aliases)
+// Maps to QRFY API: https://qrfy.com/app/builder/url/3
 const CORNER_SQUARE_MAP: Record<string, string> = {
-  // 16 native QRFY styles (identity)
+  // 16 native QRFY styles (identity mapping)
   default: 'default',
   dot: 'dot',
   square: 'square',
@@ -136,7 +137,7 @@ const CORNER_SQUARE_MAP: Record<string, string> = {
   shape10: 'shape10',
   shape11: 'shape11',
   shape12: 'shape12',
-  // Backward-compat aliases
+  // Backward-compat aliases from old UI
   classy: 'shape1',
   outpoint: 'shape2',
   inpoint: 'shape3',
@@ -144,8 +145,9 @@ const CORNER_SQUARE_MAP: Record<string, string> = {
 };
 
 // QRFY corner dot styles (17 native + backward-compat aliases)
+// Maps to QRFY API: Center Styles 1-16
 const CORNER_DOT_MAP: Record<string, string> = {
-  // 17 native QRFY styles (identity)
+  // 17 native QRFY styles (identity mapping)
   default: 'default',
   dot: 'dot',
   square: 'square',
@@ -170,6 +172,61 @@ const CORNER_DOT_MAP: Record<string, string> = {
   inpoint: 'cross',
   pentagon: 'dot2',
   hexagon: 'dot3',
+};
+
+// QRFY frame/border mapping (31 frames + 15 border styles)
+// Frames 1-31 are decorative frames, Border styles 1-15 are borders
+// "No frame" (-1) means no frame decoration
+const FRAME_MAP: Record<string, number | string> = {
+  'no-frame': -1,
+  // Frame styles (1-31)
+  'frame-1': 'Frame 1',
+  'frame-2': 'Frame 2',
+  'frame-3': 'Frame 3',
+  'frame-4': 'Frame 4',
+  'frame-5': 'Frame 5',
+  'frame-6': 'Frame 6',
+  'frame-7': 'Frame 7',
+  'frame-8': 'Frame 8',
+  'frame-9': 'Frame 9',
+  'frame-10': 'Frame 10',
+  'frame-11': 'Frame 11',
+  'frame-12': 'Frame 12',
+  'frame-13': 'Frame 13',
+  'frame-14': 'Frame 14',
+  'frame-15': 'Frame 15',
+  'frame-16': 'Frame 16',
+  'frame-17': 'Frame 17',
+  'frame-18': 'Frame 18',
+  'frame-19': 'Frame 19',
+  'frame-20': 'Frame 20',
+  'frame-21': 'Frame 21',
+  'frame-22': 'Frame 22',
+  'frame-23': 'Frame 23',
+  'frame-24': 'Frame 24',
+  'frame-25': 'Frame 25',
+  'frame-26': 'Frame 26',
+  'frame-27': 'Frame 27',
+  'frame-28': 'Frame 28',
+  'frame-29': 'Frame 29',
+  'frame-30': 'Frame 30',
+  'frame-31': 'Frame 31',
+  // Border styles (1-15)
+  'border-1': 'Border style 1',
+  'border-2': 'Border style 2',
+  'border-3': 'Border style 3',
+  'border-4': 'Border style 4',
+  'border-5': 'Border style 5',
+  'border-6': 'Border style 6',
+  'border-7': 'Border style 7',
+  'border-8': 'Border style 8',
+  'border-9': 'Border style 9',
+  'border-10': 'Border style 10',
+  'border-11': 'Border style 11',
+  'border-12': 'Border style 12',
+  'border-13': 'Border style 13',
+  'border-14': 'Border style 14',
+  'border-15': 'Border style 15',
 };
 
 function makeColorValue(hex: string, useGradient?: boolean, hex2?: string) {
