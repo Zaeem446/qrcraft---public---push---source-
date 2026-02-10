@@ -18,24 +18,14 @@ function normalizeUrl(url: string | undefined | null): string {
 }
 
 async function qrfyFetch(path: string, options: RequestInit = {}) {
-  const url = `${QRFY_API_URL}${path}`;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${QRFY_API_URL}${path}`, {
     ...options,
     headers: {
       'API-KEY': QRFY_API_KEY,
       'Content-Type': 'application/json',
-      'Accept': 'application/json, image/*',
-      'User-Agent': 'QRCraft/1.0 (https://qr-craft.online)',
       ...options.headers,
     },
   });
-
-  // Log failed requests for debugging (not the full body to avoid leaking sensitive data)
-  if (!res.ok) {
-    console.error(`[QRFY] Request failed: ${options.method || 'GET'} ${path} -> ${res.status} ${res.statusText}`);
-  }
-
   return res;
 }
 
@@ -1064,9 +1054,6 @@ export async function createStaticQRImage(
     body.data = { url: normalizeUrl(content.url) || `${process.env.NEXT_PUBLIC_APP_URL || 'https://qr-craft.online'}/preview` };
   }
 
-  // Log the request for debugging
-  console.log('[QRFY] createStaticQRImage request:', JSON.stringify(body, null, 2));
-
   const res = await qrfyFetch(`/api/public/qrs/${format}`, {
     method: 'POST',
     body: JSON.stringify(body),
@@ -1074,7 +1061,6 @@ export async function createStaticQRImage(
 
   if (!res.ok) {
     const err = await res.text();
-    console.error('[QRFY] createStaticQRImage failed. Request body was:', JSON.stringify(body, null, 2));
     throw new Error(`QRFY static image failed (${res.status}): ${err}`);
   }
 
