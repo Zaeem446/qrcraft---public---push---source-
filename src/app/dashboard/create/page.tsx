@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import {
@@ -14,8 +15,13 @@ import ContentForms from "@/components/qr/ContentForms";
 import DesignOptions from "@/components/qr/DesignOptions";
 import PhoneMockup from "@/components/qr/PhoneMockup";
 import { DefaultPhonePreview, renderPreviewForType } from "@/components/qr/PhonePreviews";
-import InstantQRPreview from "@/components/qr/InstantQRPreview";
 import AdvancedSettings from "@/components/qr/AdvancedSettings";
+
+// Dynamic import with SSR disabled - CustomSVGQR uses browser APIs
+const CustomSVGQR = dynamic(
+  () => import("@/components/qr/CustomSVGQR").then(mod => mod.default),
+  { ssr: false, loading: () => <div className="w-[220px] h-[220px] bg-gray-100 animate-pulse rounded-lg" /> }
+);
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 type FormContent = Record<string, any>;
@@ -477,7 +483,7 @@ export default function CreateQRPage() {
                     </div>
                   ) : qrType ? (
                     <div className="relative">
-                      <InstantQRPreview content={content} type={qrType} design={design} size={220} />
+                      <CustomSVGQR content={content} type={qrType} design={design} size={220} />
                       {previewLoading && (
                         <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-lg">
                           <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />

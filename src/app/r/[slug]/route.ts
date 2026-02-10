@@ -5,9 +5,12 @@ import prisma from '@/lib/db';
 async function getGeoData(ip: string) {
   try {
     if (ip === '127.0.0.1' || ip === '::1') return { country: 'Local', city: 'Local' };
-    const res = await fetch(`https://ip-api.com/json/${ip}?fields=country,city`, { next: { revalidate: 3600 } });
+    // Note: ip-api.com free tier only supports HTTP, not HTTPS
+    const res = await fetch(`http://ip-api.com/json/${ip}?fields=country,city`, { next: { revalidate: 3600 } });
     if (res.ok) return await res.json();
-  } catch {}
+  } catch (e) {
+    console.error('Geolocation error:', e);
+  }
   return { country: 'Unknown', city: 'Unknown' };
 }
 

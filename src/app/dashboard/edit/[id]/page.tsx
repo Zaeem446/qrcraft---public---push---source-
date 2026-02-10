@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, use } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Spinner from "@/components/ui/Spinner";
@@ -12,8 +13,13 @@ import { renderPreviewForType } from "@/components/qr/PhonePreviews";
 import toast from "react-hot-toast";
 import { QR_TYPES } from "@/lib/utils";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
-import InstantQRPreview from "@/components/qr/InstantQRPreview";
 import AdvancedSettings from "@/components/qr/AdvancedSettings";
+
+// Dynamic import with SSR disabled - CustomSVGQR uses browser APIs
+const CustomSVGQR = dynamic(
+  () => import("@/components/qr/CustomSVGQR").then(mod => mod.default),
+  { ssr: false, loading: () => <div className="w-[180px] h-[180px] bg-gray-100 animate-pulse rounded-lg" /> }
+);
 
 export default function EditQRPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -289,7 +295,7 @@ export default function EditQRPage({ params }: { params: Promise<{ id: string }>
                   ) : qrType ? (
                     <div className="relative">
                       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                        <InstantQRPreview content={content} type={qrType} design={design} size={180} />
+                        <CustomSVGQR content={content} type={qrType} design={design} size={180} />
                       </div>
                       {previewLoading && (
                         <div className="absolute inset-0 bg-white/50 rounded-2xl flex items-center justify-center">
