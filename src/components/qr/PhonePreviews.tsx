@@ -102,81 +102,74 @@ export function WebsitePreview({ content }: { content: Record<string, any> }) {
 
 export function PdfPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
-  const primary = pd.primary || content?.headerColor || "#EF4444";
+  const primary = pd.primary || "#7C3AED";
   const secondary = pd.secondary || "#FFFFFF";
-  const title = content?.title || "Document Title";
-  const description = content?.description || "PDF Document";
-  const buttonText = content?.buttonText || "View PDF";
+  const tertiary = pd.tertiary || "#F3F4F6";
+  const title = content?.title || "Document";
+  const description = content?.description || "PDF File";
+  const buttonText = content?.buttonText || "Download PDF";
   const cover = content?.cover;
   const logo = content?.logo;
   const fileUrl = content?.fileUrl;
   const pdfs: { file: string; name?: string }[] = Array.isArray(content?.pdfs) ? content.pdfs : [];
   const pdfSource = fileUrl || (pdfs.length > 0 ? pdfs[0].file : null);
-  const pdfCount = pdfs.length || (fileUrl ? 1 : 0);
-  const template = content?.template ?? 0;
-  const titleFont = content?.titleFont?.family || "Poppins";
-  const titleColor = content?.titleFont?.color || "#FFFFFF";
-  const textFont = content?.textFont?.family || "Inter";
-  const textColor = content?.textFont?.color || "#374151";
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ backgroundColor: secondary }}>
-      {/* Cover/Header Section */}
-      <div className="relative" style={{ backgroundColor: primary }}>
-        {cover ? (
-          <div className="h-28 relative">
-            <img src={cover} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-3">
-              {logo && (
-                <img src={logo} alt="" className="w-10 h-10 rounded-lg object-cover mb-2 border-2 border-white shadow" />
-              )}
-              <p className="text-white text-sm font-bold truncate" style={{ fontFamily: titleFont }}>{title}</p>
-              <p className="text-white/80 text-[10px] truncate" style={{ fontFamily: textFont }}>{description}</p>
+    <div className="h-full flex flex-col" style={{ backgroundColor: tertiary }}>
+      {/* Card container matching actual landing page */}
+      <div className="flex-1 flex items-start justify-center p-3 pt-4">
+        <div className="w-full rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: secondary }}>
+          {/* Header */}
+          {cover ? (
+            <div className="relative h-24">
+              <img src={cover} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-0 right-0 text-center">
+                <p className="text-white text-xs font-bold truncate px-2">{title}</p>
+                <p className="text-white/80 text-[9px] truncate px-2">{description}</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="px-4 py-4 text-center">
-            {logo ? (
-              <img src={logo} alt="" className="w-12 h-12 rounded-xl object-cover mx-auto mb-2" />
+          ) : (
+            <div className="px-3 pt-4 pb-3 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${primary}dd)` }}>
+              {logo ? (
+                <img src={logo} alt="" className="w-12 h-12 rounded-xl object-cover mx-auto mb-2 shadow-lg" />
+              ) : (
+                <div className="w-12 h-12 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
+                  <DocumentIcon className="h-6 w-6 text-white" />
+                </div>
+              )}
+              <p className="text-white text-xs font-bold truncate">{title}</p>
+              <p className="text-white/80 text-[9px] truncate">{description}</p>
+            </div>
+          )}
+
+          {/* PDF Preview Area */}
+          <div className="p-3">
+            {pdfSource ? (
+              <div className="h-32 bg-gray-100 rounded-lg overflow-hidden">
+                <iframe
+                  src={`${pdfSource}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                  className="w-full h-full border-0"
+                  title="PDF Preview"
+                />
+              </div>
             ) : (
-              <div className="w-12 h-12 mx-auto mb-2 bg-white/20 rounded-xl flex items-center justify-center">
-                <DocumentIcon className="h-6 w-6 text-white" />
+              <div className="h-24 flex flex-col items-center justify-center rounded-lg" style={{ backgroundColor: tertiary }}>
+                <DocumentIcon className="h-8 w-8 mb-1" style={{ color: primary + "60" }} />
+                <p className="text-[9px] text-gray-500">PDF preview</p>
               </div>
             )}
-            <p className="text-sm font-bold truncate" style={{ color: titleColor, fontFamily: titleFont }}>{title}</p>
-            <p className="text-[10px] mt-0.5 truncate" style={{ color: titleColor + "B3", fontFamily: textFont }}>{description}</p>
-          </div>
-        )}
-      </div>
 
-      {/* PDF Content Area */}
-      <div className="flex-1 overflow-hidden">
-        {pdfSource ? (
-          <div className="h-full bg-gray-100">
-            <iframe
-              src={`${pdfSource}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`}
-              className="w-full h-full border-0"
-              title="PDF Preview"
-            />
-          </div>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center p-4" style={{ backgroundColor: secondary }}>
-            <div className="w-16 h-20 rounded-lg border-2 border-dashed flex items-center justify-center mb-3" style={{ borderColor: primary + "40" }}>
-              <DocumentIcon className="h-8 w-8" style={{ color: primary + "60" }} />
+            {/* Download button */}
+            <div className="rounded-lg py-2 text-center mt-3" style={{ backgroundColor: primary }}>
+              <span className="text-white text-[10px] font-semibold">{buttonText}</span>
             </div>
-            <p className="text-xs text-center" style={{ color: textColor }}>Upload a PDF file to see preview</p>
-            {pdfCount > 0 && (
-              <p className="text-[10px] mt-1" style={{ color: primary }}>{pdfCount} file{pdfCount > 1 ? 's' : ''} attached</p>
-            )}
           </div>
-        )}
-      </div>
 
-      {/* Action Button */}
-      <div className="p-3" style={{ backgroundColor: secondary }}>
-        <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
-          <span className="text-white text-xs font-semibold">{buttonText}</span>
+          {/* Footer */}
+          <div className="pb-2 text-center">
+            <p className="text-[8px]" style={{ color: primary + "80" }}>Powered by QRCraft</p>
+          </div>
         </div>
       </div>
     </div>
@@ -186,129 +179,111 @@ export function PdfPreview({ content }: { content: Record<string, any> }) {
 export function LinksPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
   const primary = pd.primary || "#7C3AED";
-  const secondary = pd.secondary || "#4338CA";
-  const title = content?.title || "Sarah Johnson";
-  const description = content?.description || "Digital Creator & Designer";
+  const secondary = pd.secondary || "#FFFFFF";
+  const tertiary = pd.tertiary || "#F3F4F6";
+  const title = content?.title || "My Links";
+  const description = content?.description || "Check out my links";
   const logo = content?.logo;
   const links = content?.links;
   const linkLabels = links && links.length > 0
-    ? links.map((l: any) => l.text || l.label || "Untitled Link")
-    : ["Portfolio Website", "Latest Blog Post", "Twitter Profile", "YouTube Channel"];
-  const tpl = getLayout(content);
-  const btnStyle = content?.buttonStyle || "rounded";
-  const btnRadius = btnStyle === "square" ? "rounded-md" : btnStyle === "outline" ? "rounded-xl" : "rounded-xl";
-  const btnBorder = btnStyle === "outline" ? "border border-white/40 bg-transparent" : "bg-white/15 backdrop-blur-sm";
+    ? links.slice(0, 4).map((l: any) => l.text || l.label || "Link")
+    : ["Website", "Twitter", "YouTube", "Instagram"];
+
   return (
-    <div className="h-full p-4 text-center" style={{ background: `linear-gradient(to bottom, ${primary}, ${secondary})` }}>
-      {tpl.header && (
-        <>
-          <div className="w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden bg-white/20">
-            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-8 w-8 text-white/70" />}
-          </div>
-          <p className="text-white text-sm font-bold mb-0.5 truncate">{title}</p>
-          <p className="text-white/60 text-[10px] mb-4 truncate">{description}</p>
-        </>
-      )}
-      {!tpl.header && (
-        <div className="flex items-center gap-3 mb-4 text-left">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-white/20 flex-shrink-0">
-            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-5 w-5 text-white/70" />}
-          </div>
-          <div className="min-w-0"><p className="text-white text-sm font-bold truncate">{title}</p><p className="text-white/60 text-[10px] truncate">{description}</p></div>
-        </div>
-      )}
-      {tpl.split ? (
-        <div className="grid grid-cols-2 gap-2">
-          {linkLabels.slice(0, 4).map((l: string, i: number) => (
-            <div key={i} className={`${btnBorder} ${btnRadius} px-3 py-3 text-center`}>
-              <span className="text-white text-[11px] font-medium truncate block">{l}</span>
+    <div className="h-full flex flex-col" style={{ backgroundColor: tertiary }}>
+      {/* Card container matching actual landing page */}
+      <div className="flex-1 flex items-start justify-center p-3 pt-4">
+        <div className="w-full rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: secondary }}>
+          {/* Header */}
+          <div className="px-3 pt-4 pb-3 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${primary}dd)` }}>
+            <div className="w-12 h-12 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden bg-white/20 border-2 border-white/30">
+              {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-6 w-6 text-white" />}
             </div>
-          ))}
-        </div>
-      ) : (
-        linkLabels.slice(0, 4).map((l: string, i: number) => (
-          <div key={i} className={`${btnBorder} ${btnRadius} px-4 py-3 mb-2.5 text-center`}>
-            <span className="text-white text-xs font-medium truncate block">{l}</span>
+            <p className="text-white text-xs font-bold truncate">{title}</p>
+            {description && <p className="text-white/80 text-[9px] truncate">{description}</p>}
           </div>
-        ))
-      )}
-      {tpl.button && (
-        <div className={`mt-3 ${btnRadius} py-2.5 text-center ${btnStyle === "outline" ? "border border-white/40" : "bg-white/20"}`}>
-          <span className="text-white text-xs font-semibold">View All Links</span>
+
+          {/* Links */}
+          <div className="p-3 space-y-2">
+            {linkLabels.map((l: string, i: number) => (
+              <div key={i} className="rounded-lg py-2.5 text-center border" style={{ borderColor: primary + "30" }}>
+                <span className="text-[10px] font-medium" style={{ color: primary }}>{l}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <div className="pb-2 text-center">
+            <p className="text-[8px]" style={{ color: primary + "80" }}>Powered by QRCraft</p>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 export function VcardPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
-  const primary = pd.primary || "#14B8A6";
+  const primary = pd.primary || "#7C3AED";
   const secondary = pd.secondary || "#FFFFFF";
+  const tertiary = pd.tertiary || "#F3F4F6";
   const name = [content?.firstName, content?.lastName].filter(Boolean).join(" ") || "John Smith";
-  const jobLine = [content?.title, content?.company].filter(Boolean).join(" at ") || "Software Engineer at TechCo";
+  const jobLine = [content?.title, content?.company].filter(Boolean).join(" at ") || "Software Engineer";
   const photo = content?.photo;
-  const phone = content?.phone || "+1 (555) 123-4567";
-  const email = content?.email || "john@techco.com";
-  const website = content?.website || "www.johnsmith.dev";
-  const socials: { platform: string; url: string }[] = content?.socials || [];
-  const tpl = getLayout(content);
-  const fields = [{ label: "Phone", value: phone }, { label: "Email", value: email }, { label: "Website", value: website }];
+  const initials = (content?.firstName?.[0] || "J") + (content?.lastName?.[0] || "S");
+  const phone = content?.phone;
+  const email = content?.email;
+  const website = content?.website;
+  const fields = [
+    phone && { label: "Phone", value: phone },
+    email && { label: "Email", value: email },
+    website && { label: "Website", value: website },
+  ].filter(Boolean).slice(0, 3);
+
+  // Default fields if none provided
+  const displayFields = fields.length > 0 ? fields : [
+    { label: "Phone", value: "+1 (555) 123-4567" },
+    { label: "Email", value: "john@example.com" },
+  ];
+
   return (
-    <div className="h-full" style={{ backgroundColor: secondary }}>
-      {tpl.header && (
-        <div className="px-4 pt-8 pb-10 text-center" style={{ backgroundColor: primary }}>
-          <div className="w-16 h-16 bg-white/30 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden">
-            {photo ? (
-              <img src={photo} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <UserIcon className="h-8 w-8 text-white/80" />
-            )}
-          </div>
-          <p className="text-white text-base font-bold truncate">{name}</p>
-          <p className="text-white/80 text-xs truncate">{jobLine}</p>
-        </div>
-      )}
-      {!tpl.header && (
-        <div className="px-4 pt-5 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0" style={{ backgroundColor: primary }}>
-            {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <UserIcon className="h-6 w-6 text-white/80" />}
-          </div>
-          <div><p className="text-sm font-bold text-gray-900 truncate">{name}</p><p className="text-xs text-gray-500 truncate">{jobLine}</p></div>
-        </div>
-      )}
-      <div className={`px-4 py-3 space-y-2 ${tpl.header ? "-mt-5" : "mt-2"}`}>
-        {tpl.split ? (
-          <div className="grid grid-cols-2 gap-2">
-            {fields.map((f) => (
-              <div key={f.label} className="rounded-xl shadow-sm border px-3 py-2.5" style={{ backgroundColor: secondary, borderColor: primary + "20" }}>
-                <p className="text-[10px] font-medium uppercase" style={{ color: primary }}>{f.label}</p>
-                <p className="text-[11px] text-gray-700 mt-0.5 truncate">{f.value}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          fields.map((f) => (
-            <div key={f.label} className="rounded-xl shadow-sm border px-4 py-3" style={{ backgroundColor: secondary === "#FFFFFF" ? "#FFFFFF" : secondary, borderColor: primary + "20" }}>
-              <p className="text-[10px] font-medium uppercase" style={{ color: primary }}>{f.label}</p>
-              <p className="text-xs text-gray-700 mt-0.5 truncate">{f.value}</p>
+    <div className="h-full flex flex-col" style={{ backgroundColor: tertiary }}>
+      {/* Card container matching actual landing page */}
+      <div className="flex-1 flex items-start justify-center p-3 pt-4">
+        <div className="w-full rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: secondary }}>
+          {/* Header with avatar */}
+          <div className="px-4 pt-5 pb-4 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${primary}dd)` }}>
+            <div className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center overflow-hidden border-2 shadow-lg" style={{ borderColor: secondary, backgroundColor: "rgba(255,255,255,0.2)" }}>
+              {photo ? (
+                <img src={photo} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-lg font-bold" style={{ color: secondary }}>{initials}</span>
+              )}
             </div>
-          ))
-        )}
-        {socials.length > 0 && (
-          <div className="flex justify-center gap-2 pt-1">
-            {socials.slice(0, 5).map((s, i) => (
-              <div key={i} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: primary + "15" }}>
-                <span className="text-[9px] font-bold uppercase" style={{ color: primary }}>{(s.platform || "").slice(0, 2)}</span>
+            <p className="text-sm font-bold truncate" style={{ color: secondary }}>{name}</p>
+            {jobLine && <p className="text-[10px] truncate" style={{ color: secondary + "cc" }}>{jobLine}</p>}
+          </div>
+
+          {/* Contact fields */}
+          <div className="p-3 space-y-2">
+            {displayFields.map((f: any) => (
+              <div key={f.label} className="rounded-lg border px-3 py-2" style={{ borderColor: primary + "30" }}>
+                <p className="text-[9px] font-medium uppercase" style={{ color: primary }}>{f.label}</p>
+                <p className="text-[10px] text-gray-700 truncate">{f.value}</p>
               </div>
             ))}
+
+            {/* Save Contact button */}
+            <div className="rounded-lg py-2 text-center mt-1" style={{ backgroundColor: primary }}>
+              <span className="text-white text-[10px] font-semibold">Save Contact</span>
+            </div>
           </div>
-        )}
-        {tpl.button && (
-          <div className="rounded-xl py-2.5 text-center mt-2" style={{ backgroundColor: primary }}>
-            <span className="text-white text-xs font-semibold">Save Contact</span>
+
+          {/* Footer */}
+          <div className="pb-2 text-center">
+            <p className="text-[8px]" style={{ color: primary + "80" }}>Powered by QRCraft</p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -316,77 +291,78 @@ export function VcardPreview({ content }: { content: Record<string, any> }) {
 
 export function BusinessPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
-  const primary = pd.primary || "#059669";
+  const primary = pd.primary || "#7C3AED";
   const secondary = pd.secondary || "#FFFFFF";
-  const companyName = content?.companyName || "Green Valley Co.";
-  const headline = content?.title || content?.description || "Organic & Sustainable Products";
+  const tertiary = pd.tertiary || "#F3F4F6";
+  const companyName = content?.companyName || "Company Name";
+  const headline = content?.title || content?.description || "Your business tagline";
+  const logo = content?.logo;
   const cover = content?.cover;
   const schedule: { day: string; open: string; close: string }[] = Array.isArray(content?.schedule) ? content.schedule : [];
-  const tpl = getLayout(content);
-  const sections = ["About Us", "Our Products", "Locations", "Contact"];
+
   return (
-    <div className="h-full" style={{ backgroundColor: secondary }}>
-      {tpl.header && (
-        <div className="px-4 pt-6 pb-8 text-center relative" style={{ backgroundColor: primary }}>
-          {cover && (
-            <div className="absolute inset-0 overflow-hidden">
-              <img src={cover} alt="" className="w-full h-full object-cover opacity-30" />
+    <div className="h-full flex flex-col" style={{ backgroundColor: tertiary }}>
+      {/* Card container matching actual landing page */}
+      <div className="flex-1 flex items-start justify-center p-3 pt-4">
+        <div className="w-full rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: secondary }}>
+          {/* Header with cover or gradient */}
+          {cover ? (
+            <div className="relative h-20">
+              <img src={cover} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-2 left-0 right-0 text-center">
+                <p className="text-white text-xs font-bold truncate px-2">{companyName}</p>
+                <p className="text-white/80 text-[9px] truncate px-2">{headline}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="px-3 pt-4 pb-3 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${primary}dd)` }}>
+              {logo ? (
+                <img src={logo} alt="" className="w-12 h-12 rounded-xl object-cover mx-auto mb-2 shadow-lg" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 bg-white/20">
+                  <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                </div>
+              )}
+              <p className="text-white text-xs font-bold truncate">{companyName}</p>
+              <p className="text-white/80 text-[9px] truncate">{headline}</p>
             </div>
           )}
-          <div className="relative z-10">
-            <div className="w-14 h-14 bg-white/20 rounded-2xl mx-auto mb-2 flex items-center justify-center">
-              <BuildingOfficeIcon className="h-7 w-7 text-white/80" />
-            </div>
-            <p className="text-white text-base font-bold truncate">{companyName}</p>
-            <p className="text-white/70 text-xs truncate">{headline}</p>
-          </div>
-        </div>
-      )}
-      {!tpl.header && (
-        <div className="px-4 pt-5 pb-3 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: primary }}>
-            <BuildingOfficeIcon className="h-6 w-6 text-white/80" />
-          </div>
-          <div><p className="text-sm font-bold text-gray-900 truncate">{companyName}</p><p className="text-xs text-gray-500 truncate">{headline}</p></div>
-        </div>
-      )}
-      <div className={`px-4 py-3 space-y-0.5 ${tpl.header ? "-mt-3" : ""}`}>
-        {tpl.split ? (
-          <div className="grid grid-cols-2 gap-2">
-            {sections.map((s) => (
-              <div key={s} className="rounded-lg flex items-center justify-center py-3 border" style={{ borderColor: primary + "30", backgroundColor: secondary }}>
-                <span className="text-xs" style={{ color: primary }}>{s}</span>
+
+          {/* Section links */}
+          <div className="p-3 space-y-1.5">
+            {["About", "Products", "Contact"].map((s) => (
+              <div key={s} className="flex items-center justify-between py-2 px-2 rounded-lg border" style={{ borderColor: primary + "20" }}>
+                <span className="text-[10px] text-gray-700">{s}</span>
+                <ChevronRightIcon className="h-3 w-3" style={{ color: primary }} />
               </div>
             ))}
-          </div>
-        ) : (
-          sections.map((s) => (
-            <div key={s} className="flex items-center justify-between py-3 px-1 border-b" style={{ borderColor: primary + "20" }}>
-              <span className="text-sm text-gray-700">{s}</span>
-              <ChevronRightIcon className="h-4 w-4" style={{ color: primary }} />
-            </div>
-          ))
-        )}
-        {schedule.length > 0 && (
-          <div className="mt-2 rounded-xl p-3" style={{ backgroundColor: primary + "08" }}>
-            <p className="text-[10px] font-semibold uppercase mb-1.5" style={{ color: primary }}>Hours</p>
-            {schedule.slice(0, 3).map((s, i) => (
-              <div key={i} className="flex justify-between text-[10px] text-gray-600 py-0.5">
-                <span className="capitalize">{s.day}</span>
-                <span>{s.open} – {s.close}</span>
+
+            {/* Schedule if provided */}
+            {schedule.length > 0 && (
+              <div className="rounded-lg p-2 mt-1" style={{ backgroundColor: primary + "10" }}>
+                <p className="text-[9px] font-semibold uppercase mb-1" style={{ color: primary }}>Hours</p>
+                {schedule.slice(0, 2).map((s, i) => (
+                  <div key={i} className="flex justify-between text-[9px] text-gray-600">
+                    <span className="capitalize">{s.day}</span>
+                    <span>{s.open} – {s.close}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-            {schedule.length > 3 && <p className="text-[9px] text-gray-400 mt-1">+{schedule.length - 3} more days</p>}
+            )}
+
+            {/* Visit button */}
+            <div className="rounded-lg py-2 text-center" style={{ backgroundColor: primary }}>
+              <span className="text-white text-[10px] font-semibold">{content?.buttonText || "Visit Website"}</span>
+            </div>
           </div>
-        )}
+
+          {/* Footer */}
+          <div className="pb-2 text-center">
+            <p className="text-[8px]" style={{ color: primary + "80" }}>Powered by QRCraft</p>
+          </div>
+        </div>
       </div>
-      {tpl.button && (
-        <div className="px-4 pb-3">
-          <div className="rounded-xl py-2.5 text-center" style={{ backgroundColor: primary }}>
-            <span className="text-white text-xs font-semibold">{content?.buttonText || "Visit Website"}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1342,78 +1318,71 @@ const PLATFORM_COLORS: Record<string, string> = {
 
 export function PlaylistPreview({ content }: { content: Record<string, any> }) {
   const pd = content?.pageDesign || {};
-  const primary = pd.primary || "#1DB954";
-  const secondary = pd.secondary || "#191414";
-  const title = content?.title || "Summer Hits 2026";
-  const description = content?.description || "The best tracks of the season";
+  const primary = pd.primary || "#7C3AED";
+  const secondary = pd.secondary || "#FFFFFF";
+  const tertiary = pd.tertiary || "#1F2937";
+  const title = content?.title || "My Playlist";
+  const description = content?.description || "Music";
   const logo = content?.logo;
+  const cover = content?.cover;
   const platforms = content?.platformLinks;
   const platformItems = platforms && platforms.length > 0
-    ? platforms.slice(0, 4).map((p: any) => ({ name: p.platform || "Link", url: p.url || "" }))
-    : [{ name: "Spotify" }, { name: "Apple Music" }, { name: "YouTube Music" }];
-  const tpl = getLayout(content);
+    ? platforms.slice(0, 4).map((p: any) => ({ name: p.platform || "Platform", url: p.url || "" }))
+    : [{ name: "Spotify" }, { name: "Apple Music" }, { name: "YouTube Music" }, { name: "SoundCloud" }];
+
+  // Platform colors matching the actual landing page
+  const platformColors: Record<string, string> = {
+    Spotify: "#1DB954", "Apple Music": "#FA2D48", "YouTube Music": "#FF0000",
+    SoundCloud: "#FF5500", Amazon: "#FF9900", Deezer: "#FEAA2D",
+  };
+
   return (
-    <div className="h-full flex flex-col" style={{ backgroundColor: secondary }}>
-      {tpl.header && (
-        <div className="px-4 pt-5 pb-4 text-center" style={{ backgroundColor: primary }}>
-          <div className="w-16 h-16 rounded-xl mx-auto mb-2 bg-white/20 flex items-center justify-center overflow-hidden shadow-lg">
-            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <MusicalNoteIcon className="h-8 w-8 text-white/80" />}
+    <div className="h-full flex flex-col" style={{ backgroundColor: tertiary }}>
+      {/* Card container matching actual landing page */}
+      <div className="flex-1 flex items-start justify-center p-3 pt-4">
+        <div className="w-full rounded-xl shadow-lg overflow-hidden" style={{ backgroundColor: secondary }}>
+          {/* Header with cover or gradient */}
+          {cover ? (
+            <div className="relative h-24">
+              <img src={cover} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute bottom-2 left-0 right-0 text-center">
+                <p className="text-white text-xs font-bold truncate px-2">{title}</p>
+                {description && <p className="text-white/80 text-[9px] truncate px-2">{description}</p>}
+              </div>
+            </div>
+          ) : (
+            <div className="px-3 pt-4 pb-3 text-center" style={{ background: `linear-gradient(135deg, ${primary}, ${primary}dd)` }}>
+              {logo ? (
+                <img src={logo} alt="" className="w-12 h-12 rounded-xl object-cover mx-auto mb-2 shadow-lg" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-2 bg-white/20">
+                  <MusicalNoteIcon className="h-6 w-6 text-white" />
+                </div>
+              )}
+              <p className="text-white text-xs font-bold truncate">{title}</p>
+              {description && <p className="text-white/80 text-[9px] truncate">{description}</p>}
+            </div>
+          )}
+
+          {/* Platform buttons */}
+          <div className="p-3 space-y-2">
+            {platformItems.map((p: any, i: number) => {
+              const pColor = platformColors[p.name] || primary;
+              return (
+                <div key={i} className="rounded-lg py-2 text-center text-white text-[10px] font-semibold" style={{ backgroundColor: pColor }}>
+                  🎧 Listen on {p.name}
+                </div>
+              );
+            })}
           </div>
-          <p className="text-white text-sm font-bold truncate">{title}</p>
-          <p className="text-white/70 text-[10px] truncate">{description}</p>
+
+          {/* Footer */}
+          <div className="pb-2 text-center">
+            <p className="text-[8px]" style={{ color: primary + "80" }}>Powered by QRCraft</p>
+          </div>
         </div>
-      )}
-      {!tpl.header && (
-        <div className="px-4 pt-5 pb-3 flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0" style={{ backgroundColor: primary }}>
-            {logo ? <img src={logo} alt="" className="w-full h-full object-cover" /> : <MusicalNoteIcon className="h-6 w-6 text-white/80" />}
-          </div>
-          <div className="min-w-0"><p className="text-white text-sm font-bold truncate">{title}</p><p className="text-gray-400 text-[10px] truncate">{description}</p></div>
-        </div>
-      )}
-      <div className="flex-1 px-4 py-3">
-        {tpl.split ? (
-          <div className="grid grid-cols-2 gap-2">
-            {platformItems.map((p: any, i: number) => (
-              <div key={i} className="rounded-xl py-3 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
-                <span className="text-white text-[11px] font-semibold">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        ) : !tpl.header ? (
-          <div className="space-y-2">
-            {platformItems.map((p: any, i: number) => (
-              <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-2.5" style={{ backgroundColor: (PLATFORM_COLORS[p.name] || primary) + "20" }}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }} />
-                <span className="text-white text-xs font-medium">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        ) : !tpl.button ? (
-          <div className="space-y-2.5">
-            {platformItems.map((p: any, i: number) => (
-              <div key={i} className="rounded-xl py-3.5 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
-                <span className="text-white text-xs font-bold">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {platformItems.map((p: any, i: number) => (
-              <div key={i} className="rounded-xl py-2.5 text-center" style={{ backgroundColor: PLATFORM_COLORS[p.name] || primary }}>
-                <span className="text-white text-xs font-semibold">{p.name}</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-      {tpl.button && (
-        <div className="px-4 pb-4">
-          <div className="rounded-xl py-2.5 text-center border border-white/20">
-            <span className="text-white text-xs font-semibold">Share Playlist</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
