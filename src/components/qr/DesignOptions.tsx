@@ -10,126 +10,231 @@ import toast from "react-hot-toast";
 
 // ─── SVG Pattern Thumbnails ──────────────────────────────────────────────────
 
+// Pattern SVGs matching QRFY's actual "QR code style" renders from screenshot
 function PatternSVG({ style }: { style: string }) {
   const s = 48;
-  const cells = 5;
-  const cs = s / cells;
 
-  const renderCell = (x: number, y: number, key: number) => {
-    if ((x + y) % 3 === 2) return null;
-    const cx = x * cs + cs / 2;
-    const cy = y * cs + cs / 2;
-    const r = cs * 0.35;
-    const half = cs / 2;
-
-    switch (style) {
-      case "square":
-        return <rect key={key} x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs - 2} fill="currentColor" />;
-      case "rounded":
-        return <rect key={key} x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs - 2} rx={cs * 0.3} fill="currentColor" />;
-      case "dots":
-        return <circle key={key} cx={cx} cy={cy} r={r} fill="currentColor" />;
-      case "classy":
-        return <rect key={key} x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs - 2} rx={1} fill="currentColor" />;
-      case "classy-rounded":
-        return <rect key={key} x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs - 2} rx={cs * 0.4} ry={1} fill="currentColor" />;
-      case "extra-rounded":
-        return <circle key={key} cx={cx} cy={cy} r={r * 1.1} fill="currentColor" />;
-      case "cross":
-        return (
-          <g key={key}>
-            <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} fill="currentColor" />
-            <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} fill="currentColor" />
-          </g>
-        );
-      case "cross-rounded":
-        return (
-          <g key={key}>
-            <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={r * 2} rx={r * 0.15} fill="currentColor" />
-            <rect x={cx - r} y={cy - r * 0.3} width={r * 2} height={r * 0.6} rx={r * 0.15} fill="currentColor" />
-          </g>
-        );
-      case "diamond":
-        return (
-          <polygon key={key} points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} fill="currentColor" />
-        );
-      case "diamond-special":
-        return (
-          <g key={key}>
-            <polygon points={`${cx},${cy - r * 0.9} ${cx + r * 0.9},${cy} ${cx},${cy + r * 0.9} ${cx - r * 0.9},${cy}`} fill="currentColor" />
-            <circle cx={cx} cy={cy} r={r * 0.25} fill="white" />
-          </g>
-        );
-      case "heart":
-        return (
-          <path key={key} d={`M${cx} ${cy + r * 0.6} C${cx - r * 1.2} ${cy - r * 0.3} ${cx - r * 0.5} ${cy - r} ${cx} ${cy - r * 0.4} C${cx + r * 0.5} ${cy - r} ${cx + r * 1.2} ${cy - r * 0.3} ${cx} ${cy + r * 0.6}Z`} fill="currentColor" />
-        );
-      case "horizontal-rounded":
-        return <rect key={key} x={x * cs} y={cy - r * 0.45} width={cs} height={r * 0.9} rx={r * 0.45} fill="currentColor" />;
-      case "vertical-rounded":
-        return <rect key={key} x={cx - r * 0.45} y={y * cs} width={r * 0.9} height={cs} rx={r * 0.45} fill="currentColor" />;
-      case "ribbon":
-        return (
-          <g key={key}>
-            <rect x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs * 0.4} rx={1} fill="currentColor" />
-            <rect x={x * cs + 1} y={y * cs + cs * 0.5} width={cs - 2} height={cs * 0.4} rx={1} fill="currentColor" />
-          </g>
-        );
-      case "shake":
-        return <rect key={key} x={x * cs + (key % 2 ? 2 : 0)} y={y * cs + (key % 2 ? 0 : 2)} width={cs - 2} height={cs - 2} fill="currentColor" />;
-      case "sparkle": {
-        const pts = [];
-        for (let i = 0; i < 4; i++) {
-          const a1 = (Math.PI / 2) * i - Math.PI / 2;
-          const a2 = a1 + Math.PI / 4;
-          pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
-          pts.push(`${cx + Math.cos(a2) * r * 0.4},${cy + Math.sin(a2) * r * 0.4}`);
-        }
-        return <polygon key={key} points={pts.join(" ")} fill="currentColor" />;
-      }
-      case "star": {
-        const pts = [];
-        for (let i = 0; i < 5; i++) {
-          const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
-          const a2 = a1 + Math.PI / 5;
-          pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
-          pts.push(`${cx + Math.cos(a2) * r * 0.45},${cy + Math.sin(a2) * r * 0.45}`);
-        }
-        return <polygon key={key} points={pts.join(" ")} fill="currentColor" />;
-      }
-      case "x":
-        return (
-          <g key={key}>
-            <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
-            <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
-          </g>
-        );
-      case "x-rounded":
-        return (
-          <g key={key}>
-            <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
-            <rect x={cx - r} y={cy - r * 0.2} width={r * 2} height={r * 0.4} rx={r * 0.1} transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
-          </g>
-        );
-      default:
-        return <rect key={key} x={x * cs + 1} y={y * cs + 1} width={cs - 2} height={cs - 2} fill="currentColor" />;
-    }
-  };
-
-  const elements: React.ReactNode[] = [];
-  let k = 0;
-  for (let y = 0; y < cells; y++) {
-    for (let x = 0; x < cells; x++) {
-      const el = renderCell(x, y, k++);
-      if (el) elements.push(el);
-    }
+  // Pre-built pattern thumbnails matching QRFY's visual style
+  switch (style) {
+    case "square": // Style 1 - solid dense squares
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
+            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "rounded": // Style 2 - rounded squares
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
+            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" rx="2" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "dots": // Style 3 - circular dots
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
+            <circle key={`${x}-${y}`} cx={x*9.6+4} cy={y*9.6+4} r="3.5" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "classy": // Style 4 - offset/staggered squares
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const offset = y % 2 === 0 ? 1 : -1;
+            return <rect key={`${x}-${y}`} x={x*9.6+offset} y={y*9.6} width="7" height="8" fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "classy-rounded": // Style 5 - offset rounded
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const offset = y % 2 === 0 ? 1 : -1;
+            return <rect key={`${x}-${y}`} x={x*9.6+offset} y={y*9.6} width="7" height="8" rx="2" fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "extra-rounded": // Style 6 - large circles
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 || (x === 2 && y === 2) ? null :
+            <circle key={`${x}-${y}`} cx={x*9.6+4} cy={y*9.6+4} r="4.5" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "cross": // Style 7 - plus/cross shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <g key={`${x}-${y}`}>
+              <rect x={cx-1.5} y={cy-4} width="3" height="8" fill="currentColor" />
+              <rect x={cx-4} y={cy-1.5} width="8" height="3" fill="currentColor" />
+            </g>;
+          }))}
+        </svg>
+      );
+    case "cross-rounded": // Style 8 - rounded plus shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <g key={`${x}-${y}`}>
+              <rect x={cx-1.5} y={cy-4} width="3" height="8" rx="1" fill="currentColor" />
+              <rect x={cx-4} y={cy-1.5} width="8" height="3" rx="1" fill="currentColor" />
+            </g>;
+          }))}
+        </svg>
+      );
+    case "diamond": // Style 9 - diamond shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <polygon key={`${x}-${y}`} points={`${cx},${cy-4} ${cx+4},${cy} ${cx},${cy+4} ${cx-4},${cy}`} fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "diamond-special": // Style 10 - diamond with dot
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <g key={`${x}-${y}`}>
+              <polygon points={`${cx},${cy-4} ${cx+4},${cy} ${cx},${cy+4} ${cx-4},${cy}`} fill="currentColor" />
+              <circle cx={cx} cy={cy} r="1" fill="white" />
+            </g>;
+          }))}
+        </svg>
+      );
+    case "heart": // Style 11 - heart shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <path key={`${x}-${y}`} d={`M${cx} ${cy+3} C${cx-4} ${cy} ${cx-2} ${cy-3} ${cx} ${cy-1} C${cx+2} ${cy-3} ${cx+4} ${cy} ${cx} ${cy+3}Z`} fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "horizontal-rounded": // Style 12 - horizontal bars
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 ? null :
+            <rect key={`${x}-${y}`} x={x*9.6-1} y={y*9.6+2} width="10" height="4" rx="2" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "vertical-rounded": // Style 13 - vertical bars
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 ? null :
+            <rect key={`${x}-${y}`} x={x*9.6+2} y={y*9.6-1} width="4" height="10" rx="2" fill="currentColor" />
+          ))}
+        </svg>
+      );
+    case "ribbon": // Style 14 - double horizontal lines
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            return <g key={`${x}-${y}`}>
+              <rect x={x*9.6} y={y*9.6} width="8" height="3" rx="1" fill="currentColor" />
+              <rect x={x*9.6} y={y*9.6+5} width="8" height="3" rx="1" fill="currentColor" />
+            </g>;
+          }))}
+        </svg>
+      );
+    case "shake": // Style 15 - offset squares
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const offsetX = (x + y) % 4 === 1 ? 1 : -1;
+            const offsetY = (x + y) % 4 === 3 ? 1 : -1;
+            return <rect key={`${x}-${y}`} x={x*9.6+offsetX} y={y*9.6+offsetY} width="7" height="7" fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "sparkle": // Style 16 - 4-point star/sparkle
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <polygon key={`${x}-${y}`} points={`${cx},${cy-4} ${cx+1.5},${cy-1.5} ${cx+4},${cy} ${cx+1.5},${cy+1.5} ${cx},${cy+4} ${cx-1.5},${cy+1.5} ${cx-4},${cy} ${cx-1.5},${cy-1.5}`} fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "star": // Style 17 - 5-point stars
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4, r = 4;
+            const pts = [];
+            for (let i = 0; i < 5; i++) {
+              const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
+              const a2 = a1 + Math.PI / 5;
+              pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
+              pts.push(`${cx + Math.cos(a2) * r * 0.4},${cy + Math.sin(a2) * r * 0.4}`);
+            }
+            return <polygon key={`${x}-${y}`} points={pts.join(" ")} fill="currentColor" />;
+          }))}
+        </svg>
+      );
+    case "x": // Style 18 - X shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <g key={`${x}-${y}`}>
+              <rect x={cx-4} y={cy-1} width="8" height="2" transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
+              <rect x={cx-4} y={cy-1} width="8" height="2" transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
+            </g>;
+          }))}
+        </svg>
+      );
+    case "x-rounded": // Style 19 - rounded X shapes
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x => {
+            if ((x + y) % 2 === 0) return null;
+            const cx = x*9.6+4, cy = y*9.6+4;
+            return <g key={`${x}-${y}`}>
+              <rect x={cx-4} y={cy-1} width="8" height="2" rx="1" transform={`rotate(45 ${cx} ${cy})`} fill="currentColor" />
+              <rect x={cx-4} y={cy-1} width="8" height="2" rx="1" transform={`rotate(-45 ${cx} ${cy})`} fill="currentColor" />
+            </g>;
+          }))}
+        </svg>
+      );
+    default: // Fallback - square pattern
+      return (
+        <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
+          {[0,1,2,3,4].map(y => [0,1,2,3,4].map(x =>
+            (x + y) % 2 === 0 ? null :
+            <rect key={`${x}-${y}`} x={x*9.6} y={y*9.6} width="8" height="8" fill="currentColor" />
+          ))}
+        </svg>
+      );
   }
-
-  return (
-    <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-700">
-      {elements}
-    </svg>
-  );
 }
 
 // Border style SVGs matching QRFY's actual renders from screenshot
@@ -761,26 +866,27 @@ function AccordionSection({ icon, title, subtitle, children, defaultOpen = false
 
 // ─── Design Options Constants ────────────────────────────────────────────────
 
+// 19 QR code styles matching QRFY's "QR code style" section
 const SHAPE_STYLES = [
-  { id: "square", label: "Square" },
-  { id: "rounded", label: "Rounded" },
-  { id: "dots", label: "Dots" },
-  { id: "classy", label: "Classy" },
-  { id: "classy-rounded", label: "Classy Round" },
-  { id: "extra-rounded", label: "Extra Round" },
-  { id: "cross", label: "Cross" },
-  { id: "cross-rounded", label: "Cross Round" },
-  { id: "diamond", label: "Diamond" },
-  { id: "diamond-special", label: "Diamond Spc" },
-  { id: "heart", label: "Heart" },
-  { id: "horizontal-rounded", label: "Horiz Round" },
-  { id: "ribbon", label: "Ribbon" },
-  { id: "shake", label: "Shake" },
-  { id: "sparkle", label: "Sparkle" },
-  { id: "star", label: "Star" },
-  { id: "vertical-rounded", label: "Vert Round" },
-  { id: "x", label: "X" },
-  { id: "x-rounded", label: "X Rounded" },
+  { id: "square", label: "Square" },           // Style 1
+  { id: "rounded", label: "Rounded" },         // Style 2
+  { id: "dots", label: "Dots" },               // Style 3
+  { id: "classy", label: "Classy" },           // Style 4
+  { id: "classy-rounded", label: "Classy Rnd" }, // Style 5
+  { id: "extra-rounded", label: "Circle" },    // Style 6
+  { id: "cross", label: "Cross" },             // Style 7
+  { id: "cross-rounded", label: "Cross Rnd" }, // Style 8
+  { id: "diamond", label: "Diamond" },         // Style 9
+  { id: "diamond-special", label: "Diamond+" }, // Style 10
+  { id: "heart", label: "Heart" },             // Style 11
+  { id: "horizontal-rounded", label: "H-Lines" }, // Style 12
+  { id: "vertical-rounded", label: "V-Lines" }, // Style 13
+  { id: "ribbon", label: "Ribbon" },           // Style 14
+  { id: "shake", label: "Shake" },             // Style 15
+  { id: "sparkle", label: "Sparkle" },         // Style 16
+  { id: "star", label: "Star" },               // Style 17
+  { id: "x", label: "X" },                     // Style 18
+  { id: "x-rounded", label: "X Rounded" },     // Style 19
 ];
 
 // 16 Border styles matching QRFY's "Border style" in Corners section (screenshot order)
