@@ -306,7 +306,7 @@ export const QRFY_CORNER_SQUARE_STYLES = [
 ] as const;
 
 export const QRFY_CORNER_DOT_STYLES = [
-  'default', 'dot',
+  'default', 'square', 'dot',
 ] as const;
 
 export const QRFY_FRAME_IDS = Array.from({ length: 31 }, (_, i) => i);

@@ -165,23 +165,24 @@ const CORNER_DOT_MAP: Record<string | number, CornerDotType> = {
   square: "square",
   "extra-rounded": "dot",
   classy: "dot",
-  // Numeric position mappings (UI buttons set numbers 1-16)
+  // Numeric position mappings (UI buttons set numbers 1-17)
   1: "square",   // default
-  2: "dot",      // dot
-  3: "dot",      // rounded
-  4: "square",   // square2
-  5: "square",   // square3
-  6: "dot",      // dot2
-  7: "dot",      // dot3
-  8: "dot",      // dot4
-  9: "dot",      // sun
-  10: "square",  // star
-  11: "square",  // diamond
-  12: "square",  // x
-  13: "dot",     // x-rounded
-  14: "square",  // cross
-  15: "dot",     // cross-rounded
-  16: "dot",     // heart
+  2: "square",   // square
+  3: "dot",      // dot
+  4: "dot",      // rounded
+  5: "square",   // square2
+  6: "square",   // square3
+  7: "dot",      // dot2
+  8: "dot",      // dot3
+  9: "dot",      // dot4
+  10: "dot",     // sun
+  11: "square",  // star
+  12: "square",  // diamond
+  13: "square",  // x
+  14: "dot",     // x-rounded
+  15: "square",  // cross
+  16: "dot",     // cross-rounded
+  17: "dot",     // heart
 };
 
 export default function StyledQRPreview({

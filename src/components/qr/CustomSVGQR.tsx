@@ -857,9 +857,9 @@ export default function CustomSVGQR({
   const cornersDotTypeRaw = design?.cornersDotType || "default";
   // Convert numeric position to API style name for renderCornerDot switch
   const CORNER_DOT_NUM_MAP: Record<number, string> = {
-    1: 'default', 2: 'dot', 3: 'rounded', 4: 'square2', 5: 'square3',
-    6: 'dot2', 7: 'dot3', 8: 'dot4', 9: 'sun', 10: 'star',
-    11: 'diamond', 12: 'x', 13: 'x-rounded', 14: 'cross', 15: 'cross-rounded', 16: 'heart',
+    1: 'default', 2: 'square', 3: 'dot', 4: 'rounded', 5: 'square2',
+    6: 'square3', 7: 'dot2', 8: 'dot3', 9: 'dot4', 10: 'sun',
+    11: 'star', 12: 'diamond', 13: 'x', 14: 'x-rounded', 15: 'cross', 16: 'cross-rounded', 17: 'heart',
   };
   const cornersDotType = typeof cornersDotTypeRaw === 'number'
     ? (CORNER_DOT_NUM_MAP[cornersDotTypeRaw] || 'default')

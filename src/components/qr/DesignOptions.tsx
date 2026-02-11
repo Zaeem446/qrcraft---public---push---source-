@@ -44,7 +44,7 @@ function CornerSquareSVG({ num }: { num: number }) {
   );
 }
 
-// Render actual QRFY Center style SVG by number (1-16)
+// Render actual QRFY Center style SVG by number (1-17)
 function CornerDotSVG({ num }: { num: number }) {
   const svgData = QRFY_CENTER_SVGS[num];
   if (!svgData) return null;
@@ -181,7 +181,7 @@ const CORNER_SQUARE_STYLES = [
   { id: 17, label: "Border 17" },
 ];
 
-// 16 Center styles (valid QRFY corner dot API styles)
+// 17 Center styles (QRFY corner dot API styles)
 const CORNER_DOT_STYLES = [
   { id: 1, label: "Center 1" },
   { id: 2, label: "Center 2" },
@@ -199,6 +199,7 @@ const CORNER_DOT_STYLES = [
   { id: 14, label: "Center 14" },
   { id: 15, label: "Center 15" },
   { id: 16, label: "Center 16" },
+  { id: 17, label: "Center 17" },
 ];
 
 const ERROR_CORRECTION = [
