@@ -48,11 +48,11 @@ export default function CreateQRPage() {
   const [previewTab, setPreviewTab] = useState<"preview" | "qrcode">("preview");
   const [design, setDesign] = useState<Record<string, any>>({
     dotsColor: "#6D28D9",
-    dotsType: "rounded",
+    dotsType: 2, // "rounded" pattern
     cornersSquareColor: "#6D28D9",
-    cornersSquareType: "extra-rounded",
+    cornersSquareType: 1, // "default" border
     cornersDotColor: "#6D28D9",
-    cornersDotType: "dot",
+    cornersDotType: 1, // "default" center - standard preselected
     backgroundColor: "#FFFFFF",
     logo: "",
     logoSize: 0.4,
