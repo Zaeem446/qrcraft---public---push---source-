@@ -848,37 +848,18 @@ export default function CustomSVGQR({
 
   const qrValue = contentToString(type, content, slug);
 
-  // Design options — convert numeric IDs to style name strings for render functions
-  const SHAPE_NUM_MAP: Record<number, string> = {
-    1: 'square', 2: 'rounded', 3: 'extra-rounded', 4: 'dots', 5: 'classy',
-    6: 'classy-rounded', 7: 'horizontal-rounded', 8: 'vertical-rounded', 9: 'diamond-special',
-    10: 'ribbon', 11: 'star', 12: 'diamond', 13: 'x', 14: 'x-rounded',
-    15: 'cross', 16: 'cross-rounded', 17: 'heart', 18: 'sparkle', 19: 'shake',
-  };
-  const dotsTypeRaw = design?.dotsType || "square";
-  const dotsType = typeof dotsTypeRaw === 'number'
-    ? (SHAPE_NUM_MAP[dotsTypeRaw] || 'square')
-    : dotsTypeRaw;
+  // Design options
+  const dotsType = design?.dotsType || "square";
   const dotsColor = design?.dotsColor || "#000000";
   const backgroundColor = design?.bgTransparent ? "transparent" : (design?.backgroundColor || "#FFFFFF");
-  const CORNER_SQUARE_NUM_MAP: Record<number, string> = {
-    1: 'default', 2: 'square', 3: 'dot', 4: 'extra-rounded',
-    5: 'shape1', 6: 'shape2', 7: 'shape3', 8: 'shape4',
-    9: 'shape5', 10: 'shape6', 11: 'shape7', 12: 'shape8',
-    13: 'shape9', 14: 'shape10', 15: 'shape11', 16: 'shape12',
-    17: 'shape1',
-  };
-  const cornersSquareTypeRaw = design?.cornersSquareType || "default";
-  const cornersSquareType = typeof cornersSquareTypeRaw === 'number'
-    ? (CORNER_SQUARE_NUM_MAP[cornersSquareTypeRaw] || 'default')
-    : cornersSquareTypeRaw;
+  const cornersSquareType = design?.cornersSquareType || "default";
   const cornersSquareColor = design?.cornersSquareColor || dotsColor;
+  const cornersDotTypeRaw = design?.cornersDotType || "default";
   const CORNER_DOT_NUM_MAP: Record<number, string> = {
     1: 'default', 2: 'square', 3: 'dot', 4: 'rounded', 5: 'square2',
     6: 'square3', 7: 'dot2', 8: 'dot3', 9: 'dot4', 10: 'sun',
     11: 'star', 12: 'diamond', 13: 'x', 14: 'x-rounded', 15: 'cross', 16: 'cross-rounded', 17: 'heart',
   };
-  const cornersDotTypeRaw = design?.cornersDotType || "default";
   const cornersDotType = typeof cornersDotTypeRaw === 'number'
     ? (CORNER_DOT_NUM_MAP[cornersDotTypeRaw] || 'default')
     : cornersDotTypeRaw;

@@ -108,22 +108,20 @@ function getShapeStyle(style: any): string {
 // QRFY corner square (border) styles - from JSON api_ids
 const CORNER_SQUARE_NUM_TO_NAME: Record<number, string> = {
   1: 'default',
-  2: 'square',
-  3: 'dot',
-  4: 'rounded',
-  5: 'square2',
-  6: 'square3',
-  7: 'dot2',
-  8: 'dot3',
-  9: 'dot4',
-  10: 'sun',
-  11: 'star',
-  12: 'diamond',
-  13: 'x',
-  14: 'x-rounded',
-  15: 'cross',
-  16: 'cross-rounded',
-  17: 'heart',
+  2: 'dot',
+  3: 'square',
+  4: 'extra-rounded',
+  5: 'shape1',
+  6: 'shape2',
+  7: 'shape3',
+  8: 'shape4',
+  9: 'shape5',
+  10: 'shape6',
+  11: 'shape7',
+  12: 'shape8',
+  13: 'shape9',
+  14: 'shape10',
+  15: 'shape11',
 };
 
 function getCornerSquareStyle(style: any): string {
@@ -1318,7 +1316,7 @@ export const QRFY_SHAPE_STYLES = [
 export const QRFY_CORNER_SQUARE_STYLES = [
   'default', 'dot', 'square', 'extra-rounded',
   'shape1', 'shape2', 'shape3', 'shape4', 'shape5', 'shape6',
-  'shape7', 'shape8', 'shape9', 'shape10', 'shape11', 'shape12',
+  'shape7', 'shape8', 'shape9', 'shape10', 'shape11',
 ] as const;
 
 export const QRFY_CORNER_DOT_STYLES = [
