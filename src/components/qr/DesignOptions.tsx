@@ -241,7 +241,6 @@ const FRAME_META = [
   { id: 28, label: "Frame 28" },
   { id: 29, label: "Frame 29" },
   { id: 30, label: "Frame 30" },
-  { id: 31, label: "Frame 31" },
 ];
 
 // Preset logo URLs (external sources - QRFY can't fetch from its own domain)
