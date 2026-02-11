@@ -44,13 +44,14 @@ function CornerSquareSVG({ num }: { num: number }) {
   );
 }
 
-// Render actual QRFY Center style SVG by number (1-17)
-// Position 1 is default (standard), positions 2-17 need to shift by -1
-// to match what the QRFY API actually produces
+// Render actual QRFY Center style SVG by number (1-16)
+// Position 1 is default (standard preselected)
+// Positions 2-16: show SVG[num-1] because API produces what previous thumbnail shows
 function CornerDotSVG({ num }: { num: number }) {
-  // Fix off-by-one: API output for position N looks like SVG N-1
-  // Position 1 stays at 1, positions 2-17 shift down
-  const svgIndex = num > 1 ? num - 1 : num;
+  // Fix off-by-one: clicking position N produces what thumbnail N-1 shows
+  // So thumbnail N should show SVG N-1 to match the API output
+  // Position 1 stays at SVG 1, positions 2-16 shift back by 1
+  const svgIndex = num === 1 ? 1 : num - 1;
   const svgData = QRFY_CENTER_SVGS[svgIndex];
   if (!svgData) return null;
 
@@ -186,7 +187,7 @@ const CORNER_SQUARE_STYLES = [
   { id: 17, label: "Border 17" },
 ];
 
-// 17 Center styles from JSON
+// 16 Center styles (removed duplicate 17th)
 const CORNER_DOT_STYLES = [
   { id: 1, label: "Center 1" },
   { id: 2, label: "Center 2" },
@@ -204,7 +205,6 @@ const CORNER_DOT_STYLES = [
   { id: 14, label: "Center 14" },
   { id: 15, label: "Center 15" },
   { id: 16, label: "Center 16" },
-  { id: 17, label: "Center 17" },
 ];
 
 const ERROR_CORRECTION = [
