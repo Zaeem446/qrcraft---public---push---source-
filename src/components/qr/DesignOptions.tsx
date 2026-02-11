@@ -10,7 +10,6 @@ import toast from "react-hot-toast";
 import {
   QRFY_SHAPE_SVGS,
   QRFY_BORDER_SVGS,
-  QRFY_CENTER_SVGS,
   QRFY_FRAME_SVGS,
 } from "@/lib/qrfy-svgs";
 
@@ -44,17 +43,109 @@ function CornerSquareSVG({ num }: { num: number }) {
   );
 }
 
-// Render actual QRFY Center style SVG by number (1-17)
+// Render corner dot thumbnail using same style logic as CustomSVGQR preview
+// This ensures thumbnails always match the actual QR code preview
+const CORNER_DOT_NUM_TO_STYLE: Record<number, string> = {
+  1: 'default', 2: 'square', 3: 'dot', 4: 'rounded', 5: 'square2',
+  6: 'square3', 7: 'dot2', 8: 'dot3', 9: 'dot4', 10: 'sun',
+  11: 'star', 12: 'diamond', 13: 'x', 14: 'x-rounded', 15: 'cross', 16: 'cross-rounded', 17: 'heart',
+};
+
 function CornerDotSVG({ num }: { num: number }) {
-  const svgData = QRFY_CENTER_SVGS[num];
-  if (!svgData) return null;
+  const style = CORNER_DOT_NUM_TO_STYLE[num] || 'default';
+  const s = 48;
+  const cx = s / 2;
+  const cy = s / 2;
+  const r = s * 0.35;
+  const sz = r * 2;
+  const c = "currentColor";
+
+  const renderStyle = () => {
+    switch (style) {
+      case 'default':
+        return <rect x={cx - r} y={cy - r} width={sz} height={sz} rx={r * 0.25} fill={c} />;
+      case 'square':
+        return <rect x={cx - r} y={cy - r} width={sz} height={sz} fill={c} />;
+      case 'dot':
+        return <circle cx={cx} cy={cy} r={r} fill={c} />;
+      case 'rounded':
+        return <rect x={cx - r} y={cy - r} width={sz} height={sz} rx={r * 0.4} fill={c} />;
+      case 'square2':
+        return <rect x={cx - r * 0.85} y={cy - r * 0.85} width={sz * 0.85} height={sz * 0.85} stroke={c} strokeWidth={r * 0.35} fill="none" />;
+      case 'square3':
+        return (<>
+          <rect x={cx - r * 0.85} y={cy - r * 0.85} width={sz * 0.85} height={sz * 0.85} rx={r * 0.15} stroke={c} strokeWidth={r * 0.3} fill="none" />
+          <rect x={cx - r * 0.35} y={cy - r * 0.35} width={r * 0.7} height={r * 0.7} rx={r * 0.1} fill={c} />
+        </>);
+      case 'dot2':
+        return (<>
+          <circle cx={cx} cy={cy} r={r * 0.9} fill={c} />
+          <circle cx={cx} cy={cy} r={r * 0.4} fill="white" />
+        </>);
+      case 'dot3':
+        return (<>
+          <circle cx={cx} cy={cy} r={r * 0.95} stroke={c} strokeWidth={r * 0.35} fill="none" />
+          <circle cx={cx} cy={cy} r={r * 0.35} fill={c} />
+        </>);
+      case 'dot4':
+        return (<>
+          <circle cx={cx} cy={cy} r={r} fill={c} />
+          <circle cx={cx} cy={cy} r={r * 0.6} fill="white" />
+          <circle cx={cx} cy={cy} r={r * 0.32} fill={c} />
+        </>);
+      case 'sun': {
+        const rays = [];
+        for (let i = 0; i < 8; i++) {
+          const angle = (Math.PI / 4) * i;
+          rays.push(<line key={i} x1={cx + Math.cos(angle) * r * 0.5} y1={cy + Math.sin(angle) * r * 0.5} x2={cx + Math.cos(angle) * r * 0.95} y2={cy + Math.sin(angle) * r * 0.95} stroke={c} strokeWidth={r * 0.22} strokeLinecap="round" />);
+        }
+        return (<><circle cx={cx} cy={cy} r={r * 0.45} fill={c} />{rays}</>);
+      }
+      case 'star': {
+        const pts = [];
+        for (let i = 0; i < 5; i++) {
+          const a1 = (Math.PI * 2 / 5) * i - Math.PI / 2;
+          const a2 = a1 + Math.PI / 5;
+          pts.push(`${cx + Math.cos(a1) * r},${cy + Math.sin(a1) * r}`);
+          pts.push(`${cx + Math.cos(a2) * r * 0.4},${cy + Math.sin(a2) * r * 0.4}`);
+        }
+        return <polygon points={pts.join(" ")} fill={c} />;
+      }
+      case 'diamond':
+        return <polygon points={`${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`} fill={c} />;
+      case 'x':
+        return (<>
+          <rect x={cx - r} y={cy - r * 0.2} width={sz} height={r * 0.4} transform={`rotate(45 ${cx} ${cy})`} fill={c} />
+          <rect x={cx - r} y={cy - r * 0.2} width={sz} height={r * 0.4} transform={`rotate(-45 ${cx} ${cy})`} fill={c} />
+        </>);
+      case 'x-rounded':
+        return (<>
+          <rect x={cx - r} y={cy - r * 0.2} width={sz} height={r * 0.4} rx={r * 0.2} transform={`rotate(45 ${cx} ${cy})`} fill={c} />
+          <rect x={cx - r} y={cy - r * 0.2} width={sz} height={r * 0.4} rx={r * 0.2} transform={`rotate(-45 ${cx} ${cy})`} fill={c} />
+        </>);
+      case 'cross':
+        return (<>
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={sz} fill={c} />
+          <rect x={cx - r} y={cy - r * 0.3} width={sz} height={r * 0.6} fill={c} />
+        </>);
+      case 'cross-rounded':
+        return (<>
+          <rect x={cx - r * 0.3} y={cy - r} width={r * 0.6} height={sz} rx={r * 0.3} fill={c} />
+          <rect x={cx - r} y={cy - r * 0.3} width={sz} height={r * 0.6} rx={r * 0.3} fill={c} />
+        </>);
+      case 'heart': {
+        const hr = r * 1.1;
+        return <path d={`M${cx} ${cy + hr * 0.7} C${cx - hr * 1.4} ${cy - hr * 0.1} ${cx - hr * 0.7} ${cy - hr} ${cx} ${cy - hr * 0.35} C${cx + hr * 0.7} ${cy - hr} ${cx + hr * 1.4} ${cy - hr * 0.1} ${cx} ${cy + hr * 0.7}Z`} fill={c} />;
+      }
+      default:
+        return <rect x={cx - r} y={cy - r} width={sz} height={sz} rx={r * 0.25} fill={c} />;
+    }
+  };
 
   return (
-    <svg
-      viewBox={svgData.viewBox}
-      className="w-12 h-12 text-gray-600"
-      dangerouslySetInnerHTML={{ __html: svgData.inner.replace(/#000000/g, 'currentColor') }}
-    />
+    <svg viewBox={`0 0 ${s} ${s}`} className="w-12 h-12 text-gray-600">
+      {renderStyle()}
+    </svg>
   );
 }
 
