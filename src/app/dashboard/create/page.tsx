@@ -120,7 +120,7 @@ export default function CreateQRPage() {
   useEffect(() => {
     if (step >= 2 && qrType) {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => fetchPreview(), 400);
+      debounceRef.current = setTimeout(() => fetchPreview(), 1000);
       return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     }
   }, [step, design, qrType, content, fetchPreview]);
