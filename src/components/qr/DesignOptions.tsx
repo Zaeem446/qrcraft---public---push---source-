@@ -14,40 +14,13 @@ import {
   QRFY_FRAME_SVGS,
 } from "@/lib/qrfy-svgs";
 
-// ─── Style ID to QRFY number mappings ────────────────────────────────────────
+// ─── SVG Pattern Thumbnails (using QRFY numbers directly) ─────────────────────
 
-// Map shape style IDs to QRFY style numbers (1-19)
-const SHAPE_STYLE_TO_NUM: { [key: string]: number } = {
-  "square": 1, "rounded": 2, "dots": 3, "classy": 4, "classy-rounded": 5,
-  "extra-rounded": 6, "cross": 7, "cross-rounded": 8, "diamond": 9,
-  "diamond-special": 10, "heart": 11, "horizontal-rounded": 12,
-  "vertical-rounded": 13, "ribbon": 14, "shake": 15, "sparkle": 16,
-  "star": 17, "x": 18, "x-rounded": 19,
-};
-
-// Map corner square (border) style IDs to QRFY style numbers (1-15)
-const BORDER_STYLE_TO_NUM: { [key: string]: number } = {
-  "default": 1, "dot": 2, "square": 3, "extra-rounded": 4, "shape1": 5,
-  "shape2": 6, "shape3": 7, "shape4": 8, "shape5": 9, "shape6": 10,
-  "shape7": 11, "shape8": 12, "shape9": 13, "shape10": 14, "shape11": 15,
-};
-
-// Map corner dot (center) style IDs to QRFY style numbers (1-16)
-const CENTER_STYLE_TO_NUM: { [key: string]: number } = {
-  "default": 1, "dot": 2, "rounded": 3, "dot2": 4, "dot3": 5, "dot4": 6,
-  "star": 7, "diamond": 8, "x": 9, "cross": 10, "sun": 11, "square2": 12,
-  "square3": 13, "cross-rounded": 14, "x-rounded": 15, "heart": 16,
-};
-
-// ─── SVG Pattern Thumbnails ──────────────────────────────────────────────────
-
-// Render actual QRFY SVG from extracted data
-function PatternSVG({ style }: { style: string }) {
-  const num = SHAPE_STYLE_TO_NUM[style] || 1;
+// Render actual QRFY Shape SVG by number (1-19)
+function PatternSVG({ num }: { num: number }) {
   const svgData = QRFY_SHAPE_SVGS[num];
   if (!svgData) return null;
 
-  // Render the actual QRFY SVG with proper styling
   return (
     <svg
       viewBox={svgData.viewBox}
@@ -57,9 +30,8 @@ function PatternSVG({ style }: { style: string }) {
   );
 }
 
-// Render actual QRFY Border style SVG
-function CornerSquareSVG({ style }: { style: string }) {
-  const num = BORDER_STYLE_TO_NUM[style] || 1;
+// Render actual QRFY Border style SVG by number (1-15)
+function CornerSquareSVG({ num }: { num: number }) {
   const svgData = QRFY_BORDER_SVGS[num];
   if (!svgData) return null;
 
@@ -72,9 +44,8 @@ function CornerSquareSVG({ style }: { style: string }) {
   );
 }
 
-// Render actual QRFY Center style SVG
-function CornerDotSVG({ style }: { style: string }) {
-  const num = CENTER_STYLE_TO_NUM[style] || 1;
+// Render actual QRFY Center style SVG by number (1-16)
+function CornerDotSVG({ num }: { num: number }) {
   const svgData = QRFY_CENTER_SVGS[num];
   if (!svgData) return null;
 
@@ -164,68 +135,68 @@ function InlineColorPicker({ label, value, onChange }: { label: string; value: s
   );
 }
 
-// ─── Design Options Constants ────────────────────────────────────────────────
+// ─── Design Options Constants (using QRFY numbers directly) ──────────────────
 
+// 19 Shape styles - using QRFY numbers (1-19)
 const SHAPE_STYLES = [
-  { id: "square", label: "Square" },           // Style 1
-  { id: "rounded", label: "Rounded" },         // Style 2
-  { id: "dots", label: "Dots" },               // Style 3
-  { id: "classy", label: "Classy" },           // Style 4
-  { id: "classy-rounded", label: "Classy Rnd" }, // Style 5
-  { id: "extra-rounded", label: "Circle" },    // Style 6
-  { id: "cross", label: "Cross" },             // Style 7
-  { id: "cross-rounded", label: "Cross Rnd" }, // Style 8
-  { id: "diamond", label: "Diamond" },         // Style 9
-  { id: "diamond-special", label: "Diamond+" }, // Style 10
-  { id: "heart", label: "Heart" },             // Style 11
-  { id: "horizontal-rounded", label: "H-Lines" }, // Style 12
-  { id: "vertical-rounded", label: "V-Lines" }, // Style 13
-  { id: "ribbon", label: "Ribbon" },           // Style 14
-  { id: "shake", label: "Shake" },             // Style 15
-  { id: "sparkle", label: "Sparkle" },         // Style 16
-  { id: "star", label: "Star" },               // Style 17
-  { id: "x", label: "X" },                     // Style 18
-  { id: "x-rounded", label: "X Rounded" },     // Style 19
+  { id: 1, label: "Style 1" },
+  { id: 2, label: "Style 2" },
+  { id: 3, label: "Style 3" },
+  { id: 4, label: "Style 4" },
+  { id: 5, label: "Style 5" },
+  { id: 6, label: "Style 6" },
+  { id: 7, label: "Style 7" },
+  { id: 8, label: "Style 8" },
+  { id: 9, label: "Style 9" },
+  { id: 10, label: "Style 10" },
+  { id: 11, label: "Style 11" },
+  { id: 12, label: "Style 12" },
+  { id: 13, label: "Style 13" },
+  { id: 14, label: "Style 14" },
+  { id: 15, label: "Style 15" },
+  { id: 16, label: "Style 16" },
+  { id: 17, label: "Style 17" },
+  { id: 18, label: "Style 18" },
+  { id: 19, label: "Style 19" },
 ];
 
-// 16 Border styles matching QRFY's "Border style" in Corners section (screenshot order)
+// 15 Border styles - using QRFY numbers (1-15)
 const CORNER_SQUARE_STYLES = [
-  { id: "default", label: "Square" },        // Border 1 - solid square
-  { id: "dot", label: "Circle" },            // Border 2 - circle
-  { id: "square", label: "Sm Round" },       // Border 3 - small rounded
-  { id: "extra-rounded", label: "Rounded" }, // Border 4 - medium rounded
-  { id: "shape1", label: "Lg Round" },       // Border 5 - large rounded
-  { id: "shape2", label: "Pill" },           // Border 6 - pill/capsule
-  { id: "shape3", label: "Leaf" },           // Border 7 - leaf shape
-  { id: "shape4", label: "Diamond" },        // Border 8 - diamond
-  { id: "shape5", label: "Hexagon" },        // Border 9 - hexagon
-  { id: "shape6", label: "Octagon" },        // Border 10 - octagon
-  { id: "shape7", label: "Star" },           // Border 11 - star
-  { id: "shape8", label: "Clover" },         // Border 12 - clover
-  { id: "shape9", label: "Shield" },         // Border 13 - shield
-  { id: "shape10", label: "Badge" },         // Border 14 - badge
-  { id: "shape11", label: "Ticket" },        // Border 15 - ticket
-  { id: "shape12", label: "Frame" },         // Border 16 - frame
+  { id: 1, label: "Border 1" },
+  { id: 2, label: "Border 2" },
+  { id: 3, label: "Border 3" },
+  { id: 4, label: "Border 4" },
+  { id: 5, label: "Border 5" },
+  { id: 6, label: "Border 6" },
+  { id: 7, label: "Border 7" },
+  { id: 8, label: "Border 8" },
+  { id: 9, label: "Border 9" },
+  { id: 10, label: "Border 10" },
+  { id: 11, label: "Border 11" },
+  { id: 12, label: "Border 12" },
+  { id: 13, label: "Border 13" },
+  { id: 14, label: "Border 14" },
+  { id: 15, label: "Border 15" },
 ];
 
-// 16 Center styles matching QRFY's "Center style" in Corners section (screenshot order)
+// 16 Center styles - using QRFY numbers (1-16)
 const CORNER_DOT_STYLES = [
-  { id: "default", label: "Square" },        // Center style 1 - solid square
-  { id: "dot", label: "Oval" },              // Center style 2 - horizontal oval/pill
-  { id: "rounded", label: "Rounded" },       // Center style 3 - rounded square
-  { id: "dot2", label: "Circle" },           // Center style 4 - circle
-  { id: "dot3", label: "Ring" },             // Center style 5 - donut/ring
-  { id: "dot4", label: "Small Circle" },     // Center style 6 - smaller circle
-  { id: "star", label: "Star" },             // Center style 7 - star shape
-  { id: "diamond", label: "Diamond" },       // Center style 8 - diamond
-  { id: "x", label: "X" },                   // Center style 9 - X rotated
-  { id: "cross", label: "Cross" },           // Center style 10 - plus/cross
-  { id: "sun", label: "Sun" },               // Center style 11 - sun/burst
-  { id: "square2", label: "Dots" },          // Center style 12 - dots pattern
-  { id: "square3", label: "Ring Outline" },  // Center style 13 - ring outline
-  { id: "cross-rounded", label: "Sm Dots" }, // Center style 14 - small dots
-  { id: "x-rounded", label: "Pattern" },     // Center style 15 - pattern
-  { id: "heart", label: "Heart" },           // Center style 16 - heart
+  { id: 1, label: "Center 1" },
+  { id: 2, label: "Center 2" },
+  { id: 3, label: "Center 3" },
+  { id: 4, label: "Center 4" },
+  { id: 5, label: "Center 5" },
+  { id: 6, label: "Center 6" },
+  { id: 7, label: "Center 7" },
+  { id: 8, label: "Center 8" },
+  { id: 9, label: "Center 9" },
+  { id: 10, label: "Center 10" },
+  { id: 11, label: "Center 11" },
+  { id: 12, label: "Center 12" },
+  { id: 13, label: "Center 13" },
+  { id: 14, label: "Center 14" },
+  { id: 15, label: "Center 15" },
+  { id: 16, label: "Center 16" },
 ];
 
 const ERROR_CORRECTION = [
@@ -350,7 +321,7 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all ${
                     design.dotsType === p.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300"
                   }`}>
-                  <PatternSVG style={p.id} />
+                  <PatternSVG num={p.id} />
                   <span className="text-[10px] font-medium text-gray-600 leading-tight text-center">{p.label}</span>
                 </button>
               ))}
@@ -431,7 +402,7 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all ${
                     design.cornersSquareType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300"
                   }`}>
-                  <CornerSquareSVG style={c.id} />
+                  <CornerSquareSVG num={c.id} />
                   <span className="text-[10px] font-medium text-gray-600 leading-tight text-center">{c.label}</span>
                 </button>
               ))}
@@ -445,7 +416,7 @@ export default function DesignOptions({ design, setDesign }: DesignOptionsProps)
                   className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all ${
                     design.cornersDotType === c.id ? "border-violet-500 bg-violet-50" : "border-gray-200 hover:border-gray-300"
                   }`}>
-                  <CornerDotSVG style={c.id} />
+                  <CornerDotSVG num={c.id} />
                   <span className="text-[10px] font-medium text-gray-600 leading-tight text-center">{c.label}</span>
                 </button>
               ))}
