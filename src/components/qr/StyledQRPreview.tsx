@@ -83,7 +83,7 @@ function contentToString(type: string, content: Record<string, any>): string {
 type DotType = "square" | "dots" | "rounded" | "extra-rounded" | "classy" | "classy-rounded";
 
 // Comprehensive mapping for all 19 UI patterns to the 6 available library options
-const DOTS_TYPE_MAP: Record<string, DotType> = {
+const DOTS_TYPE_MAP: Record<string | number, DotType> = {
   // Direct mappings (these exist in qr-code-styling)
   square: "square",
   dots: "dots",
@@ -107,6 +107,26 @@ const DOTS_TYPE_MAP: Record<string, DotType> = {
   "x-rounded": "rounded",    // X rounded -> rounded
   // Fallback
   dot: "dots",
+  // Numeric position mappings (UI buttons set numbers 1-19)
+  1: "square",            // square
+  2: "rounded",           // rounded
+  3: "extra-rounded",     // extra-rounded
+  4: "dots",              // dots
+  5: "classy",            // classy
+  6: "classy-rounded",    // classy-rounded
+  7: "extra-rounded",     // horizontal-rounded -> extra-rounded
+  8: "extra-rounded",     // vertical-rounded -> extra-rounded
+  9: "classy-rounded",    // diamond-special -> classy-rounded
+  10: "classy",           // ribbon -> classy
+  11: "classy-rounded",   // star -> classy-rounded
+  12: "classy",           // diamond -> classy
+  13: "square",           // x -> square
+  14: "rounded",          // x-rounded -> rounded
+  15: "square",           // cross -> square
+  16: "rounded",          // cross-rounded -> rounded
+  17: "dots",             // heart -> dots
+  18: "dots",             // sparkle -> dots
+  19: "square",           // shake -> square
 };
 
 // Map corner square style names
@@ -114,7 +134,7 @@ const DOTS_TYPE_MAP: Record<string, DotType> = {
 type CornerSquareType = "square" | "dot" | "extra-rounded";
 
 // Comprehensive mapping for all 16 UI corner square styles to the 3 available options
-const CORNER_SQUARE_MAP: Record<string, CornerSquareType> = {
+const CORNER_SQUARE_MAP: Record<string | number, CornerSquareType> = {
   // Direct mappings
   default: "square",
   square: "square",
@@ -136,6 +156,24 @@ const CORNER_SQUARE_MAP: Record<string, CornerSquareType> = {
   // Extra
   rounded: "extra-rounded",
   classy: "extra-rounded",
+  // Numeric position mappings (UI buttons set numbers 1-17)
+  1: "square",           // default
+  2: "square",           // square
+  3: "dot",              // dot
+  4: "extra-rounded",    // extra-rounded
+  5: "extra-rounded",    // shape1
+  6: "square",           // shape2
+  7: "dot",              // shape3
+  8: "dot",              // shape4
+  9: "extra-rounded",    // shape5
+  10: "extra-rounded",   // shape6
+  11: "dot",             // shape7
+  12: "square",          // shape8
+  13: "extra-rounded",   // shape9
+  14: "dot",             // shape10
+  15: "extra-rounded",   // shape11
+  16: "dot",             // shape12
+  17: "extra-rounded",   // shape1 (duplicate)
 };
 
 // Map corner dot style names
