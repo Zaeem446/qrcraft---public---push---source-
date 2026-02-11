@@ -136,25 +136,25 @@ function getCornerSquareStyle(style: any): string {
   return 'default';
 }
 
-// QRFY corner dot (center) styles - shifted to match UI positions
-// Position 1 = default, positions 2-16 shifted forward by 1
+// QRFY corner dot (center) styles - from JSON api_ids
 const CORNER_DOT_NUM_TO_NAME: Record<number, string> = {
   1: 'default',
-  2: 'dot',
-  3: 'rounded',
-  4: 'square2',
-  5: 'square3',
-  6: 'dot2',
-  7: 'dot3',
-  8: 'dot4',
-  9: 'sun',
-  10: 'star',
-  11: 'diamond',
-  12: 'x',
-  13: 'x-rounded',
-  14: 'cross',
-  15: 'cross-rounded',
-  16: 'heart',
+  2: 'square',
+  3: 'dot',
+  4: 'rounded',
+  5: 'square2',
+  6: 'square3',
+  7: 'dot2',
+  8: 'dot3',
+  9: 'dot4',
+  10: 'sun',
+  11: 'star',
+  12: 'diamond',
+  13: 'x',
+  14: 'x-rounded',
+  15: 'cross',
+  16: 'cross-rounded',
+  17: 'heart',
 };
 
 function getCornerDotStyle(style: any): string {

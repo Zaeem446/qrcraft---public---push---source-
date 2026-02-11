@@ -51,10 +51,8 @@ export const QRFY_BORDER_SVGS: Record<number, SvgData> = {
   17: { viewBox: "0 0 80 80", inner: "" },
 };
 
-// ─── Corner Dot/Center SVGs (0-17) ───────────────────────────────────────────
-// Index 0: Custom SVG for position 2 (square with sharper/beveled corners)
+// ─── Corner Dot/Center SVGs (1-17) ───────────────────────────────────────────
 export const QRFY_CENTER_SVGS: Record<number, SvgData> = {
-  0: { viewBox: "0 0 8 8", inner: "<path fill='#000000' d='M0.8 0 H7.2 L8 0.8 V7.2 L7.2 8 H0.8 L0 7.2 V0.8 Z'/>" },
   1: { viewBox: "0 0 8 8", inner: "<defs></defs><path fill=\'#000000\' d=\'m0 0 8 0 0 8-8 0z\'></path>" },
   2: { viewBox: "0 0 8 8", inner: "<defs></defs><path fill=\'#000000\' d=\'m4 0a4 4 0 110 8 4 4 0 110-8\'></path>" },
   3: { viewBox: "0 0 14 14", inner: "<defs></defs><path fill=\'#000000\' d=\'m10 14h-6c-2.21 0-4-1.79-4-4v-6c0-2.21 1.79-4 4-4h6c2.21 0 4 1.79 4 4v6c0 2.21-1.79 4-4 4z\'></path>" },
