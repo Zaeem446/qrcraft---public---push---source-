@@ -160,7 +160,8 @@ const SHAPE_STYLES = [
   { id: 19, label: "Style 19" },
 ];
 
-// 17 Border styles - using QRFY numbers (1-17)
+// 15 Border styles - using QRFY numbers (1-15)
+// API values: default, dot, square, extra-rounded, shape1-shape11
 const CORNER_SQUARE_STYLES = [
   { id: 1, label: "Border 1" },
   { id: 2, label: "Border 2" },
@@ -177,11 +178,10 @@ const CORNER_SQUARE_STYLES = [
   { id: 13, label: "Border 13" },
   { id: 14, label: "Border 14" },
   { id: 15, label: "Border 15" },
-  { id: 16, label: "Border 16" },
-  { id: 17, label: "Border 17" },
 ];
 
-// 17 Center styles - using QRFY numbers (1-17)
+// 16 Center styles - using QRFY numbers (1-16)
+// API values: default, dot, rounded, dot2-dot4, star, diamond, x, cross, sun, square2-square3, cross-rounded, x-rounded, heart
 const CORNER_DOT_STYLES = [
   { id: 1, label: "Center 1" },
   { id: 2, label: "Center 2" },
@@ -199,7 +199,6 @@ const CORNER_DOT_STYLES = [
   { id: 14, label: "Center 14" },
   { id: 15, label: "Center 15" },
   { id: 16, label: "Center 16" },
-  { id: 17, label: "Center 17" },
 ];
 
 const ERROR_CORRECTION = [
