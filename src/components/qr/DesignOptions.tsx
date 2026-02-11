@@ -45,20 +45,15 @@ function CornerSquareSVG({ num }: { num: number }) {
 }
 
 // Render actual QRFY Center style SVG by number (1-16)
-// Maps UI position to correct SVG that matches what QRFY API produces
+// Maps UI position to SVG that matches API output after shifting
 function CornerDotSVG({ num }: { num: number }) {
-  // Mapping: position → SVG index
-  // Position 1 → SVG 1 (default square)
-  // Position 2 → SVG 0 (custom sharper corners square)
-  // Position 3-16 → SVG 2-15 (shifted by -1)
-  let svgIndex: number;
-  if (num === 1) {
-    svgIndex = 1; // default square
-  } else if (num === 2) {
-    svgIndex = 0; // custom sharper corners
-  } else {
-    svgIndex = num - 1; // positions 3-16 map to SVGs 2-15
-  }
+  // API mapping shifted: position 2 sends "dot", position 3 sends "rounded", etc.
+  // So SVG display must also shift to match:
+  // Position 1 → SVG 1 (default)
+  // Position 2 → SVG 3 (matches "dot" output)
+  // Position 3 → SVG 4 (matches "rounded" output)
+  // Position N (N>=2) → SVG N+1
+  const svgIndex = num === 1 ? 1 : num + 1;
 
   const svgData = QRFY_CENTER_SVGS[svgIndex];
   if (!svgData) return null;
