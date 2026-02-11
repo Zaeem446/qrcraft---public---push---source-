@@ -181,7 +181,7 @@ const CORNER_SQUARE_STYLES = [
   { id: 17, label: "Border 17" },
 ];
 
-// 17 Center styles from JSON
+// 16 Center styles (valid QRFY corner dot API styles)
 const CORNER_DOT_STYLES = [
   { id: 1, label: "Center 1" },
   { id: 2, label: "Center 2" },
@@ -199,7 +199,6 @@ const CORNER_DOT_STYLES = [
   { id: 14, label: "Center 14" },
   { id: 15, label: "Center 15" },
   { id: 16, label: "Center 16" },
-  { id: 17, label: "Center 17" },
 ];
 
 const ERROR_CORRECTION = [

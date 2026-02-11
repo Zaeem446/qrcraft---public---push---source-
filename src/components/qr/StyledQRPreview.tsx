@@ -142,13 +142,11 @@ const CORNER_SQUARE_MAP: Record<string, CornerSquareType> = {
 // qr-code-styling supports: "square" | "dot"
 type CornerDotType = "square" | "dot";
 
-// Comprehensive mapping for all 17 UI corner dot styles to the 2 available options
-const CORNER_DOT_MAP: Record<string, CornerDotType> = {
-  // Direct mappings
+// Comprehensive mapping for all 16 UI corner dot styles to the 2 available options
+const CORNER_DOT_MAP: Record<string | number, CornerDotType> = {
+  // String name mappings (for legacy/direct API name usage)
   default: "square",
-  square: "square",
   dot: "dot",
-  // Shape mappings based on visual appearance (round vs angular)
   cross: "square",           // Cross -> square (angular)
   "cross-rounded": "dot",    // Rounded cross -> dot (rounded)
   diamond: "square",         // Diamond -> square (angular)
@@ -163,9 +161,27 @@ const CORNER_DOT_MAP: Record<string, CornerDotType> = {
   sun: "dot",                // Sun (circle with rays) -> dot
   x: "square",               // X -> square (angular)
   "x-rounded": "dot",        // X rounded -> dot
-  // Fallback
+  // Fallback string mappings
+  square: "square",
   "extra-rounded": "dot",
   classy: "dot",
+  // Numeric position mappings (UI buttons set numbers 1-16)
+  1: "square",   // default
+  2: "dot",      // dot
+  3: "dot",      // rounded
+  4: "square",   // square2
+  5: "square",   // square3
+  6: "dot",      // dot2
+  7: "dot",      // dot3
+  8: "dot",      // dot4
+  9: "dot",      // sun
+  10: "square",  // star
+  11: "square",  // diamond
+  12: "square",  // x
+  13: "dot",     // x-rounded
+  14: "square",  // cross
+  15: "dot",     // cross-rounded
+  16: "dot",     // heart
 };
 
 export default function StyledQRPreview({

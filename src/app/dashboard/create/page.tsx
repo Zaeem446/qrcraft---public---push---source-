@@ -47,7 +47,7 @@ export default function CreateQRPage() {
     cornersSquareColor: "#6D28D9",
     cornersSquareType: "extra-rounded",
     cornersDotColor: "#6D28D9",
-    cornersDotType: "dot",
+    cornersDotType: 1,
     backgroundColor: "#FFFFFF",
     logo: "",
     logoSize: 0.4,

@@ -854,7 +854,16 @@ export default function CustomSVGQR({
   const backgroundColor = design?.bgTransparent ? "transparent" : (design?.backgroundColor || "#FFFFFF");
   const cornersSquareType = design?.cornersSquareType || "default";
   const cornersSquareColor = design?.cornersSquareColor || dotsColor;
-  const cornersDotType = design?.cornersDotType || "default";
+  const cornersDotTypeRaw = design?.cornersDotType || "default";
+  // Convert numeric position to API style name for renderCornerDot switch
+  const CORNER_DOT_NUM_MAP: Record<number, string> = {
+    1: 'default', 2: 'dot', 3: 'rounded', 4: 'square2', 5: 'square3',
+    6: 'dot2', 7: 'dot3', 8: 'dot4', 9: 'sun', 10: 'star',
+    11: 'diamond', 12: 'x', 13: 'x-rounded', 14: 'cross', 15: 'cross-rounded', 16: 'heart',
+  };
+  const cornersDotType = typeof cornersDotTypeRaw === 'number'
+    ? (CORNER_DOT_NUM_MAP[cornersDotTypeRaw] || 'default')
+    : cornersDotTypeRaw;
   const cornersDotColor = design?.cornersDotColor || dotsColor;
   const errorCorrectionLevel = design?.errorCorrectionLevel || (design?.logo ? "H" : "M");
 
