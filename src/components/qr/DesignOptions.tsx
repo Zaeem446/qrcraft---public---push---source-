@@ -44,9 +44,14 @@ function CornerSquareSVG({ num }: { num: number }) {
   );
 }
 
-// Render actual QRFY Center style SVG by number (1-16)
+// Render actual QRFY Center style SVG by number (1-17)
+// Position 1 is default (standard), positions 2-17 need to shift by -1
+// to match what the QRFY API actually produces
 function CornerDotSVG({ num }: { num: number }) {
-  const svgData = QRFY_CENTER_SVGS[num];
+  // Fix off-by-one: API output for position N looks like SVG N-1
+  // Position 1 stays at 1, positions 2-17 shift down
+  const svgIndex = num > 1 ? num - 1 : num;
+  const svgData = QRFY_CENTER_SVGS[svgIndex];
   if (!svgData) return null;
 
   return (
