@@ -69,27 +69,27 @@ export function mapTypeToQrfy(ourType: string): string {
 // ─── Style Mapping ──────────────────────────────────────────────────────────
 
 // QRFY shape styles - map numbers (1-19) to QRFY API string names
-// QRFY API expects string names like "square", "rounded", etc.
+// Extracted from QRFY API docs: /Users/zaeemaslam853/Downloads/extract-data-2026-02-11.json
 const SHAPE_NUM_TO_NAME: Record<number, string> = {
-  1: 'square',
-  2: 'rounded',
-  3: 'dots',
-  4: 'classy',
-  5: 'classy-rounded',
-  6: 'extra-rounded',
-  7: 'horizontal-rounded',
-  8: 'vertical-rounded',
-  9: 'ribbon',
-  10: 'diamond-special',
-  11: 'star',
-  12: 'diamond',
-  13: 'x',
-  14: 'x-rounded',
-  15: 'cross',
-  16: 'cross-rounded',
-  17: 'heart',
-  18: 'sparkle',
-  19: 'shake',
+  1: 'square',           // Shape style 1
+  2: 'rounded',          // Shape style 2
+  3: 'extra-rounded',    // Shape style 3
+  4: 'dots',             // Shape style 4
+  5: 'classy',           // Shape style 5
+  6: 'classy-rounded',   // Shape style 6
+  7: 'horizontal-rounded', // Shape style 7
+  8: 'vertical-rounded', // Shape style 8
+  9: 'diamond-special',  // Shape style 9
+  10: 'ribbon',          // Shape style 10
+  11: 'star',            // Shape style 11
+  12: 'diamond',         // Shape style 12
+  13: 'x',               // Shape style 13
+  14: 'x-rounded',       // Shape style 14
+  15: 'cross',           // Shape style 15
+  16: 'cross-rounded',   // Shape style 16
+  17: 'heart',           // Shape style 17
+  18: 'sparkle',         // Shape style 18
+  19: 'shake',           // Shape style 19
 };
 
 function getShapeStyle(style: any): string {
@@ -105,23 +105,26 @@ function getShapeStyle(style: any): string {
   return 'square';
 }
 
-// QRFY corner square (border) styles - map numbers to QRFY API string names
+// QRFY corner square (border) styles - map numbers (1-17) to QRFY API string names
+// Extracted from QRFY API docs: /Users/zaeemaslam853/Downloads/extract-data-2026-02-11.json
 const CORNER_SQUARE_NUM_TO_NAME: Record<number, string> = {
-  1: 'default',
-  2: 'dot',
-  3: 'square',
-  4: 'extra-rounded',
-  5: 'shape1',
-  6: 'shape2',
-  7: 'shape3',
-  8: 'shape4',
-  9: 'shape5',
-  10: 'shape6',
-  11: 'shape7',
-  12: 'shape8',
-  13: 'shape9',
-  14: 'shape10',
-  15: 'shape11',
+  1: 'default',        // Border style 1
+  2: 'square',         // Border style 2
+  3: 'dot',            // Border style 3
+  4: 'rounded',        // Border style 4
+  5: 'square2',        // Border style 5
+  6: 'square3',        // Border style 6
+  7: 'dot2',           // Border style 7
+  8: 'dot3',           // Border style 8
+  9: 'dot4',           // Border style 9
+  10: 'sun',           // Border style 10
+  11: 'star',          // Border style 11
+  12: 'diamond',       // Border style 12
+  13: 'x',             // Border style 13
+  14: 'x-rounded',     // Border style 14
+  15: 'cross',         // Border style 15
+  16: 'cross-rounded', // Border style 16
+  17: 'heart',         // Border style 17
 };
 
 function getCornerSquareStyle(style: any): string {
@@ -134,24 +137,26 @@ function getCornerSquareStyle(style: any): string {
   return 'default';
 }
 
-// QRFY corner dot (center) styles - map numbers to QRFY API string names
+// QRFY corner dot (center) styles - map numbers (1-17) to QRFY API string names
+// Extracted from QRFY API docs: /Users/zaeemaslam853/Downloads/extract-data-2026-02-11.json
 const CORNER_DOT_NUM_TO_NAME: Record<number, string> = {
-  1: 'default',
-  2: 'dot',
-  3: 'rounded',
-  4: 'dot2',
-  5: 'dot3',
-  6: 'dot4',
-  7: 'star',
-  8: 'diamond',
-  9: 'x',
-  10: 'cross',
-  11: 'sun',
-  12: 'square2',
-  13: 'square3',
-  14: 'cross-rounded',
-  15: 'x-rounded',
-  16: 'heart',
+  1: 'default',        // Center style 1
+  2: 'square',         // Center style 2
+  3: 'dot',            // Center style 3
+  4: 'rounded',        // Center style 4
+  5: 'square2',        // Center style 5
+  6: 'square3',        // Center style 6
+  7: 'dot2',           // Center style 7
+  8: 'dot3',           // Center style 8
+  9: 'dot4',           // Center style 9
+  10: 'sun',           // Center style 10
+  11: 'star',          // Center style 11
+  12: 'diamond',       // Center style 12
+  13: 'x',             // Center style 13
+  14: 'x-rounded',     // Center style 14
+  15: 'cross',         // Center style 15
+  16: 'cross-rounded', // Center style 16
+  17: 'heart',         // Center style 17
 };
 
 function getCornerDotStyle(style: any): string {
