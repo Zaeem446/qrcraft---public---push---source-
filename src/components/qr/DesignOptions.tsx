@@ -177,6 +177,7 @@ const CORNER_SQUARE_STYLES = [
   { id: 13, label: "Border 13" },
   { id: 14, label: "Border 14" },
   { id: 15, label: "Border 15" },
+  { id: 16, label: "Border 16" },
 ];
 
 // 17 Center styles (QRFY corner dot API styles)
