@@ -105,26 +105,25 @@ function getShapeStyle(style: any): string {
   return 'square';
 }
 
-// QRFY corner square (border) styles - map numbers (1-15) to QRFY API string names
-// Valid API values: default, dot, square, extra-rounded, shape1-shape11
+// QRFY corner square (border) styles - from JSON api_ids
 const CORNER_SQUARE_NUM_TO_NAME: Record<number, string> = {
-  1: 'default',        // Border style 1
-  2: 'dot',            // Border style 2
-  3: 'square',         // Border style 3
-  4: 'extra-rounded',  // Border style 4
-  5: 'shape1',         // Border style 5
-  6: 'shape2',         // Border style 6
-  7: 'shape3',         // Border style 7
-  8: 'shape4',         // Border style 8
-  9: 'shape5',         // Border style 9
-  10: 'shape6',        // Border style 10
-  11: 'shape7',        // Border style 11
-  12: 'shape8',        // Border style 12
-  13: 'shape9',        // Border style 13
-  14: 'shape10',       // Border style 14
-  15: 'shape11',       // Border style 15
-  16: 'default',       // Border style 16 (fallback - not supported)
-  17: 'default',       // Border style 17 (fallback - not supported)
+  1: 'default',
+  2: 'square',
+  3: 'dot',
+  4: 'rounded',
+  5: 'square2',
+  6: 'square3',
+  7: 'dot2',
+  8: 'dot3',
+  9: 'dot4',
+  10: 'sun',
+  11: 'star',
+  12: 'diamond',
+  13: 'x',
+  14: 'x-rounded',
+  15: 'cross',
+  16: 'cross-rounded',
+  17: 'heart',
 };
 
 function getCornerSquareStyle(style: any): string {
@@ -137,26 +136,25 @@ function getCornerSquareStyle(style: any): string {
   return 'default';
 }
 
-// QRFY corner dot (center) styles - map numbers (1-16) to QRFY API string names
-// Valid API values: default, dot, rounded, dot2-dot4, star, diamond, x, cross, sun, square2-square3, cross-rounded, x-rounded, heart
+// QRFY corner dot (center) styles - from JSON api_ids
 const CORNER_DOT_NUM_TO_NAME: Record<number, string> = {
-  1: 'default',        // Center style 1
-  2: 'dot',            // Center style 2
-  3: 'rounded',        // Center style 3
-  4: 'dot2',           // Center style 4
-  5: 'dot3',           // Center style 5
-  6: 'dot4',           // Center style 6
-  7: 'star',           // Center style 7
-  8: 'diamond',        // Center style 8
-  9: 'x',              // Center style 9
-  10: 'cross',         // Center style 10
-  11: 'sun',           // Center style 11
-  12: 'square2',       // Center style 12
-  13: 'square3',       // Center style 13
-  14: 'cross-rounded', // Center style 14
-  15: 'x-rounded',     // Center style 15
-  16: 'heart',         // Center style 16
-  17: 'default',       // Center style 17 (fallback - not supported)
+  1: 'default',
+  2: 'square',
+  3: 'dot',
+  4: 'rounded',
+  5: 'square2',
+  6: 'square3',
+  7: 'dot2',
+  8: 'dot3',
+  9: 'dot4',
+  10: 'sun',
+  11: 'star',
+  12: 'diamond',
+  13: 'x',
+  14: 'x-rounded',
+  15: 'cross',
+  16: 'cross-rounded',
+  17: 'heart',
 };
 
 function getCornerDotStyle(style: any): string {
