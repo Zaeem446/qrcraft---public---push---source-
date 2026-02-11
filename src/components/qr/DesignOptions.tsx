@@ -160,7 +160,7 @@ const SHAPE_STYLES = [
   { id: 19, label: "Style 19" },
 ];
 
-// 16 Border styles
+// 15 Border styles (QRFY API only supports 15 corner square styles)
 const CORNER_SQUARE_STYLES = [
   { id: 1, label: "Border 1" },
   { id: 2, label: "Border 2" },
@@ -177,7 +177,6 @@ const CORNER_SQUARE_STYLES = [
   { id: 13, label: "Border 13" },
   { id: 14, label: "Border 14" },
   { id: 15, label: "Border 15" },
-  { id: 16, label: "Border 16" },
 ];
 
 // 17 Center styles (QRFY corner dot API styles)

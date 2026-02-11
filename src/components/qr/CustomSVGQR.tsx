@@ -862,10 +862,10 @@ export default function CustomSVGQR({
   const dotsColor = design?.dotsColor || "#000000";
   const backgroundColor = design?.bgTransparent ? "transparent" : (design?.backgroundColor || "#FFFFFF");
   const CORNER_SQUARE_NUM_MAP: Record<number, string> = {
-    1: 'default', 2: 'dot', 3: 'square', 4: 'square', 5: 'extra-rounded',
-    6: 'shape1', 7: 'shape2', 8: 'shape3', 9: 'shape4',
-    10: 'shape5', 11: 'shape6', 12: 'shape7', 13: 'shape8',
-    14: 'shape9', 15: 'shape10', 16: 'shape11',
+    1: 'default', 2: 'dot', 3: 'square', 4: 'extra-rounded',
+    5: 'shape1', 6: 'shape2', 7: 'shape3', 8: 'shape4',
+    9: 'shape5', 10: 'shape6', 11: 'shape7', 12: 'shape8',
+    13: 'shape9', 14: 'shape10', 15: 'shape11',
   };
   const cornersSquareTypeRaw = design?.cornersSquareType || "default";
   const cornersSquareType = typeof cornersSquareTypeRaw === 'number'
