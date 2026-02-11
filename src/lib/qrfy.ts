@@ -68,56 +68,100 @@ export function mapTypeToQrfy(ourType: string): string {
 
 // ─── Style Mapping ──────────────────────────────────────────────────────────
 
-// QRFY shape styles - accepts numbers (1-19) or legacy string names
-// QRFY API uses numeric style IDs internally
-function getShapeStyle(style: any): number {
-  // If it's already a number, use it directly
-  if (typeof style === 'number' && style >= 1 && style <= 19) {
+// QRFY shape styles - map numbers (1-19) to QRFY API string names
+// QRFY API expects string names like "square", "rounded", etc.
+const SHAPE_NUM_TO_NAME: Record<number, string> = {
+  1: 'square',
+  2: 'rounded',
+  3: 'dots',
+  4: 'classy',
+  5: 'classy-rounded',
+  6: 'extra-rounded',
+  7: 'horizontal-rounded',
+  8: 'vertical-rounded',
+  9: 'ribbon',
+  10: 'diamond-special',
+  11: 'star',
+  12: 'diamond',
+  13: 'x',
+  14: 'x-rounded',
+  15: 'cross',
+  16: 'cross-rounded',
+  17: 'heart',
+  18: 'sparkle',
+  19: 'shake',
+};
+
+function getShapeStyle(style: any): string {
+  // If it's a number, map to QRFY API string name
+  if (typeof style === 'number' && SHAPE_NUM_TO_NAME[style]) {
+    return SHAPE_NUM_TO_NAME[style];
+  }
+  // If it's already a valid QRFY string, use it directly
+  if (typeof style === 'string' && Object.values(SHAPE_NUM_TO_NAME).includes(style)) {
     return style;
   }
-  // Legacy string mapping for backward compatibility
-  const legacyMap: Record<string, number> = {
-    square: 1, rounded: 2, dots: 3, classy: 4, 'classy-rounded': 5,
-    'extra-rounded': 6, cross: 7, 'cross-rounded': 8, diamond: 9,
-    'diamond-special': 10, heart: 11, 'horizontal-rounded': 12,
-    ribbon: 13, shake: 14, sparkle: 15, star: 16,
-    'vertical-rounded': 17, x: 18, 'x-rounded': 19,
-    // Backward-compat aliases
-    dot: 3, 'small-square': 1, 'tiny-square': 1, wave: 2, weave: 7,
-  };
-  return legacyMap[style] || 1;
+  // Default fallback
+  return 'square';
 }
 
-// QRFY corner square (border) styles - accepts numbers (1-15) or legacy string names
-function getCornerSquareStyle(style: any): number {
-  if (typeof style === 'number' && style >= 1 && style <= 15) {
+// QRFY corner square (border) styles - map numbers to QRFY API string names
+const CORNER_SQUARE_NUM_TO_NAME: Record<number, string> = {
+  1: 'default',
+  2: 'dot',
+  3: 'square',
+  4: 'extra-rounded',
+  5: 'shape1',
+  6: 'shape2',
+  7: 'shape3',
+  8: 'shape4',
+  9: 'shape5',
+  10: 'shape6',
+  11: 'shape7',
+  12: 'shape8',
+  13: 'shape9',
+  14: 'shape10',
+  15: 'shape11',
+};
+
+function getCornerSquareStyle(style: any): string {
+  if (typeof style === 'number' && CORNER_SQUARE_NUM_TO_NAME[style]) {
+    return CORNER_SQUARE_NUM_TO_NAME[style];
+  }
+  if (typeof style === 'string' && Object.values(CORNER_SQUARE_NUM_TO_NAME).includes(style)) {
     return style;
   }
-  // Legacy string mapping
-  const legacyMap: Record<string, number> = {
-    default: 1, dot: 2, square: 3, 'extra-rounded': 4,
-    shape1: 5, shape2: 6, shape3: 7, shape4: 8, shape5: 9,
-    shape6: 10, shape7: 11, shape8: 12, shape9: 13, shape10: 14, shape11: 15,
-    // Backward-compat aliases
-    classy: 5, outpoint: 6, inpoint: 7, 'center-circle': 8,
-  };
-  return legacyMap[style] || 1;
+  return 'default';
 }
 
-// QRFY corner dot (center) styles - accepts numbers (1-16) or legacy string names
-function getCornerDotStyle(style: any): number {
-  if (typeof style === 'number' && style >= 1 && style <= 16) {
+// QRFY corner dot (center) styles - map numbers to QRFY API string names
+const CORNER_DOT_NUM_TO_NAME: Record<number, string> = {
+  1: 'default',
+  2: 'dot',
+  3: 'rounded',
+  4: 'dot2',
+  5: 'dot3',
+  6: 'dot4',
+  7: 'star',
+  8: 'diamond',
+  9: 'x',
+  10: 'cross',
+  11: 'sun',
+  12: 'square2',
+  13: 'square3',
+  14: 'cross-rounded',
+  15: 'x-rounded',
+  16: 'heart',
+};
+
+function getCornerDotStyle(style: any): string {
+  if (typeof style === 'number' && CORNER_DOT_NUM_TO_NAME[style]) {
+    return CORNER_DOT_NUM_TO_NAME[style];
+  }
+  if (typeof style === 'string' && Object.values(CORNER_DOT_NUM_TO_NAME).includes(style)) {
     return style;
   }
-  // Legacy string mapping
-  const legacyMap: Record<string, number> = {
-    default: 1, dot: 2, rounded: 3, dot2: 4, dot3: 5, dot4: 6,
-    star: 7, diamond: 8, x: 9, cross: 10, sun: 11,
-    square2: 12, square3: 13, 'cross-rounded': 14, 'x-rounded': 15, heart: 16,
-    // Backward-compat aliases
-    'extra-rounded': 3, classy: 12, outpoint: 8, inpoint: 10, pentagon: 4, hexagon: 5, square: 1,
-  };
-  return legacyMap[style] || 1;
+  return 'default';
 }
 
 // QRFY frame/border mapping (31 frames + 15 border styles)
