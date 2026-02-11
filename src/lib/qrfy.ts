@@ -1054,10 +1054,30 @@ export async function createStaticQRImage(
   // Debug: log the request payload
   console.log('[QRFY] Static image request payload:', JSON.stringify(body, null, 2));
 
-  const res = await qrfyFetch(`/api/public/qrs/${format}`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
+  const fetchWithTimeout = async (): Promise<Response> => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    try {
+      const res = await qrfyFetch(`/api/public/qrs/${format}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+      return res;
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
+  // First attempt
+  let res = await fetchWithTimeout();
+
+  // Retry once on 5xx errors after a short delay
+  if (res.status >= 500) {
+    console.warn('[QRFY] Got', res.status, '— retrying in 2s...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    res = await fetchWithTimeout();
+  }
 
   if (!res.ok) {
     const err = await res.text();
