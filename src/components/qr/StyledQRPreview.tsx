@@ -156,7 +156,7 @@ const CORNER_SQUARE_MAP: Record<string | number, CornerSquareType> = {
   // Extra
   rounded: "extra-rounded",
   classy: "extra-rounded",
-  // Numeric position mappings (UI buttons set numbers 1-16)
+  // Numeric position mappings (UI buttons set numbers 1-15)
   1: "square",           // default
   2: "dot",              // dot (circle)
   3: "square",           // square
@@ -172,7 +172,6 @@ const CORNER_SQUARE_MAP: Record<string | number, CornerSquareType> = {
   13: "extra-rounded",   // shape9
   14: "dot",             // shape10
   15: "extra-rounded",   // shape11
-  16: "extra-rounded",   // shape11 (repeat)
 };
 
 // Map corner dot style names

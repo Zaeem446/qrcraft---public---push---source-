@@ -122,7 +122,6 @@ const CORNER_SQUARE_NUM_TO_NAME: Record<number, string> = {
   13: 'shape9',
   14: 'shape10',
   15: 'shape11',
-  16: 'shape11',
 };
 
 function getCornerSquareStyle(style: any): string {

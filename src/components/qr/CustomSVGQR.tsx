@@ -865,7 +865,7 @@ export default function CustomSVGQR({
     1: 'default', 2: 'dot', 3: 'square', 4: 'extra-rounded',
     5: 'shape1', 6: 'shape2', 7: 'shape3', 8: 'shape4',
     9: 'shape5', 10: 'shape6', 11: 'shape7', 12: 'shape8',
-    13: 'shape9', 14: 'shape10', 15: 'shape11', 16: 'shape11',
+    13: 'shape9', 14: 'shape10', 15: 'shape11',
   };
   const cornersSquareTypeRaw = design?.cornersSquareType || "default";
   const cornersSquareType = typeof cornersSquareTypeRaw === 'number'
