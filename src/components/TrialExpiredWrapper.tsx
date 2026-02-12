@@ -25,7 +25,8 @@ function TrialExpiredWrapperInner() {
 
         // Ad user without subscription — but if just paid, wait for webhook
         if (requiresCardTrial && !stripeSubscriptionId) {
-          if (isSuccess && retryCount < 8) {
+          const maxRetries = isSuccess ? 8 : 3;
+          if (retryCount < maxRetries) {
             // Webhook hasn't processed yet — retry after delay
             await new Promise((r) => setTimeout(r, 2000));
             return checkTrialStatus(retryCount + 1);

@@ -58,6 +58,37 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Check Stripe directly for existing subscriptions (handles webhook lag)
+    const existingSubs = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+    });
+
+    if (existingSubs.data.length > 0) {
+      const sub = existingSubs.data[0];
+      // Map Stripe status to our Prisma enum
+      const statusMap: Record<string, string> = {
+        active: 'active',
+        trialing: 'trialing',
+        past_due: 'past_due',
+        canceled: 'canceled',
+      };
+      const mappedStatus = statusMap[sub.status] || 'active';
+      // Sync subscription data to DB so future checks don't hit Stripe
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          stripeSubscriptionId: sub.id,
+          subscriptionStatus: mappedStatus as any,
+          plan: 'professional',
+        },
+      });
+      return NextResponse.json(
+        { error: 'Already subscribed', redirect: '/dashboard' },
+        { status: 400 }
+      );
+    }
+
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',

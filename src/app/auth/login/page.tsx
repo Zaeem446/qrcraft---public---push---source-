@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSignIn } from '@clerk/nextjs';
 import { QrCodeIcon } from '@heroicons/react/24/outline';
 import AuthVisual from '@/components/auth/AuthVisual';
 import { getAcquisitionData } from '@/lib/acquisition';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get('redirect_url');
   const { signIn, isLoaded: clerkLoaded } = useSignIn();
 
   const [email, setEmail] = useState('');
@@ -35,6 +37,12 @@ export default function LoginPage() {
 
       if (!res.ok) {
         setError(data.error || 'Login failed');
+        return;
+      }
+
+      // Honor redirect_url if present and is a same-origin path
+      if (redirectUrl && redirectUrl.startsWith('/')) {
+        router.push(redirectUrl);
         return;
       }
 
@@ -232,5 +240,19 @@ export default function LoginPage() {
         <AuthVisual />
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

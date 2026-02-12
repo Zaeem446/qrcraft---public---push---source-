@@ -37,7 +37,7 @@ function StartTrialContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function checkEligibility() {
+    async function checkEligibility(retryCount = 0) {
       try {
         const res = await fetch('/api/user/profile');
         if (!res.ok) {
@@ -48,6 +48,11 @@ function StartTrialContent() {
         if (!data.requiresCardTrial || data.stripeSubscriptionId) {
           router.push('/dashboard');
           return;
+        }
+        // If user just paid but webhook hasn't fired yet, retry once after 2s
+        if (data.requiresCardTrial && !data.stripeSubscriptionId && retryCount < 1) {
+          await new Promise((r) => setTimeout(r, 2000));
+          return checkEligibility(retryCount + 1);
         }
       } catch {
         router.push('/auth/login');
@@ -71,6 +76,11 @@ function StartTrialContent() {
       });
       const data = await res.json();
       if (!res.ok) {
+        // If API says already subscribed, redirect to dashboard
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
         setError(data.error || 'Something went wrong');
         return;
       }
