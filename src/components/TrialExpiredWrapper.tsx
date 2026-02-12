@@ -1,58 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import TrialExpiredModal from "./TrialExpiredModal";
 
-export default function TrialExpiredWrapper() {
+function TrialExpiredWrapperInner() {
   const [isTrialExpired, setIsTrialExpired] = useState(false);
   const [isAdUserBlocked, setIsAdUserBlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Don't show modal on billing page - user needs to be able to subscribe
+  const isSuccess = searchParams.get("success") === "true";
   const isBillingPage = pathname === "/dashboard/billing";
 
-  useEffect(() => {
-    async function checkTrialStatus() {
-      try {
-        const res = await fetch("/api/user/profile");
-        if (res.ok) {
-          const data = await res.json();
-          const { subscriptionStatus, trialEndsAt, requiresCardTrial, stripeSubscriptionId } = data;
+  const checkTrialStatus = useCallback(async (retryCount = 0): Promise<void> => {
+    try {
+      const res = await fetch("/api/user/profile");
+      if (res.ok) {
+        const data = await res.json();
+        const { subscriptionStatus, trialEndsAt, requiresCardTrial, stripeSubscriptionId } = data;
 
-          // Ad user without subscription — block and redirect
-          if (requiresCardTrial && !stripeSubscriptionId) {
-            setIsAdUserBlocked(true);
-            setLoading(false);
-            return;
+        // Ad user without subscription — but if just paid, wait for webhook
+        if (requiresCardTrial && !stripeSubscriptionId) {
+          if (isSuccess && retryCount < 8) {
+            // Webhook hasn't processed yet — retry after delay
+            await new Promise((r) => setTimeout(r, 2000));
+            return checkTrialStatus(retryCount + 1);
           }
-
-          // Check if trial has expired
-          const isExpired =
-            subscriptionStatus === "expired" ||
-            (subscriptionStatus === "trialing" &&
-              trialEndsAt &&
-              new Date(trialEndsAt) < new Date());
-
-          // Don't block if user has active subscription
-          const hasActiveSubscription =
-            subscriptionStatus === "active" || subscriptionStatus === "past_due";
-
-          setIsTrialExpired(isExpired && !hasActiveSubscription);
+          setIsAdUserBlocked(true);
+          setLoading(false);
+          return;
         }
-      } catch (error) {
-        console.error("Failed to check trial status:", error);
-      } finally {
-        setLoading(false);
+
+        // Check if trial has expired
+        const isExpired =
+          subscriptionStatus === "expired" ||
+          (subscriptionStatus === "trialing" &&
+            trialEndsAt &&
+            new Date(trialEndsAt) < new Date());
+
+        const hasActiveSubscription =
+          subscriptionStatus === "active" || subscriptionStatus === "past_due";
+
+        setIsTrialExpired(isExpired && !hasActiveSubscription);
       }
+    } catch (error) {
+      console.error("Failed to check trial status:", error);
+    } finally {
+      setLoading(false);
     }
+  }, [isSuccess]);
 
+  useEffect(() => {
     checkTrialStatus();
-  }, []);
+  }, [checkTrialStatus]);
 
-  // Don't show anything while loading or on billing page
   if (loading || isBillingPage) return null;
 
   // Ad user blocked — show special modal
@@ -100,4 +105,12 @@ export default function TrialExpiredWrapper() {
   }
 
   return <TrialExpiredModal isOpen={isTrialExpired} />;
+}
+
+export default function TrialExpiredWrapper() {
+  return (
+    <Suspense fallback={null}>
+      <TrialExpiredWrapperInner />
+    </Suspense>
+  );
 }

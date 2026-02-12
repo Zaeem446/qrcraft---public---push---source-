@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
 import { nanoid } from 'nanoid';
 import prisma from '@/lib/db';
 import { sendVerificationEmail } from '@/lib/email';
 import { TRIAL_DAYS } from '@/lib/utils';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.NEXTAUTH_SECRET || 'your-secret-key'
+);
 
 async function getGeoFromIP(ip: string) {
   try {
@@ -77,7 +82,31 @@ export async function POST(req: NextRequest) {
       console.error('Failed to send verification email:', emailError);
     }
 
-    return NextResponse.json({ message: 'Account created successfully' }, { status: 201 });
+    // Auto-login: create session token
+    const sessionToken = await new SignJWT({
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('30d')
+      .sign(JWT_SECRET);
+
+    const response = NextResponse.json({
+      message: 'Account created successfully',
+      requiresCardTrial: isAdUser,
+    }, { status: 201 });
+
+    response.cookies.set('session-token', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60,
+      path: '/',
+    });
+
+    return response;
   } catch (error: any) {
     console.error('Registration error:', error);
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });

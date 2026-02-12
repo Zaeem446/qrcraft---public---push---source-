@@ -48,11 +48,12 @@ export default function RegisterPage() {
         return;
       }
 
-      setSuccess('Account created! Please check your email to verify your account, then login.');
-      // Clear form
-      setName('');
-      setEmail('');
-      setPassword('');
+      // Auto-logged in via session cookie — redirect
+      if (data.requiresCardTrial) {
+        router.push('/start-trial');
+      } else {
+        router.push('/dashboard');
+      }
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
