@@ -19,7 +19,7 @@ async function getGeoFromIP(ip: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, acquisitionChannel, acquisitionData } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -42,6 +42,8 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
+    const isAdUser = acquisitionChannel === 'google_ads' || acquisitionChannel === 'facebook_ads';
+
     const user = await prisma.user.create({
       data: {
         name,
@@ -53,6 +55,9 @@ export async function POST(req: NextRequest) {
         plan: 'free',
         subscriptionStatus: 'trialing',
         trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
+        acquisitionChannel: acquisitionChannel || 'organic',
+        acquisitionData: acquisitionData || undefined,
+        requiresCardTrial: isAdUser,
       },
     });
 

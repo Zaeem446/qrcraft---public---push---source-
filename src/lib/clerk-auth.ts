@@ -64,6 +64,22 @@ async function getClerkUser() {
           data: { clerkId: userId },
         });
       } else {
+        // Read acquisition data from cookie
+        let acquisitionChannel: string = 'organic';
+        let acquisitionData: any = undefined;
+        let requiresCardTrial = false;
+
+        try {
+          const cookieStore = await cookies();
+          const acqCookie = cookieStore.get('acquisition_data')?.value;
+          if (acqCookie) {
+            const parsed = JSON.parse(decodeURIComponent(acqCookie));
+            acquisitionChannel = parsed.channel || 'organic';
+            acquisitionData = parsed;
+            requiresCardTrial = acquisitionChannel === 'google_ads' || acquisitionChannel === 'facebook_ads';
+          }
+        } catch {}
+
         // Create new user
         user = await prisma.user.create({
           data: {
@@ -78,6 +94,9 @@ async function getClerkUser() {
             plan: 'free',
             trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
             subscriptionStatus: 'trialing',
+            acquisitionChannel: acquisitionChannel as any,
+            acquisitionData: acquisitionData || undefined,
+            requiresCardTrial,
           },
         });
       }

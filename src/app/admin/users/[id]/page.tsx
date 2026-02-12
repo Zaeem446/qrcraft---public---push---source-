@@ -63,6 +63,9 @@ interface UserData {
   subscriptionEndsAt: string | null;
   isTrialActive: boolean;
   trialDaysLeft: number;
+  acquisitionChannel: string | null;
+  acquisitionData: any;
+  requiresCardTrial: boolean;
   country: string | null;
   city: string | null;
   createdAt: string;
@@ -560,13 +563,42 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
-      {/* Account Details */}
+      {/* Acquisition & Account Details */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <div className="flex items-center gap-2 mb-4">
           <ShieldCheckIcon className="h-5 w-5 text-gray-400" />
           <h3 className="font-semibold text-gray-900">Account Details</h3>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">Acquisition Source</p>
+            <span
+              className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
+                user.acquisitionChannel === 'google_ads'
+                  ? 'bg-blue-100 text-blue-700'
+                  : user.acquisitionChannel === 'facebook_ads'
+                  ? 'bg-indigo-100 text-indigo-700'
+                  : user.acquisitionChannel === 'referral'
+                  ? 'bg-purple-100 text-purple-700'
+                  : user.acquisitionChannel === 'organic'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-700'
+              }`}
+            >
+              {user.acquisitionChannel?.replace('_', ' ') || 'organic'}
+            </span>
+          </div>
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className="text-xs text-gray-500 mb-1">Card Trial Required</p>
+            <div className="flex items-center gap-1.5">
+              {user.requiresCardTrial ? (
+                <CheckCircleIcon className="h-4 w-4 text-orange-500" />
+              ) : (
+                <XCircleIcon className="h-4 w-4 text-gray-400" />
+              )}
+              <span className="text-sm font-medium">{user.requiresCardTrial ? 'Yes' : 'No'}</span>
+            </div>
+          </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">Email Verified</p>
             <div className="flex items-center gap-1.5">
@@ -587,6 +619,16 @@ export default function AdminUserDetailPage() {
             <p className="text-sm font-medium">{formatDate(user.updatedAt)}</p>
           </div>
         </div>
+
+        {/* Raw acquisition data */}
+        {user.acquisitionData && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <p className="text-xs font-medium text-gray-500 mb-2">Raw Acquisition Data</p>
+            <pre className="text-xs bg-gray-50 rounded-lg p-3 overflow-x-auto text-gray-700">
+              {JSON.stringify(user.acquisitionData, null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
 
       {/* QR Codes with Analytics */}

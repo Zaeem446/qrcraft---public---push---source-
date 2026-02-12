@@ -82,10 +82,14 @@ export default function PricingPage() {
         body: JSON.stringify({ plan: "professional", interval }),
       });
       const data = await res.json();
+      if (data.redirect) {
+        router.push(data.redirect);
+        return;
+      }
       if (data.url) {
         window.location.href = data.url;
       } else {
-        toast.error("Failed to create checkout session");
+        toast.error(data.error || "Failed to create checkout session");
       }
     } catch {
       toast.error("Something went wrong");

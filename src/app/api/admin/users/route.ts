@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || '';
     const plan = searchParams.get('plan') || '';
     const status = searchParams.get('status') || '';
+    const channel = searchParams.get('channel') || '';
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
 
@@ -30,6 +31,10 @@ export async function GET(req: NextRequest) {
 
     if (status && status !== 'all') {
       where.subscriptionStatus = status;
+    }
+
+    if (channel && channel !== 'all') {
+      where.acquisitionChannel = channel;
     }
 
     const [users, total] = await Promise.all([
@@ -52,6 +57,8 @@ export async function GET(req: NextRequest) {
           subscriptionEndsAt: true,
           stripeCustomerId: true,
           stripeSubscriptionId: true,
+          acquisitionChannel: true,
+          requiresCardTrial: true,
           createdAt: true,
           _count: {
             select: { qrcodes: true, scans: true },

@@ -33,22 +33,33 @@ export async function POST(req: NextRequest) {
       const userId = session.metadata?.userId;
 
       if (userId && session.subscription) {
-        // Fetch the subscription to get period end
+        // Fetch the subscription to get period end and status
         const subscriptionResponse = await stripe.subscriptions.retrieve(session.subscription as string);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const subscription = subscriptionResponse as any;
         const periodEnd = new Date((subscription.current_period_end || subscription.items?.data?.[0]?.current_period_end || Math.floor(Date.now() / 1000) + 2592000) * 1000);
 
+        // Check if subscription is trialing (ad user with 7-day trial)
+        const isTrialing = subscription.status === 'trialing';
+        const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000) : null;
+
+        const updateData: any = {
+          plan: 'professional',
+          stripeSubscriptionId: session.subscription as string,
+          subscriptionStatus: isTrialing ? 'trialing' : 'active',
+          subscriptionEndsAt: periodEnd,
+        };
+
+        // Sync trial end date with Stripe's trial period
+        if (isTrialing && trialEnd) {
+          updateData.trialEndsAt = trialEnd;
+        }
+
         await prisma.user.update({
           where: { id: userId },
-          data: {
-            plan: 'professional',
-            stripeSubscriptionId: session.subscription as string,
-            subscriptionStatus: 'active',
-            subscriptionEndsAt: periodEnd,
-          },
+          data: updateData,
         });
-        console.log(`User ${userId} subscribed, ends at ${periodEnd.toISOString()}`);
+        console.log(`User ${userId} subscribed (${isTrialing ? 'trialing' : 'active'}), ends at ${periodEnd.toISOString()}`);
       }
       break;
     }

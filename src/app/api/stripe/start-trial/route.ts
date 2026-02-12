@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/clerk-auth';
-import { stripe, getPriceId } from '@/lib/stripe';
+import { stripe, getPriceId, CARD_VERIFY_PRICE_ID } from '@/lib/stripe';
 import prisma from '@/lib/db';
 
 export async function POST(req: NextRequest) {
@@ -14,19 +14,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { interval } = await req.json();
-
-    // Validate interval
-    if (!['monthly', 'quarterly', 'annually'].includes(interval)) {
-      return NextResponse.json({ error: 'Invalid billing interval' }, { status: 400 });
-    }
-
-    const priceId = getPriceId('', interval);
-
-    if (!priceId) {
-      return NextResponse.json({ error: 'Price not configured for this interval' }, { status: 400 });
-    }
-
     const user = await prisma.user.findUnique({
       where: { id: authUser.id },
     });
@@ -34,12 +21,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Block ad users from bypassing the start-trial flow
-    if (user.requiresCardTrial && !user.stripeSubscriptionId) {
-      return NextResponse.json(
-        { error: 'Please use the trial checkout', redirect: '/start-trial' },
-        { status: 403 }
-      );
+    if (!user.requiresCardTrial) {
+      return NextResponse.json({ error: 'This endpoint is only for ad users' }, { status: 403 });
+    }
+
+    if (user.stripeSubscriptionId) {
+      return NextResponse.json({ error: 'User already has a subscription' }, { status: 400 });
+    }
+
+    const { interval } = await req.json();
+
+    if (!['monthly', 'quarterly', 'annually'].includes(interval)) {
+      return NextResponse.json({ error: 'Invalid billing interval' }, { status: 400 });
+    }
+
+    const subscriptionPriceId = getPriceId('', interval);
+    if (!subscriptionPriceId) {
+      return NextResponse.json({ error: 'Price not configured for this interval' }, { status: 400 });
+    }
+
+    if (!CARD_VERIFY_PRICE_ID) {
+      return NextResponse.json({ error: 'Card verification price not configured' }, { status: 500 });
     }
 
     let customerId = user.stripeCustomerId;
@@ -60,18 +62,22 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?canceled=true`,
-      metadata: { userId: user.id, interval },
+      line_items: [
+        { price: CARD_VERIFY_PRICE_ID, quantity: 1 },
+        { price: subscriptionPriceId, quantity: 1 },
+      ],
       subscription_data: {
-        metadata: { userId: user.id, interval },
+        trial_period_days: 7,
+        metadata: { userId: user.id, interval, adTrial: 'true' },
       },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/start-trial?canceled=true`,
+      metadata: { userId: user.id, interval, adTrial: 'true' },
     });
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error('Checkout error:', error);
+    console.error('Start trial checkout error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

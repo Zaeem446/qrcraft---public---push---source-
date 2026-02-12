@@ -30,6 +30,8 @@ interface User {
   subscriptionStatus: string;
   trialEndsAt: string;
   subscriptionEndsAt: string | null;
+  acquisitionChannel: string;
+  requiresCardTrial: boolean;
   createdAt: string;
   qrCodeCount: number;
   scanCount: number;
@@ -44,6 +46,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [planFilter, setPlanFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [channelFilter, setChannelFilter] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [editModal, setEditModal] = useState<User | null>(null);
   const [deleteModal, setDeleteModal] = useState<User | null>(null);
@@ -58,6 +61,7 @@ export default function AdminUsersPage() {
         search,
         plan: planFilter,
         status: statusFilter,
+        channel: channelFilter,
       });
       const res = await fetch(`/api/admin/users?${params}`);
       if (res.ok) {
@@ -75,7 +79,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [page, search, planFilter, statusFilter]);
+  }, [page, search, planFilter, statusFilter, channelFilter]);
 
   const handleUpdateUser = async (userId: string, data: any) => {
     setSaving(true);
@@ -194,6 +198,19 @@ export default function AdminUsersPage() {
             <option value="expired">Expired</option>
             <option value="canceled">Canceled</option>
           </select>
+          <select
+            value={channelFilter}
+            onChange={(e) => { setChannelFilter(e.target.value); setPage(1); }}
+            className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+          >
+            <option value="all">All Sources</option>
+            <option value="organic">Organic</option>
+            <option value="google_ads">Google Ads</option>
+            <option value="facebook_ads">Facebook Ads</option>
+            <option value="direct">Direct</option>
+            <option value="referral">Referral</option>
+            <option value="other">Other</option>
+          </select>
         </div>
 
         {/* Bulk Actions */}
@@ -231,6 +248,7 @@ export default function AdminUsersPage() {
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Plan</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Source</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">QR Codes</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scans</th>
@@ -241,13 +259,13 @@ export default function AdminUsersPage() {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center">
+                <td colSpan={9} className="px-4 py-12 text-center">
                   <Spinner size="md" />
                 </td>
               </tr>
             ) : users.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-gray-500">
+                <td colSpan={9} className="px-4 py-12 text-center text-gray-500">
                   No users found
                 </td>
               </tr>
@@ -288,6 +306,25 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="capitalize text-gray-900">{user.plan}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+                        user.acquisitionChannel === 'google_ads'
+                          ? 'bg-blue-100 text-blue-700'
+                          : user.acquisitionChannel === 'facebook_ads'
+                          ? 'bg-indigo-100 text-indigo-700'
+                          : user.acquisitionChannel === 'referral'
+                          ? 'bg-purple-100 text-purple-700'
+                          : user.acquisitionChannel === 'direct'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : user.acquisitionChannel === 'organic'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      {user.acquisitionChannel?.replace('_', ' ') || 'organic'}
+                    </span>
                   </td>
                   <td className="px-4 py-3">
                     <span

@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import Script from 'next/script';
 import './globals.css';
 import Providers from '@/components/providers/Providers';
+import AcquisitionTracker from '@/components/AcquisitionTracker';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -45,6 +46,7 @@ export default function RootLayout({
           </Script>
         </head>
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          <AcquisitionTracker />
           <Providers>{children}</Providers>
         </body>
       </html>

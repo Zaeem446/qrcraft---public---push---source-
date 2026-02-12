@@ -24,6 +24,8 @@ export function getSubscriptionEndDate(interval: string): Date {
   }
 }
 
+export const CARD_VERIFY_PRICE_ID = process.env.STRIPE_CARD_VERIFY_PRICE_ID || '';
+
 export const PRICE_IDS: Record<string, string> = {
   // Single plan with 3 billing intervals
   monthly: process.env.STRIPE_MONTHLY_PRICE_ID || '',

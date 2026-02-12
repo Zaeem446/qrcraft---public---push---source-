@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSignUp } from '@clerk/nextjs';
 import { QrCodeIcon } from '@heroicons/react/24/outline';
 import AuthVisual from '@/components/auth/AuthVisual';
+import { getAcquisitionData } from '@/lib/acquisition';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -27,10 +28,17 @@ export default function RegisterPage() {
     setSuccess('');
 
     try {
+      const acqData = getAcquisitionData();
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          acquisitionChannel: acqData?.channel || 'organic',
+          acquisitionData: acqData || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -58,10 +66,17 @@ export default function RegisterPage() {
 
     setSocialLoading(provider);
     try {
+      // Store acquisition data in cookie before OAuth redirect
+      const acqData = getAcquisitionData();
+      if (acqData) {
+        document.cookie = `acquisition_data=${encodeURIComponent(JSON.stringify(acqData))};path=/;max-age=3600;SameSite=Lax`;
+      }
+
+      const isAd = acqData?.channel === 'google_ads' || acqData?.channel === 'facebook_ads';
       await signUp.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/dashboard',
+        redirectUrlComplete: isAd ? '/start-trial' : '/dashboard',
       });
     } catch (err: any) {
       setError(err.message || 'Social signup failed');

@@ -51,6 +51,8 @@ export async function POST(req: NextRequest) {
     // Create response with cookie
     const response = NextResponse.json({
       success: true,
+      requiresCardTrial: user.requiresCardTrial,
+      hasSubscription: !!user.stripeSubscriptionId,
       user: {
         id: user.id,
         name: user.name,

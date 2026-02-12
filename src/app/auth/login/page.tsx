@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSignIn } from '@clerk/nextjs';
 import { QrCodeIcon } from '@heroicons/react/24/outline';
 import AuthVisual from '@/components/auth/AuthVisual';
+import { getAcquisitionData } from '@/lib/acquisition';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,6 +38,12 @@ export default function LoginPage() {
         return;
       }
 
+      // Check if ad user needs to complete card trial
+      if (data.requiresCardTrial && !data.hasSubscription) {
+        router.push('/start-trial');
+        return;
+      }
+
       router.push('/dashboard');
     } catch {
       setError('Something went wrong. Please try again.');
@@ -51,6 +58,12 @@ export default function LoginPage() {
 
     setSocialLoading(provider);
     try {
+      // Store acquisition data in cookie before OAuth redirect
+      const acqData = getAcquisitionData();
+      if (acqData) {
+        document.cookie = `acquisition_data=${encodeURIComponent(JSON.stringify(acqData))};path=/;max-age=3600;SameSite=Lax`;
+      }
+
       await signIn.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
