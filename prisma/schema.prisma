@@ -66,6 +66,8 @@ model User {
   acquisitionChannel  AcquisitionChannel  @default(organic)
   acquisitionData     Json?
   requiresCardTrial   Boolean             @default(false)
+  marketingConsent      Boolean           @default(false)
+  marketingUnsubscribed Boolean           @default(false)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
 

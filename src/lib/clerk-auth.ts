@@ -68,6 +68,7 @@ async function getClerkUser() {
         let acquisitionChannel: string = 'organic';
         let acquisitionData: any = undefined;
         let requiresCardTrial = false;
+        let marketingConsent = false;
 
         try {
           const cookieStore = await cookies();
@@ -77,6 +78,10 @@ async function getClerkUser() {
             acquisitionChannel = parsed.channel || 'organic';
             acquisitionData = parsed;
             requiresCardTrial = acquisitionChannel === 'google_ads' || acquisitionChannel === 'facebook_ads';
+          }
+          const consentCookie = cookieStore.get('marketing_consent')?.value;
+          if (consentCookie === '1') {
+            marketingConsent = true;
           }
         } catch {}
 
@@ -97,8 +102,19 @@ async function getClerkUser() {
             acquisitionChannel: acquisitionChannel as any,
             acquisitionData: acquisitionData || undefined,
             requiresCardTrial,
+            marketingConsent,
           },
         });
+
+        // Sync to MailerLite if user consented (non-blocking)
+        if (marketingConsent) {
+          import('@/lib/mailerlite').then(({ addSubscriberToMailerLite }) => {
+            const firstName = clerkUser.firstName || 'User';
+            addSubscriberToMailerLite(email, firstName).catch((err: unknown) =>
+              console.error('MailerLite sync error:', err)
+            );
+          });
+        }
       }
     }
 

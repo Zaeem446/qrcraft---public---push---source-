@@ -24,7 +24,7 @@ async function getGeoFromIP(ip: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password, acquisitionChannel, acquisitionData } = await req.json();
+    const { name, email, password, acquisitionChannel, acquisitionData, marketingConsent } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
@@ -63,8 +63,18 @@ export async function POST(req: NextRequest) {
         acquisitionChannel: acquisitionChannel || 'organic',
         acquisitionData: acquisitionData || undefined,
         requiresCardTrial: isAdUser,
+        marketingConsent: !!marketingConsent,
       },
     });
+
+    // Sync to MailerLite if user consented (non-blocking)
+    if (marketingConsent) {
+      import('@/lib/mailerlite').then(({ addSubscriberToMailerLite }) => {
+        addSubscriberToMailerLite(email.toLowerCase(), name.split(' ')[0]).catch((err: unknown) =>
+          console.error('MailerLite sync error:', err)
+        );
+      });
+    }
 
     const token = nanoid(32);
     await prisma.verificationToken.create({

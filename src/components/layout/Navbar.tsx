@@ -28,6 +28,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <Link href="/pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</Link>
             <Link href="/faq" className="text-gray-600 hover:text-gray-900 transition-colors">FAQ</Link>
+            <Link href="/contact" className="text-gray-600 hover:text-gray-900 transition-colors">Contact</Link>
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <Link href="/dashboard">
@@ -56,6 +57,7 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-3">
             <Link href="/pricing" className="block text-gray-600 hover:text-gray-900" onClick={() => setMobileOpen(false)}>Pricing</Link>
             <Link href="/faq" className="block text-gray-600 hover:text-gray-900" onClick={() => setMobileOpen(false)}>FAQ</Link>
+            <Link href="/contact" className="block text-gray-600 hover:text-gray-900" onClick={() => setMobileOpen(false)}>Contact</Link>
             {isAuthenticated ? (
               <>
                 <Link href="/dashboard" className="block" onClick={() => setMobileOpen(false)}>

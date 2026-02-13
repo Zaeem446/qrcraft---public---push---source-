@@ -157,6 +157,31 @@ export async function POST(req: NextRequest) {
           },
         });
         console.log(`Invoice paid for customer ${customerId}, renewed until ${periodEnd.toISOString()}`);
+
+        // Send subscription-renewed email on renewals (not first payment)
+        if (invoice.billing_reason === 'subscription_cycle') {
+          const user = await prisma.user.findUnique({
+            where: { stripeCustomerId: customerId },
+          });
+
+          if (user && user.marketingConsent && !user.marketingUnsubscribed) {
+            try {
+              const { sendSubscriptionRenewedEmail } = await import('@/lib/email');
+              const { getUnsubscribeUrl } = await import('@/lib/unsubscribe');
+
+              await sendSubscriptionRenewedEmail(
+                user.email,
+                user.name.split(' ')[0],
+                'Professional',
+                periodEnd.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                getUnsubscribeUrl(user.id)
+              );
+              console.log(`Subscription renewed email sent to ${user.email}`);
+            } catch (emailError) {
+              console.error('Failed to send subscription renewed email:', emailError);
+            }
+          }
+        }
       }
       break;
     }

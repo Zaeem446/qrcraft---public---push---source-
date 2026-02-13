@@ -19,6 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   // Handle email/password registration (custom auth)
   const handleEmailRegister = async (e: React.FormEvent) => {
@@ -38,6 +39,7 @@ export default function RegisterPage() {
           password,
           acquisitionChannel: acqData?.channel || 'organic',
           acquisitionData: acqData || undefined,
+          marketingConsent,
         }),
       });
 
@@ -72,6 +74,8 @@ export default function RegisterPage() {
       if (acqData) {
         document.cookie = `acquisition_data=${encodeURIComponent(JSON.stringify(acqData))};path=/;max-age=3600;SameSite=Lax`;
       }
+      // Store marketing consent in cookie before OAuth redirect
+      document.cookie = `marketing_consent=${marketingConsent ? '1' : '0'};path=/;max-age=3600;SameSite=Lax`;
 
       const isAd = acqData?.channel === 'google_ads' || acqData?.channel === 'facebook_ads';
       await signUp.authenticateWithRedirect({
@@ -116,6 +120,19 @@ export default function RegisterPage() {
             {success}
           </div>
         )}
+
+        {/* Marketing Consent */}
+        <label className="flex items-start gap-3 mb-6 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={marketingConsent}
+            onChange={(e) => setMarketingConsent(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm text-gray-600">
+            I&apos;d like to receive product updates, tips, and promotional emails from QRCraft. You can unsubscribe at any time.
+          </span>
+        </label>
 
         {/* Social Signup Buttons */}
         <div className="space-y-3 mb-6">

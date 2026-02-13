@@ -33,7 +33,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Support</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/faq" className="hover:text-white transition-colors">Help Center</Link></li>
-              <li><a href="mailto:support@qr-craft.online" className="hover:text-white transition-colors">Contact Us</a></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
             </ul>
           </div>
         </div>
