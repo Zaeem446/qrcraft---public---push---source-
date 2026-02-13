@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CheckIcon } from '@heroicons/react/24/solid';
-import { SparklesIcon, ShieldCheckIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, ShieldCheckIcon, CreditCardIcon, GiftIcon } from '@heroicons/react/24/outline';
 import { PRICING, PLAN_FEATURES } from '@/lib/utils';
 
 type BillingInterval = 'monthly' | 'quarterly' | 'annually';
@@ -119,8 +119,8 @@ function StartTrialContent() {
             animate={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full mb-6"
           >
-            <SparklesIcon className="h-4 w-4" />
-            7-Day Free Trial
+            <GiftIcon className="h-4 w-4" />
+            Limited Time Offer
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -135,16 +135,20 @@ function StartTrialContent() {
             transition={{ delay: 0.1 }}
             className="text-blue-100 text-lg mb-2"
           >
-            Get full access to all features for 7 days.
+            Get full access to all premium features for 7 days.
           </motion.p>
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-blue-200 text-sm"
+            className="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-xl mt-4"
           >
-            Just $0.99 card verification today. Cancel anytime.
-          </motion.p>
+            <span className="text-5xl font-bold text-white">$0</span>
+            <div className="text-left">
+              <p className="text-white font-semibold text-sm">today</p>
+              <p className="text-blue-200 text-xs">for 7 days, cancel anytime</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -169,6 +173,15 @@ function StartTrialContent() {
             {error}
           </motion.div>
         )}
+
+        {/* Interval label */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center text-sm text-gray-500 mb-6"
+        >
+          Choose your plan after the free trial:
+        </motion.p>
 
         {/* Plan Cards */}
         <motion.div
@@ -227,18 +240,20 @@ function StartTrialContent() {
                   {plan.label}
                 </h3>
 
+                {/* $0 Price */}
                 <div className="text-center mt-6 mb-2">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-lg font-medium text-gray-500">$</span>
-                    <span className="text-4xl font-bold text-gray-900">
-                      {plan.perMonth.toFixed(2)}
-                    </span>
-                    <span className="text-gray-500 text-sm"> USD/mo</span>
+                    <span className="text-lg font-medium text-green-500">$</span>
+                    <span className="text-5xl font-bold text-green-500">0</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                  <p className="text-sm text-gray-500 mt-2">for 7 days</p>
+                  <div className="mt-2 inline-flex items-center gap-1 bg-gray-50 px-3 py-1 rounded-full">
+                    <span className="text-xs text-gray-400 line-through">${plan.perMonth.toFixed(2)}/mo</span>
+                    <span className="text-xs text-green-600 font-medium">FREE</span>
+                  </div>
                   {plan.discount > 0 && (
-                    <p className="text-xs text-green-600 font-medium mt-1">
-                      Save {plan.discount}% vs monthly
+                    <p className="text-xs text-green-600 font-medium mt-2">
+                      Save {plan.discount}% vs monthly after trial
                     </p>
                   )}
                 </div>
@@ -248,7 +263,7 @@ function StartTrialContent() {
                     onClick={(e) => { e.stopPropagation(); handleStartTrial(option.key); }}
                     disabled={loading}
                     className={
-                      'w-full py-3 rounded-xl font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ' +
+                      'w-full py-3.5 rounded-xl font-semibold text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed ' +
                       (isPopular || isSelected
                         ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25'
                         : 'bg-gray-100 text-gray-900 hover:bg-gray-200')
@@ -259,6 +274,7 @@ function StartTrialContent() {
                 </div>
 
                 <div className="border-t border-gray-100 pt-6">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Everything included:</p>
                   <ul className="space-y-3">
                     {PLAN_FEATURES.map((feature) => (
                       <li key={feature} className="flex items-start gap-2.5">
@@ -276,7 +292,7 @@ function StartTrialContent() {
           })}
         </motion.div>
 
-        {/* Payment Info Banner */}
+        {/* How it works */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -284,14 +300,15 @@ function StartTrialContent() {
           className="mt-12"
         >
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 p-8">
+            <h3 className="text-lg font-bold text-gray-900 text-center mb-8">How your free trial works</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <CreditCardIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Today you pay: $0.99</h4>
-                  <p className="text-sm text-gray-600">One-time card verification charge</p>
+                  <h4 className="font-semibold text-gray-900 mb-1">Authorize your card</h4>
+                  <p className="text-sm text-gray-600">Quick verification to start your trial</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -299,8 +316,8 @@ function StartTrialContent() {
                   <SparklesIcon className="h-6 w-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-1">7 days completely free</h4>
-                  <p className="text-sm text-gray-600">Full access to all features</p>
+                  <h4 className="font-semibold text-gray-900 mb-1">7 days full access</h4>
+                  <p className="text-sm text-gray-600">All premium features unlocked</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
