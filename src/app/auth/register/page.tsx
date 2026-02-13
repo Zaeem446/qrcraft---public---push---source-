@@ -19,7 +19,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
-  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(true);
 
   // Handle email/password registration (custom auth)
   const handleEmailRegister = async (e: React.FormEvent) => {
