@@ -13,6 +13,7 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">QRCraft</span>
             </div>
             <p className="text-sm">Create, customize, and track QR codes with powerful analytics.</p>
+            <p className="text-xs mt-2">5840 Red Bug Lake Rd 2047, Winter Springs, FL 32708</p>
           </div>
           <div>
             <h3 className="text-white font-semibold mb-4">Product</h3>

@@ -94,7 +94,7 @@ const faqCategories = [
       },
       {
         q: "What happens to my QR codes if I cancel my subscription?",
-        a: "If you cancel your subscription, your QR codes will remain in your dashboard but you won't be able to edit them or access analytics data. Existing QR codes will continue to redirect until the end of your billing period."
+        a: "When you cancel your subscription, you'll retain full access to all features — including editing and analytics — until the end of your current billing period. After that, your QR codes will remain in your dashboard but you won't be able to edit them or access analytics. Please note that all fees are non-refundable and no partial credits are issued for unused time."
       },
       {
         q: "What happens to my QR codes after the trial period?",
