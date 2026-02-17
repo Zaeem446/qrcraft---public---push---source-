@@ -72,7 +72,7 @@ const sections = [
   },
   {
     title: "17. Contact Us",
-    content: "If you have any questions about these Terms and Conditions, please contact us at legal@qr-craft.online."
+    content: "If you have any questions about these Terms and Conditions, please contact us at support@qr-craft.online."
   },
 ];
 
@@ -125,7 +125,7 @@ export default function TermsPage() {
         <div className="mt-12 pt-8 border-t border-gray-200 flex gap-4">
           <Link href="/privacy" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Privacy Policy</Link>
           <Link href="/faq" className="text-blue-600 hover:text-blue-700 font-medium text-sm">FAQ</Link>
-          <a href="mailto:legal@qr-craft.online" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Legal</a>
+          <a href="mailto:support@qr-craft.online" className="text-blue-600 hover:text-blue-700 font-medium text-sm">Contact Support</a>
         </div>
       </div>
 
