@@ -104,7 +104,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create an account</h1>
-          <p className="text-gray-500">Start your free 7-day trial. No credit card required.</p>
+          <p className="text-gray-500">Start your free 7-day trial. Cancel anytime.</p>
         </div>
 
         {/* Error message */}

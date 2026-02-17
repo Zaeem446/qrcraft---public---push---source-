@@ -39,6 +39,7 @@ export default function Footer() {
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-sm text-center">
           <p>&copy; {new Date().getFullYear()} QRCraft. All rights reserved.</p>
+          <p className="mt-2 text-xs text-gray-600">&apos;QR Code&apos; is a registered trademark of DENSO WAVE INCORPORATED.</p>
         </div>
       </div>
     </footer>

@@ -120,7 +120,7 @@ function StartTrialContent() {
             className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white text-sm font-medium px-4 py-2 rounded-full mb-6"
           >
             <GiftIcon className="h-4 w-4" />
-            Limited Time Offer
+            7-Day Free Trial
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}

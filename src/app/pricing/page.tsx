@@ -129,7 +129,7 @@ export default function PricingPage() {
             transition={{ delay: 0.2 }}
             className="text-blue-200 text-sm"
           >
-            Start with a free 7-day trial. No credit card required.
+            Start with a free 7-day trial. Cancel anytime.
           </motion.p>
         </div>
       </section>

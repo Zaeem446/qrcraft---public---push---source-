@@ -32,7 +32,7 @@ const sections = [
   },
   {
     title: "7. Free Trial",
-    content: "New users receive a 7-day free trial with full access to all features. No credit card is required to start the trial. At the end of the trial period, you must subscribe to a paid plan to continue accessing premium features. Your QR codes and data will be preserved after the trial ends."
+    content: "New users receive a 7-day free trial with full access to all features. A valid payment method is required to start the trial, but you will not be charged during the trial period. You may cancel anytime before the trial ends. At the end of the trial period, your selected plan will activate automatically. Your QR codes and data will be preserved after the trial ends."
   },
   {
     title: "8. Refund Policy",
