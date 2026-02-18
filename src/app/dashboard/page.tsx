@@ -99,6 +99,18 @@ export default function DashboardPage() {
       .catch(console.error);
   }, []);
 
+  // Google Ads conversion tracking after successful payment
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true' && typeof (window as any).gtag === 'function') {
+      (window as any).gtag('event', 'conversion', {
+        send_to: 'AW-17960530620/xGBECMPxzPobELzln_RC',
+        value: 1.0,
+        currency: 'USD',
+      });
+    }
+  }, []);
+
   const handleDelete = async (id: string) => {
     setDeleting(true);
     try {
