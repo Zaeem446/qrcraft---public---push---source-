@@ -50,12 +50,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto-logged in via session cookie — redirect
-      if (data.requiresCardTrial) {
-        router.push('/start-trial');
-      } else {
-        router.push('/dashboard');
-      }
+      // Auto-logged in via session cookie — redirect to dashboard
+      router.push('/dashboard');
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -77,11 +73,10 @@ export default function RegisterPage() {
       // Store marketing consent in cookie before OAuth redirect
       document.cookie = `marketing_consent=${marketingConsent ? '1' : '0'};path=/;max-age=3600;SameSite=Lax`;
 
-      const isAd = acqData?.channel === 'google_ads' || acqData?.channel === 'facebook_ads';
       await signUp.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: isAd ? '/start-trial' : '/dashboard',
+        redirectUrlComplete: '/dashboard',
       });
     } catch (err: any) {
       setError(err.message || 'Social signup failed');

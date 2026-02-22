@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User already has a subscription' }, { status: 400 });
     }
 
-    const { interval } = await req.json();
+    const { interval, successRedirect } = await req.json();
 
     if (!['monthly', 'quarterly', 'annually'].includes(interval)) {
       return NextResponse.json({ error: 'Invalid billing interval' }, { status: 400 });
@@ -101,8 +101,12 @@ export async function POST(req: NextRequest) {
         trial_period_days: 7,
         metadata: { userId: user.id, interval, adTrial: 'true' },
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/start-trial?canceled=true`,
+      success_url: successRedirect
+        ? `${process.env.NEXT_PUBLIC_APP_URL}${successRedirect}`
+        : `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?success=true`,
+      cancel_url: successRedirect
+        ? `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/create`
+        : `${process.env.NEXT_PUBLIC_APP_URL}/start-trial?canceled=true`,
       metadata: { userId: user.id, interval, adTrial: 'true' },
     });
 

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useRef, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
-import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon, CheckIcon } from "@heroicons/react/24/solid";
 import {
   ArrowLeftIcon, ArrowRightIcon, LockClosedIcon, FolderIcon, QrCodeIcon,
   ArrowDownTrayIcon, SparklesIcon, PaintBrushIcon, DocumentCheckIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { PRICING, PLAN_FEATURES } from "@/lib/utils";
 import Spinner from "@/components/ui/Spinner";
 import TypeSelector from "@/components/qr/TypeSelector";
 import ContentForms from "@/components/qr/ContentForms";
@@ -33,8 +35,17 @@ const STEPS = [
   { num: 4, label: "Download", icon: ArrowDownTrayIcon, description: "Get your QR" },
 ];
 
-export default function CreateQRPage() {
+type BillingInterval = 'monthly' | 'quarterly' | 'annually';
+
+const billingOptions: { key: BillingInterval; popular?: boolean }[] = [
+  { key: 'monthly' },
+  { key: 'annually', popular: true },
+  { key: 'quarterly' },
+];
+
+function CreateQRPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [qrType, setQrType] = useState("");
   const [hoveredType, setHoveredType] = useState("");
@@ -79,6 +90,14 @@ export default function CreateQRPage() {
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState("");
   const [facebookPixelId, setFacebookPixelId] = useState("");
   const [googleTagManagerId, setGoogleTagManagerId] = useState("");
+
+  // Ad user trial gate state
+  const [adUserNeedsTrial, setAdUserNeedsTrial] = useState(false);
+  const [showTrialGate, setShowTrialGate] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState<BillingInterval>('annually');
+  const [trialLoading, setTrialLoading] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
   const activePreview = hoveredType || qrType || "";
 
@@ -130,6 +149,130 @@ export default function CreateQRPage() {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Check if this is an ad user who needs trial (on mount)
+  useEffect(() => {
+    async function checkAdUserStatus() {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.requiresCardTrial && !data.stripeSubscriptionId) {
+            setAdUserNeedsTrial(true);
+          }
+        }
+      } catch {
+        // Silently fail — not critical for page function
+      }
+    }
+    checkAdUserStatus();
+  }, []);
+
+  // Handle return from Stripe payment
+  useEffect(() => {
+    if (searchParams.get("payment") !== "success") return;
+
+    setProcessingPayment(true);
+    let retries = 0;
+    const maxRetries = 8;
+
+    const pollSubscription = async () => {
+      try {
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.stripeSubscriptionId) {
+            // Payment confirmed — trigger auto-download
+            setProcessingPayment(false);
+            setPaymentConfirmed(true);
+            setAdUserNeedsTrial(false);
+            setShowTrialGate(false);
+
+            // Auto-download from localStorage
+            try {
+              const pending = localStorage.getItem("pendingQrDownload");
+              if (pending) {
+                const { qrId, qrName, format } = JSON.parse(pending);
+                localStorage.removeItem("pendingQrDownload");
+                // Set createdQr so Step 4 renders correctly
+                setCreatedQr({ id: qrId, imageUrl: "" });
+                setStep(4);
+                // Trigger download
+                const dlRes = await fetch(`/api/qrcodes/${qrId}/image?format=${format || "png"}`);
+                if (dlRes.ok) {
+                  const blob = await dlRes.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `${qrName || "qrcode"}.${format || "png"}`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success("QR code downloaded!");
+                }
+              }
+            } catch {
+              // Download from localStorage failed — user can still download manually
+            }
+            return;
+          }
+        }
+      } catch {
+        // Network error — will retry
+      }
+
+      retries++;
+      if (retries < maxRetries) {
+        setTimeout(pollSubscription, 2000);
+      } else {
+        setProcessingPayment(false);
+        toast.error("Payment verification timed out. Please refresh the page.");
+      }
+    };
+
+    pollSubscription();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // Start trial for ad user
+  const handleStartTrial = async (interval?: BillingInterval) => {
+    const chosen = interval || selectedInterval;
+    setTrialLoading(true);
+    try {
+      // Save pending download to localStorage before redirect
+      if (createdQr?.id) {
+        localStorage.setItem("pendingQrDownload", JSON.stringify({
+          qrId: createdQr.id,
+          qrName: name,
+          format: "png",
+        }));
+      }
+
+      const res = await fetch("/api/stripe/start-trial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interval: chosen,
+          successRedirect: "/dashboard/create?payment=success",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.redirect) {
+          router.push(data.redirect);
+          return;
+        }
+        toast.error(data.error || "Something went wrong");
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setTrialLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error("Please enter a name"); return; }
@@ -370,64 +513,187 @@ export default function CreateQRPage() {
           {/* ─── Step 4: Download ──────────────────────────────────── */}
           {step === 4 && createdQr && (
             <div className="space-y-6">
-              <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xl p-8 text-center">
-                {/* Success animation */}
-                <div className="relative w-20 h-20 mx-auto mb-6">
-                  <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping" />
-                  <div className="relative w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
-                    <CheckCircleIcon className="h-10 w-10 text-white" />
-                  </div>
+              {/* Processing payment spinner */}
+              {processingPayment && (
+                <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xl p-12 text-center">
+                  <div className="w-12 h-12 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto mb-6" />
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Processing payment...</h2>
+                  <p className="text-gray-500 text-sm">Verifying your subscription. This may take a few seconds.</p>
                 </div>
+              )}
 
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">QR Code Created!</h2>
-                <p className="text-gray-500 mb-8">Your QR code &ldquo;{name}&rdquo; is ready to use. Download it below.</p>
-
-                {createdQr.id ? (
-                  <div className="relative inline-block mb-8">
-                    <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
-                    <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                      <img
-                        src={`/api/qrcodes/${createdQr.id}/image?format=png`}
-                        alt="Your QR Code"
-                        className="w-64 h-64 mx-auto object-contain"
-                        onError={(e) => {
-                          // Fallback to preview URL if API fails
-                          if (createdQr.imageUrl) {
-                            (e.target as HTMLImageElement).src = createdQr.imageUrl;
-                          }
-                        }}
-                      />
+              {/* Main Step 4 content (not processing) */}
+              {!processingPayment && (
+                <>
+                  <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xl p-8 text-center">
+                    {/* Success animation */}
+                    <div className="relative w-20 h-20 mx-auto mb-6">
+                      <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping" />
+                      <div className="relative w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/30">
+                        <CheckCircleIcon className="h-10 w-10 text-white" />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-2xl p-8 mb-8 inline-block">
-                    <QrCodeIcon className="h-32 w-32 mx-auto text-gray-300" />
-                    <p className="text-xs text-gray-400 mt-3">QR code preview unavailable</p>
-                  </div>
-                )}
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                  <button onClick={() => downloadQr("png")}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-violet-500/25 transition-all">
-                    <ArrowDownTrayIcon className="h-5 w-5" /> Download PNG
-                  </button>
-                  <button onClick={() => downloadQr("svg")}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-violet-200 rounded-xl text-violet-600 font-semibold hover:bg-violet-50 hover:border-violet-300 transition-all">
-                    <ArrowDownTrayIcon className="h-5 w-5" /> Download SVG
-                  </button>
-                </div>
-              </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">QR Code Created!</h2>
+                    <p className="text-gray-500 mb-8">
+                      Your QR code &ldquo;{name}&rdquo; is ready
+                      {adUserNeedsTrial && !paymentConfirmed ? " — start your free trial to download." : " to use. Download it below."}
+                    </p>
 
-              <div className="flex items-center justify-between">
-                <button onClick={() => { setCreatedQr(null); setStep(3); }}
-                  className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-                  <ArrowLeftIcon className="h-4 w-4" /> Edit Design
-                </button>
-                <button onClick={() => router.push("/dashboard")}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-900 rounded-xl text-sm text-white font-semibold hover:bg-gray-800 transition-all">
-                  Go to Dashboard <ArrowRightIcon className="h-4 w-4" />
-                </button>
-              </div>
+                    {createdQr.id ? (
+                      <div className="relative inline-block mb-8">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-3xl blur-xl" />
+                        <div className="relative bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                          <img
+                            src={`/api/qrcodes/${createdQr.id}/image?format=png`}
+                            alt="Your QR Code"
+                            className="w-64 h-64 mx-auto object-contain"
+                            onError={(e) => {
+                              if (createdQr.imageUrl) {
+                                (e.target as HTMLImageElement).src = createdQr.imageUrl;
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-2xl p-8 mb-8 inline-block">
+                        <QrCodeIcon className="h-32 w-32 mx-auto text-gray-300" />
+                        <p className="text-xs text-gray-400 mt-3">QR code preview unavailable</p>
+                      </div>
+                    )}
+
+                    {/* Download buttons (for organic users OR ad users who paid) */}
+                    {(!adUserNeedsTrial || paymentConfirmed) && (
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button onClick={() => downloadQr("png")}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-violet-600 to-purple-600 rounded-xl text-white font-semibold hover:shadow-lg hover:shadow-violet-500/25 transition-all">
+                          <ArrowDownTrayIcon className="h-5 w-5" /> Download PNG
+                        </button>
+                        <button onClick={() => downloadQr("svg")}
+                          className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-violet-200 rounded-xl text-violet-600 font-semibold hover:bg-violet-50 hover:border-violet-300 transition-all">
+                          <ArrowDownTrayIcon className="h-5 w-5" /> Download SVG
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Trial gate for ad users */}
+                  {adUserNeedsTrial && !paymentConfirmed && (
+                    <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-xl p-8">
+                      <div className="text-center mb-6">
+                        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-medium px-4 py-2 rounded-full mb-4">
+                          <LockClosedIcon className="h-4 w-4" />
+                          Download your QR code
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-1">Start your free trial to download</h3>
+                        <p className="text-gray-500 text-sm">Get full access to all premium features for 7 days.</p>
+                      </div>
+
+                      {/* Plan cards */}
+                      <div className="grid md:grid-cols-3 gap-4 mb-6">
+                        {billingOptions.map((option) => {
+                          const plan = PRICING[option.key];
+                          const isPopular = option.popular;
+                          const isSelected = selectedInterval === option.key;
+
+                          return (
+                            <div
+                              key={option.key}
+                              onClick={() => setSelectedInterval(option.key)}
+                              className={
+                                "relative bg-white rounded-2xl border-2 p-6 cursor-pointer transition-all " +
+                                (isSelected
+                                  ? "border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500"
+                                  : isPopular
+                                    ? "border-blue-300 shadow-md"
+                                    : "border-gray-200 hover:border-gray-300")
+                              }
+                            >
+                              {isPopular && (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                                  <SparklesIcon className="h-3 w-3" />
+                                  Best Value
+                                </div>
+                              )}
+
+                              {plan.discount > 0 && (
+                                <div className="absolute -top-2 -right-2 w-11 h-11 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow">
+                                  <span className="text-white text-[10px] font-bold">{plan.discount}%</span>
+                                </div>
+                              )}
+
+                              {/* Selection indicator */}
+                              <div className={
+                                "absolute top-3 left-3 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all " +
+                                (isSelected ? "border-blue-500 bg-blue-500" : "border-gray-300")
+                              }>
+                                {isSelected && <CheckIcon className="h-2.5 w-2.5 text-white" />}
+                              </div>
+
+                              <h4 className={"text-base font-bold text-center mb-1 " + (isPopular ? "text-blue-600" : "text-gray-900")}>
+                                {plan.label}
+                              </h4>
+
+                              <div className="text-center mt-3 mb-2">
+                                <div className="flex items-baseline justify-center gap-1">
+                                  <span className="text-sm font-medium text-green-500">$</span>
+                                  <span className="text-3xl font-bold text-green-500">0</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">for 7 days</p>
+                                <div className="mt-1.5 inline-flex items-center gap-1 bg-gray-50 px-2.5 py-0.5 rounded-full">
+                                  <span className="text-[10px] text-gray-400 line-through">${plan.perMonth.toFixed(2)}/mo</span>
+                                  <span className="text-[10px] text-green-600 font-medium">FREE</span>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleStartTrial(option.key); }}
+                                disabled={trialLoading}
+                                className={
+                                  "w-full py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-3 " +
+                                  (isPopular || isSelected
+                                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/25"
+                                    : "bg-gray-100 text-gray-900 hover:bg-gray-200")
+                                }
+                              >
+                                {trialLoading && selectedInterval === option.key ? "Processing..." : "Start Free Trial"}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Trust bar */}
+                      <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400 pt-4 border-t border-gray-100">
+                        <span className="flex items-center gap-1">
+                          <ShieldCheckIcon className="h-3.5 w-3.5" />
+                          Only $0.99 card verification
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <CheckCircleIcon className="h-3.5 w-3.5 text-green-400" />
+                          Cancel anytime
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <LockClosedIcon className="h-3.5 w-3.5" />
+                          Secure payment via Stripe
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => { setCreatedQr(null); setStep(3); }}
+                      className="flex items-center gap-2 px-5 py-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
+                      <ArrowLeftIcon className="h-4 w-4" /> Edit Design
+                    </button>
+                    <button onClick={() => router.push("/dashboard")}
+                      className="flex items-center gap-2 px-6 py-3 bg-gray-900 rounded-xl text-sm text-white font-semibold hover:bg-gray-800 transition-all">
+                      Go to Dashboard <ArrowRightIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -531,5 +797,17 @@ export default function CreateQRPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CreateQRPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <CreateQRPageContent />
+    </Suspense>
   );
 }

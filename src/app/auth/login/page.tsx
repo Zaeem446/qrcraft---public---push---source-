@@ -46,12 +46,6 @@ function LoginContent() {
         return;
       }
 
-      // Check if ad user needs to complete card trial
-      if (data.requiresCardTrial && !data.hasSubscription) {
-        router.push('/start-trial');
-        return;
-      }
-
       router.push('/dashboard');
     } catch {
       setError('Something went wrong. Please try again.');
