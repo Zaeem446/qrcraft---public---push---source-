@@ -65,11 +65,12 @@ function PricingFAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function PricingPage() {
-  const { isAuthenticated } = useAuthUser();
+  const { isAuthenticated, isLoading } = useAuthUser();
   const router = useRouter();
   const [loadingInterval, setLoadingInterval] = useState<string | null>(null);
 
   const handleSubscribe = async (interval: BillingInterval) => {
+    if (isLoading) return; // Wait for auth to finish loading
     if (!isAuthenticated) {
       router.push("/auth/register");
       return;
