@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/clerk-auth';
-import { squareClient, LOCATION_ID, getVariationId, getPlanLabel } from '@/lib/square';
+import { squareClient, LOCATION_ID, getVariationId, getPriceCents, getPlanLabel } from '@/lib/square';
 import prisma from '@/lib/db';
 
 export async function POST(req: NextRequest) {
@@ -66,15 +66,15 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
 
     // Create a checkout link for subscription.
-    // quickPay price must match the plan variation's first phase ($0 trial).
-    // The subscription billing follows the plan variation phases automatically.
+    // quickPay shows the actual subscription price to the customer.
+    // The plan variation phases control the actual billing schedule.
     const checkoutResponse = await squareClient.checkout.paymentLinks.create({
       idempotencyKey: `checkout-${user.id}-${Date.now()}`,
       quickPay: {
         locationId: LOCATION_ID,
         name: getPlanLabel(interval),
         priceMoney: {
-          amount: BigInt(0),
+          amount: BigInt(getPriceCents(interval)),
           currency: 'USD',
         },
       },
