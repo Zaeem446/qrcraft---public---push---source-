@@ -100,6 +100,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Block downloads for ad users who haven't paid
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { requiresCardTrial: true, squareSubscriptionId: true },
+    });
+    if (userData?.requiresCardTrial && !userData?.squareSubscriptionId) {
+      return NextResponse.json({ error: 'Payment required to download' }, { status: 403 });
+    }
+
     const { id } = await params;
     const { searchParams } = new URL(req.url);
     const format = (searchParams.get('format') || 'png') as 'png' | 'webp' | 'jpeg' | 'svg';
