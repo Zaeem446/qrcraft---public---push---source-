@@ -45,12 +45,12 @@ function StartTrialContent() {
           return;
         }
         const data = await res.json();
-        if (!data.requiresCardTrial || data.stripeSubscriptionId) {
+        if (!data.requiresCardTrial || data.squareSubscriptionId) {
           router.push('/dashboard');
           return;
         }
         // If user just paid but webhook hasn't fired yet, retry once after 2s
-        if (data.requiresCardTrial && !data.stripeSubscriptionId && retryCount < 1) {
+        if (data.requiresCardTrial && !data.squareSubscriptionId && retryCount < 1) {
           await new Promise((r) => setTimeout(r, 2000));
           return checkEligibility(retryCount + 1);
         }
@@ -69,7 +69,7 @@ function StartTrialContent() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/stripe/start-trial', {
+      const res = await fetch('/api/square/start-trial', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interval: chosen }),
@@ -361,7 +361,7 @@ function StartTrialContent() {
           className="mt-12 text-center"
         >
           <p className="text-xs text-gray-400">
-            Secure payment powered by Stripe. Your card details are never stored on our servers.
+            Secure payment processing. Your card details are never stored on our servers.
           </p>
         </motion.div>
       </div>

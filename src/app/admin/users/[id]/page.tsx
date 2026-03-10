@@ -57,8 +57,8 @@ interface UserData {
   isDisabled: boolean;
   plan: string;
   subscriptionStatus: string;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
+  squareCustomerId: string | null;
+  squareSubscriptionId: string | null;
   trialEndsAt: string | null;
   subscriptionEndsAt: string | null;
   isTrialActive: boolean;
@@ -513,9 +513,9 @@ export default function AdminUserDetailPage() {
               </span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Stripe ID</span>
+              <span className="text-gray-500">Square ID</span>
               <span className="text-gray-900 font-mono text-xs">
-                {user.stripeCustomerId || 'None'}
+                {user.squareCustomerId || 'None'}
               </span>
             </div>
             {user.subscriptionEndsAt && (

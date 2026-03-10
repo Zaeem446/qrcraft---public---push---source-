@@ -99,6 +99,9 @@ function CreateQRPageContent() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
 
+  // Mobile preview state
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+
   const activePreview = hoveredType || qrType || "";
 
   // Fetch QR preview from QRFY via our API
@@ -157,7 +160,7 @@ function CreateQRPageContent() {
         const res = await fetch("/api/user/profile");
         if (res.ok) {
           const data = await res.json();
-          if (data.requiresCardTrial && !data.stripeSubscriptionId) {
+          if (data.requiresCardTrial && !data.squareSubscriptionId) {
             setAdUserNeedsTrial(true);
           }
         }
@@ -168,7 +171,7 @@ function CreateQRPageContent() {
     checkAdUserStatus();
   }, []);
 
-  // Handle return from Stripe payment
+  // Handle return from payment
   useEffect(() => {
     if (searchParams.get("payment") !== "success") return;
 
@@ -181,7 +184,7 @@ function CreateQRPageContent() {
         const res = await fetch("/api/user/profile");
         if (res.ok) {
           const data = await res.json();
-          if (data.stripeSubscriptionId) {
+          if (data.squareSubscriptionId) {
             // Payment confirmed — trigger auto-download
             setProcessingPayment(false);
             setPaymentConfirmed(true);
@@ -247,7 +250,7 @@ function CreateQRPageContent() {
         }));
       }
 
-      const res = await fetch("/api/stripe/start-trial", {
+      const res = await fetch("/api/square/start-trial", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -668,7 +671,7 @@ function CreateQRPageContent() {
                       <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400 pt-4 border-t border-gray-100">
                         <span className="flex items-center gap-1">
                           <ShieldCheckIcon className="h-3.5 w-3.5" />
-                          Only $0.99 card verification
+                          No charge today
                         </span>
                         <span className="flex items-center gap-1">
                           <CheckCircleIcon className="h-3.5 w-3.5 text-green-400" />
@@ -676,7 +679,7 @@ function CreateQRPageContent() {
                         </span>
                         <span className="flex items-center gap-1">
                           <LockClosedIcon className="h-3.5 w-3.5" />
-                          Secure payment via Stripe
+                          Secure payment
                         </span>
                       </div>
                     </div>
@@ -796,6 +799,73 @@ function CreateQRPageContent() {
           </div>
         </div>
       </div>
+
+      {/* Mobile QR Preview - Sticky Bottom Bar (visible on steps 2-3, hidden on lg) */}
+      {step >= 2 && step < 4 && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
+          {/* Expanded preview overlay */}
+          {showMobilePreview && (
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setShowMobilePreview(false)}
+            />
+          )}
+
+          {/* Expanded bottom sheet */}
+          {showMobilePreview && (
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl p-6 pb-8">
+              <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+              <p className="text-center text-sm font-semibold text-gray-900 mb-4">QR Preview</p>
+              <div className="flex justify-center mb-4">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="QR Preview"
+                    className="w-[200px] h-[200px] object-contain"
+                  />
+                ) : qrType ? (
+                  <CustomSVGQR content={content} type={qrType} design={design} size={200} />
+                ) : (
+                  <div className="w-[200px] h-[200px] bg-gray-100 rounded-lg flex items-center justify-center">
+                    <QrCodeIcon className="h-16 w-16 text-gray-300" />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setShowMobilePreview(false)}
+                className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          )}
+
+          {/* Collapsed sticky bar */}
+          {!showMobilePreview && (
+            <button
+              onClick={() => setShowMobilePreview(true)}
+              className="w-full bg-white border-t border-gray-200 shadow-lg px-4 py-3 flex items-center gap-3"
+            >
+              <div className="w-[52px] h-[52px] bg-gray-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-100">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="QR" className="w-[44px] h-[44px] object-contain" />
+                ) : qrType ? (
+                  <CustomSVGQR content={content} type={qrType} design={design} size={44} />
+                ) : (
+                  <QrCodeIcon className="h-6 w-6 text-gray-300" />
+                )}
+              </div>
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-gray-900">QR Preview</p>
+                <p className="text-xs text-gray-500">Tap to preview</p>
+              </div>
+              {previewLoading && (
+                <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              )}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

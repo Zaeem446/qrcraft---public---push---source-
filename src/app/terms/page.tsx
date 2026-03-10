@@ -32,7 +32,7 @@ const sections = [
   },
   {
     title: "7. Purchases, Payments & Subscriptions",
-    content: "We accept payment via Visa, Mastercard, American Express, and other major credit/debit cards processed securely through Stripe. All prices are displayed in USD. Your subscription renews automatically unless canceled before the next billing period. Your payment method will be automatically charged at the end of any free trial period and at each renewal. You may cancel your subscription at any time through your dashboard Settings page. We will provide notice before any fee increases take effect."
+    content: "We accept payment via Visa, Mastercard, American Express, and other major credit/debit cards processed securely through Square. All prices are displayed in USD. Your subscription renews automatically unless canceled before the next billing period. Your payment method will be automatically charged at the end of any free trial period and at each renewal. You may cancel your subscription at any time through your dashboard Settings page. We will provide notice before any fee increases take effect."
   },
   {
     title: "8. Free Trial",

@@ -22,7 +22,7 @@ const billingOptions: {
 
 const pricingFAQ = [
   { q: "What is your refund and cancellation policy?", a: "All fees are non-refundable. You can cancel your subscription at any time from your dashboard Settings page. Upon cancellation, you'll retain full access to all features until the end of your current billing period. No partial refunds or credits are issued for unused time." },
-  { q: "What are my payment options?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely through Stripe with industry-standard encryption." },
+  { q: "What are my payment options?", a: "We accept all major credit and debit cards (Visa, Mastercard, American Express, Discover) processed securely with industry-standard encryption." },
   { q: "Can I cancel my subscription anytime?", a: "Yes, you can easily cancel your subscription from your dashboard. Your plan will remain active until the end of your current billing period." },
   { q: "Can I change my billing cycle later?", a: "You can switch between monthly, quarterly, and annual billing at any time. Changes take effect at the next billing cycle." },
   { q: "What happens when my trial expires?", a: "Once your 7-day trial ends, you'll need to subscribe to a paid plan to continue creating and editing QR codes. Your existing codes and data will be preserved." },
@@ -76,7 +76,7 @@ export default function PricingPage() {
     }
     setLoadingInterval(interval);
     try {
-      const res = await fetch("/api/stripe/checkout", {
+      const res = await fetch("/api/square/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: "professional", interval }),

@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       requiresCardTrial: user.requiresCardTrial,
-      hasSubscription: !!user.stripeSubscriptionId,
+      hasSubscription: !!user.squareSubscriptionId,
       user: {
         id: user.id,
         name: user.name,

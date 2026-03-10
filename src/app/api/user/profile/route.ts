@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/clerk-auth';
-import { stripe } from '@/lib/stripe';
+import { squareClient, LOCATION_ID } from '@/lib/square';
 import prisma from '@/lib/db';
 
 export async function GET() {
@@ -19,39 +19,46 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // For ad users who paid but webhook never synced: check Stripe directly
+    // For ad users who paid but webhook never synced: check Square directly
     if (
-      stripe &&
+      squareClient &&
       userData.requiresCardTrial &&
-      userData.stripeCustomerId &&
-      !userData.stripeSubscriptionId
+      userData.squareCustomerId &&
+      !userData.squareSubscriptionId
     ) {
       try {
-        const subs = await stripe.subscriptions.list({
-          customer: userData.stripeCustomerId,
-          limit: 1,
+        const searchResponse = await squareClient.subscriptions.search({
+          query: {
+            filter: {
+              customerIds: [userData.squareCustomerId],
+              locationIds: [LOCATION_ID],
+            },
+          },
         });
-        if (subs.data.length > 0) {
-          const sub = subs.data[0];
+        const subs = searchResponse.subscriptions || [];
+        const activeSub = subs.find(
+          (s) => s.status === 'ACTIVE' || s.status === 'PENDING'
+        );
+        if (activeSub) {
           const statusMap: Record<string, string> = {
-            active: 'active',
-            trialing: 'trialing',
-            past_due: 'past_due',
-            canceled: 'canceled',
+            ACTIVE: 'active',
+            PENDING: 'trialing',
+            CANCELED: 'canceled',
+            PAUSED: 'canceled',
           };
-          const mappedStatus = statusMap[sub.status] || 'active';
+          const mappedStatus = statusMap[activeSub.status || ''] || 'active';
           userData = await prisma.user.update({
             where: { id: user.id },
             data: {
-              stripeSubscriptionId: sub.id,
+              squareSubscriptionId: activeSub.id,
               subscriptionStatus: mappedStatus as any,
               plan: 'professional',
             },
             omit: { password: true },
           });
         }
-      } catch (stripeErr) {
-        console.error('Stripe sync check failed:', stripeErr);
+      } catch (squareErr) {
+        console.error('Square sync check failed:', squareErr);
       }
     }
 

@@ -8,7 +8,7 @@ import Link from "next/link";
 const sections = [
   {
     title: "1. Information We Collect",
-    content: "We collect information you provide directly to us when registering for an account, including your name, email address, and password. When you sign in via Google or Facebook through Clerk, we receive your name, email address, and profile photo. We do not access your contacts, posts, or other social data. When you make a purchase, our payment processor Stripe collects your payment information — we do not store credit card details on our servers. We also collect usage data automatically, including IP addresses, browser type, device characteristics, operating system, language preferences, referring URLs, and timestamps."
+    content: "We collect information you provide directly to us when registering for an account, including your name, email address, and password. When you sign in via Google or Facebook through Clerk, we receive your name, email address, and profile photo. We do not access your contacts, posts, or other social data. When you make a purchase, our payment processor Square collects your payment information — we do not store credit card details on our servers. We also collect usage data automatically, including IP addresses, browser type, device characteristics, operating system, language preferences, referring URLs, and timestamps."
   },
   {
     title: "2. QR Code Scan Data",
@@ -28,7 +28,7 @@ const sections = [
   },
   {
     title: "6. Third-Party Services",
-    content: "We use the following third-party services that may collect or process information: Stripe for payment processing (subject to Stripe's Privacy Policy); Clerk for authentication and social OAuth login (subject to Clerk's Privacy Policy); Resend for transactional emails such as account confirmations and receipts; MailerLite for marketing email communications; Google Ads for conversion tracking and advertising measurement; Meta Pixel for advertising measurement and audience insights; and ip-api.com for anonymous IP geolocation of QR code scans. Each of these services has their own privacy policy governing the use of your information."
+    content: "We use the following third-party services that may collect or process information: Square for payment processing (subject to Square's Privacy Policy); Clerk for authentication and social OAuth login (subject to Clerk's Privacy Policy); Resend for transactional emails such as account confirmations and receipts; MailerLite for marketing email communications; Google Ads for conversion tracking and advertising measurement; Meta Pixel for advertising measurement and audience insights; and ip-api.com for anonymous IP geolocation of QR code scans. Each of these services has their own privacy policy governing the use of your information."
   },
   {
     title: "7. Cookies and Tracking",

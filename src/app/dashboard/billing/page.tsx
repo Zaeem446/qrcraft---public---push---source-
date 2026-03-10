@@ -9,34 +9,84 @@ import { formatDate, PLAN_FEATURES } from "@/lib/utils";
 import {
   CreditCardIcon,
   CheckCircleIcon,
-  ArrowTopRightOnSquareIcon,
   SparklesIcon,
+  XCircleIcon,
 } from "@heroicons/react/24/outline";
 
 export default function BillingPage() {
   const [profile, setProfile] = useState<any>(null);
+  const [subInfo, setSubInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [portalLoading, setPortalLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [resumeLoading, setResumeLoading] = useState(false);
 
-  useEffect(() => {
+  const fetchProfile = () => {
     fetch("/api/user/profile")
       .then((r) => r.json())
       .then(setProfile)
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  const fetchSubInfo = () => {
+    fetch("/api/square/portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    })
+      .then((r) => r.json())
+      .then((data) => setSubInfo(data.subscription || null))
+      .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchProfile();
+    fetchSubInfo();
   }, []);
 
-  const handleManageSubscription = async () => {
-    setPortalLoading(true);
+  const handleCancelSubscription = async () => {
+    if (!confirm("Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.")) return;
+    setCancelLoading(true);
     try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const res = await fetch("/api/square/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel" }),
+      });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else toast.error("Unable to open billing portal");
+      if (data.success) {
+        toast.success(data.message || "Subscription canceled");
+        fetchProfile();
+        fetchSubInfo();
+      } else {
+        toast.error(data.error || "Failed to cancel subscription");
+      }
     } catch {
       toast.error("Something went wrong");
     }
-    setPortalLoading(false);
+    setCancelLoading(false);
+  };
+
+  const handleResumeSubscription = async () => {
+    setResumeLoading(true);
+    try {
+      const res = await fetch("/api/square/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "resume" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message || "Subscription resumed");
+        fetchProfile();
+        fetchSubInfo();
+      } else {
+        toast.error(data.error || "Failed to resume subscription");
+      }
+    } catch {
+      toast.error("Something went wrong");
+    }
+    setResumeLoading(false);
   };
 
   const trialEndsAt = profile?.trialEndsAt ? new Date(profile.trialEndsAt) : null;
@@ -44,6 +94,9 @@ export default function BillingPage() {
   const trialDaysLeft = trialEndsAt ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0;
 
   const isPaid = profile?.plan && profile.plan !== "free";
+  const isActive = profile?.subscriptionStatus === "active";
+  const isCanceled = profile?.subscriptionStatus === "canceled";
+  const hasPendingCancel = !!subInfo?.pendingCancel;
 
   if (loading) {
     return (
@@ -125,21 +178,48 @@ export default function BillingPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
         <h2 className="text-base font-semibold text-gray-900 mb-1">Manage Subscription</h2>
         <p className="text-sm text-gray-500 mb-5">
-          Update your payment method, change plan, or cancel your subscription.
+          Change your plan or cancel your subscription.
         </p>
 
         <div className="flex flex-wrap gap-3">
-          {profile?.stripeCustomerId ? (
+          {profile?.squareSubscriptionId && isActive && !hasPendingCancel && (
             <Button
-              onClick={handleManageSubscription}
-              isLoading={portalLoading}
+              onClick={handleCancelSubscription}
+              isLoading={cancelLoading}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
             >
-              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-              Open Billing Portal
+              <XCircleIcon className="h-4 w-4" />
+              Cancel Subscription
             </Button>
-          ) : (
+          )}
+          {profile?.squareSubscriptionId && hasPendingCancel && (
+            <>
+              <p className="w-full text-sm text-amber-600 mb-1">
+                Your subscription is set to cancel on{" "}
+                <strong>{subInfo.pendingCancel.effectiveDate || "end of billing period"}</strong>.
+              </p>
+              <Button
+                onClick={handleResumeSubscription}
+                isLoading={resumeLoading}
+                className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+              >
+                <SparklesIcon className="h-4 w-4" />
+                Undo Cancellation
+              </Button>
+            </>
+          )}
+          {profile?.squareSubscriptionId && isCanceled && !hasPendingCancel && (
+            <Button
+              onClick={handleResumeSubscription}
+              isLoading={resumeLoading}
+              className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+            >
+              <SparklesIcon className="h-4 w-4" />
+              Resume Subscription
+            </Button>
+          )}
+          {!profile?.squareSubscriptionId && (
             <Link href="/pricing">
               <Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700">
                 <SparklesIcon className="h-4 w-4 mr-2" />
@@ -156,7 +236,7 @@ export default function BillingPage() {
       {/* Billing Info */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-base font-semibold text-gray-900 mb-1">Billing Information</h2>
-        <p className="text-sm text-gray-500 mb-5">Your billing details and payment history.</p>
+        <p className="text-sm text-gray-500 mb-5">Your billing details.</p>
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div className="bg-gray-50 rounded-lg p-4">
@@ -173,12 +253,12 @@ export default function BillingPage() {
               <p className="text-sm font-semibold text-gray-900">{formatDate(trialEndsAt)}</p>
             </div>
           )}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-xs font-medium text-gray-500 mb-1">Customer ID</p>
-            <p className="text-sm font-semibold text-gray-900 font-mono">
-              {profile?.stripeCustomerId || "Not connected"}
-            </p>
-          </div>
+          {profile?.subscriptionEndsAt && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <p className="text-xs font-medium text-gray-500 mb-1">Renews On</p>
+              <p className="text-sm font-semibold text-gray-900">{formatDate(new Date(profile.subscriptionEndsAt))}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

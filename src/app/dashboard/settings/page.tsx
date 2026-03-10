@@ -73,15 +73,8 @@ export default function SettingsPage() {
 
   const handleManageSubscription = async () => {
     setPortalLoading(true);
-    try {
-      const res = await fetch("/api/stripe/portal", { method: "POST" });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else toast.error("Unable to open billing portal");
-    } catch {
-      toast.error("Something went wrong");
-    }
-    setPortalLoading(false);
+    // Navigate to billing page for full subscription management
+    window.location.href = "/dashboard/billing";
   };
 
   if (loading) return <div className="flex justify-center items-center h-64"><Spinner size="lg" /></div>;
@@ -132,7 +125,7 @@ export default function SettingsPage() {
             </div>
           )}
           <div className="pt-3">
-            {profile?.stripeCustomerId ? (
+            {profile?.squareCustomerId ? (
               <Button onClick={handleManageSubscription} isLoading={portalLoading} variant="outline">
                 Manage Subscription
               </Button>

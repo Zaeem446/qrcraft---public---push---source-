@@ -60,8 +60,8 @@ model User {
   plan                Plan                @default(free)
   trialEndsAt         DateTime            @default(dbgenerated("NOW() + INTERVAL '7 days'"))
   subscriptionEndsAt  DateTime?
-  stripeCustomerId    String?             @unique
-  stripeSubscriptionId String?
+  squareCustomerId    String?             @unique
+  squareSubscriptionId String?
   subscriptionStatus  SubscriptionStatus  @default(trialing)
   acquisitionChannel  AcquisitionChannel  @default(organic)
   acquisitionData     Json?

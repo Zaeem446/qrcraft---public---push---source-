@@ -24,8 +24,8 @@ interface User {
   subscriptionStatus: string;
   trialEndsAt: string;
   subscriptionEndsAt: string | null;
-  stripeCustomerId: string | null;
-  stripeSubscriptionId: string | null;
+  squareCustomerId: string | null;
+  squareSubscriptionId: string | null;
   qrCodeCount: number;
   createdAt: string;
 }
@@ -203,7 +203,7 @@ export default function AdminSubscriptionsPage() {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ends At</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">QR Codes</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stripe</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Square</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -261,7 +261,7 @@ export default function AdminSubscriptionsPage() {
                     </td>
                     <td className="px-4 py-3 text-gray-600">{user.qrCodeCount}</td>
                     <td className="px-4 py-3">
-                      {user.stripeSubscriptionId ? (
+                      {user.squareSubscriptionId ? (
                         <span className="text-xs text-green-600">Connected</span>
                       ) : (
                         <span className="text-xs text-gray-400">Not connected</span>

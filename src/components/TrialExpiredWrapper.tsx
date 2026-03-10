@@ -16,11 +16,11 @@ function TrialExpiredWrapperInner() {
       const res = await fetch("/api/user/profile");
       if (res.ok) {
         const data = await res.json();
-        const { subscriptionStatus, trialEndsAt, requiresCardTrial, stripeSubscriptionId } = data;
+        const { subscriptionStatus, trialEndsAt, requiresCardTrial, squareSubscriptionId } = data;
 
         // Ad users without subscription can freely use the dashboard
         // (download gating happens on the create page instead)
-        if (requiresCardTrial && !stripeSubscriptionId) {
+        if (requiresCardTrial && !squareSubscriptionId) {
           setLoading(false);
           return;
         }

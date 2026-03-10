@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
         },
         marketingConsent: true,
         marketingUnsubscribed: false,
-        stripeSubscriptionId: null, // No active subscription
+        squareSubscriptionId: null, // No active subscription
       },
       select: {
         id: true,
